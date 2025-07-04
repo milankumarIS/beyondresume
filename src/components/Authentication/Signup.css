@@ -1,0 +1,105 @@
+.signup_content {
+    --background: #ffffff;
+}
+
+.signup_welcome {
+    /* margin-top: 20px; */
+    margin-left: 30px;
+    color: #0a5c6b;
+    font-size: 40px !important;
+    font-family: Codec-Warm-ExtraBold-trial !important;
+}
+
+.signup_text {
+    margin-top: 10px;
+    margin-left: 30px;
+    padding-right: 40px;
+    color: #000000;
+    font-size: 15px !important;
+    font-family: Codec-Warm-ExtraBold-trial !important;
+}
+
+.signup_googlebtn {
+    margin-top: 40px;
+    display: flex;
+    justify-content: center;
+}
+
+.signup_text1 {
+    margin-top: 30px;
+    margin-bottom: 40px;
+    color: #000000;
+    font-size: 17px !important;
+    font-family: Codec-Warm-ExtraBold-trial !important;
+    display: flex;
+    justify-content: center;
+}
+
+
+.signup_terms {
+    margin-top: 20px;
+    margin-left: 5%;
+    color: #0a5c6b;
+    font-size: 17px !important;
+    font-family: Codec-Warm-ExtraBold-trial !important;
+    margin-bottom: 30px;
+}
+
+.signup_terms ion-checkbox::part(container) {
+    border-radius: 6px;
+    border: 2px solid #0a5c6b;
+    background: #f1f1f1;
+    --checkmark-color: #0a5c6b;
+}
+
+.signup_btns {
+    margin-top: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100vw;
+}
+
+.signup_btn {
+    border-radius: 10px !important;
+    padding: 0px 50px !important;
+    color: #ffffff;
+    height: 50px;
+    width: fit-content;
+    font-size: 28px !important;
+    text-transform: none !important;
+    color: #ffffff !important;
+    font-family: Codec-Warm-ExtraBold-trial !important;
+    background-color: #0a5c6b !important;
+
+}
+
+@media (max-width : 950px) {
+
+
+    .signup_btn {
+        font-size: 22px !important;
+    }
+}
+
+
+
+.signup_text2 {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    color: #000000;
+    font-size: 17px !important;
+    font-family: Codec-Warm-ExtraBold-trial !important;
+    margin-bottom: 30px;
+}
+
+.signup_login {
+    color: #0a5c6b;
+    cursor: pointer;
+    margin-left: 10px !important;
+    font-family: Codec-Warm-ExtraBold-trial !important;
+    font-size: 17px !important;
+
+}
+

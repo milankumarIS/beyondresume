@@ -1,0 +1,21 @@
+.custom-rating-main-div {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.custom-rating-icon-div {
+    cursor: pointer;
+}
+
+.custom-rating-icon-div.filled > svg {
+    fill: #dc860a
+}
+
+.custom-rating-icon-div > svg {
+    fill: #5d5d5a
+}
+
+.custom-rating-icon-div:hover > svg {
+    fill: #f69309;
+    transform: scale(1.2);
+}

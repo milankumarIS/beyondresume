@@ -1,0 +1,346 @@
+.header {
+  box-shadow: none;
+  position: sticky;
+  z-index: 100;
+  width: 100%;
+  background: #ffffff;
+}
+
+.toolbar_sm_up {
+  --background: rgb(255, 255, 255);
+  height: auto;
+  --min-height: 0px;
+  border-bottom-left-radius: 15px;
+  border-bottom-right-radius: 15px;
+  box-shadow: 0px 0px 15px #0000005a;
+}
+
+.header_logo {
+  margin-top: -2.5px;
+  width: 50px;
+  height: 50px;
+  margin-left: -8px;
+}
+
+.header_btns {
+  align-items: center;
+  justify-content: center;
+  display: flex;
+  color: black;
+}
+
+#header_btns {
+  color: #0a5c6b;
+  font-family: 'custom-bold';
+}
+
+.header_btns_col {
+  display: flex;
+  justify-content: flex-end;
+}
+
+
+.header_btns_div2 {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.header_btns_div {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+}
+
+/* .header_btn {
+  font-size: 15px;
+  font-family: 'Codec-Cold-ExtraBold-trial';
+  transition: transform 0.3s ease-in-out,color 0.3s ease-in-out;
+}
+
+.header_btn:hover {
+  box-shadow: 0px 0px 10px #0000001f;
+  transform: scale(1.08);
+  color: #0a5c6b;
+} */
+
+#header_btn1 {
+  font-size: 15px;
+  font-family: 'Codec-Cold-ExtraBold-trial';
+
+}
+
+#header_btn {
+  font-size: 15px;
+  font-family: 'Codec-Cold-ExtraBold-trial';
+  color: #000000;
+  transition: transform 0.3s ease-in-out,color 0.1s ease-in-out;
+}
+
+
+#header_btn:hover {
+  box-shadow: 0px 0px 10px #0000001f;
+  transform: scale(1.08);
+  background: #f5f5f5;
+  color: #0a5c6b;
+
+}
+
+.signin_tab {
+  --color: #0d00ff;
+  font-family: 'Codec-Cold-ExtraBold-trial';
+  --background: #0a5d6bb0;
+}
+
+.signup_tab {
+  font-family: 'Codec-Cold-ExtraBold-trial';
+  background: #0a5c6b;
+  color: #ffffff;
+  border-radius: 4px;
+}
+
+.signin_desktop {
+  --color: #0d00ff;
+  font-family: 'Codec-Cold-ExtraBold-trial';
+  --background: #0a5d6bb0;
+}
+
+.signup_desktop {
+  font-family: 'Codec-Cold-ExtraBold-trial';
+  background: #0a5c6b;
+  color: #ffffff;
+  border-radius: 4px;
+  font-size: 15px;
+}
+
+.header_logout {
+  font-family: 'Codec-Cold-ExtraBold-trial' !important;
+  background: #0a5c6b !important;
+  color: #ffffff !important;
+  padding: 6px 10px !important;
+  border-radius: 4px;
+  font-size: 15px;
+  height: fit-content;
+}
+
+
+.toolbar_sm_down {
+  --background: rgb(255, 255, 255);
+  height: auto;
+  --min-height: 0px;
+  border-bottom-left-radius: 15px;
+  border-bottom-right-radius: 15px;
+  box-shadow: 0px 0px 10px #0000005a;
+}
+
+
+.searchbar {
+  --background: #c1c1c16c;
+  --color: #000000;
+  --placeholder-color: #000000;
+  --icon-color: #000000;
+  --clear-button-color: #000000;
+  --border-radius: 2px;
+  --box-shadow: none;
+  /* box-shadow: 0px 0px 14px #5C5696 inset; */
+}
+
+.searchbar-search-icon.sc-ion-searchbar-md,
+.searchbar-cancel-button.sc-ion-searchbar-md {
+  inset-inline-start: 10px;
+  margin-top: -1px;
+}
+
+.searchbar-input.sc-ion-searchbar-md {
+  /* --webkit-padding-start: 15%;
+  padding-inline-start: 15%; */
+  --webkit-padding-end: 0;
+  padding-inline-end: 0;
+  height: auto;
+  --color: #0d00ff;
+  font-family: 'Codec-Cold-Bold-trial';
+  text-align: left;
+}
+
+ion-toolbar .sc-ion-searchbar-ios-h {
+  padding-bottom: 0px;
+  min-height: auto;
+}
+
+.searchbar-input-container.sc-ion-searchbar-ios {
+
+  min-height: 36px;
+  border-radius: 2px;
+}
+
+.header_icon_col {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.header_icon {
+  height: 20px;
+  color: #0a5c6b;
+}
+
+.ion-delegate-host {
+  --border-radius: 65px;
+  --background: #f70000;
+  --width: 200px;
+  height: auto;
+}
+
+
+.popover_card {
+  /* border-radius: 15px; */
+  -webkit-margin-start: 0px;
+  margin-inline-start: 0px;
+  -webkit-margin-end: 0px;
+  margin-inline-end: 0px;
+  margin-top: 0px;
+  margin-bottom: 0px;
+}
+
+.menu_hover_item {
+  color: #ffffff;
+  --background: #0a5c6b;
+}
+
+.menu_hover_item_icon {
+  padding-right: 8px;
+  height: 19px;
+}
+
+
+@media (min-width:576px) {
+  .header_btn {
+    font-size: 10px;
+    font-family: 'Codec-Cold-ExtraBold-trial';
+  }
+
+  .header_logout {
+    font-size: 12px;
+    /* width: 120%; */
+  
+  }
+}
+
+
+@media (min-width:746px) {
+  .header_btn {
+    font-size: 15px;
+    font-family: 'Codec-Cold-ExtraBold-trial';
+  }
+
+  .header_logout {
+    font-size: 15px;
+    width: auto;
+  
+  }
+}
+
+
+
+
+.navbar {
+  /* width: 450px; */
+  /* display: flex; */
+  overflow-x: auto; 
+  white-space: nowrap; 
+  width: 100%;
+  /* height: 90px; */
+  --background: #ffffff;
+  --color: none;
+}
+
+.navbar_icon {
+  height: 21px;
+  margin-bottom: 5px;
+  margin-top: 5px;
+  transition: 100ms ease-in-out;
+}
+
+.navbar_icon:hover {
+  scale: 1.1;
+  transition: 150ms;
+}
+
+
+.navbarcol {
+  /* flex: 0 0 auto; */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  width: 100px;
+}
+
+.navbar_txt {
+  color: #2a2a2ae3;
+  font-size: 10px;
+  text-align: center;
+  font-family: 'Codec-Warm-Heavy-trial';
+}
+
+.scrollable-row {
+/* display: flex; */
+gap: 20px;
+display: flex;
+justify-content: space-between;
+overflow-x: auto; 
+white-space: nowrap;
+width: 100vw;
+/* width: 450px; */
+/* position: absolute; */
+color: #000000;
+padding-right: 10px;
+padding-left: 10px;
+padding-bottom: 10px;
+margin-top: 10px;
+}
+
+
+
+/* Dropdown container */
+.dropdown {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 50px;
+}
+
+.dropbtn {
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+}
+
+/* Dropdown content (hidden by default) */
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f9f9f9;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+  z-index: 1;
+}
+
+/* Show dropdown content on hover */
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+
+.dropdown-content a {
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+}
+
+/* Change color of links on hover */
+.dropdown-content a:hover {
+  background-color: #f1f1f1;
+}

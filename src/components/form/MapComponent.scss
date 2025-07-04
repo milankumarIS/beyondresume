@@ -1,0 +1,15 @@
+.leaflet-control-attribution {
+    display: none;
+}
+
+.leaflet-routing-container, .leaflet-routing-error {
+    display: none !important;
+}
+
+.leaflet-container .leaflet-marker-pane img {
+    display: none !important;
+}
+
+.leaflet-container .leaflet-marker-pane .custom-icon {
+    display: block !important;
+}

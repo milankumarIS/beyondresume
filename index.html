@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <title>Beyond Resume</title>
+
+  <base href="/" />
+
+  <meta name="color-scheme" content="light dark" />
+  <meta name="viewport"
+    content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="format-detection" content="telephone=no" />
+  <meta name="msapplication-tap-highlight" content="no" />
+
+  <!-- <link rel="manifest" href="/manifest.json" /> -->
+  <link rel="icon" type="image/x-icon" href="/favicon.png" />
+
+  <!-- add to homescreen for ios -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Beyond Resume" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+
+
+
+
+  <style>
+    .goog-te-banner-frame.skiptranslate {
+      display: none !important;
+    }
+
+    #google_translate_element {
+      position: fixed;
+      top: 55px;
+      right: 25px;
+      z-index: 1000;
+      height: 35px;
+    }
+
+    body {
+      top: 0 !important;
+    }
+
+    body>.skiptranslate {
+      top: -40px !important;
+      position: fixed !important;
+      width: 100%;
+    }
+
+    .goog-te-combo {
+      padding: 4px;
+      font-size: 16px;
+      border: 2px solid rgb(65, 63, 63);
+      background-color: rgb(255, 254, 254);
+      color: rgb(17, 16, 16);
+      text-align: center;
+    }
+  </style>
+
+</head>
+
+<body style=" overflow-x: hidden; background-color: white; gap: 0; overflow-y: auto;">
+  <div style="width: 100vw;" id="root"></div>
+
+  <div id="google_translate_element" style="display: none !important;">
+
+
+    <script type="module" src="/src/main.tsx"></script>
+    <script type="text/javascript">
+      function googleTranslateElementInit() {
+        new google.translate.TranslateElement(
+          {
+            pageLanguage: "en",
+            layout: google.translate.TranslateElement.InlineLayout.VERTICAL
+          },
+          'google_translate_element'
+        );
+      }
+    </script>
+    <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async></script>
+
+    <script>
+      if (window.location.host !== 'localhost:5173') {
+        document.addEventListener('contextmenu', function (e) {
+          e.preventDefault();
+        });
+        document.onkeydown = function (e) {
+          if (e.keyCode == 123) {
+            return false;
+          }
+          if (e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) {
+            return false;
+          }
+          if (e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) {
+            return false;
+          }
+          if (e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) {
+            return false;
+          }
+          if (e.ctrlKey && e.keyCode == 'P'.charCodeAt(0)) {
+        e.preventDefault();
+        return false;
+      }
+        }
+      }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/regenerator-runtime@0.13.9/runtime.js"></script>
+
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"></script>
+</body>
+
+</html>
