@@ -17,6 +17,6 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ component: Compo
   }, [Component, path]);
 
   return (
-    <Route path={path} render={() => getUserId() !== 0 ? <Component />: <Redirect to="/login" />} />
+    <Route path={path} render={() => getUserId() !== 0 ? <Component />: <Redirect to="/auth-callback" />} />
   );
 };

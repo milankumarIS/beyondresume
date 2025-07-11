@@ -1263,7 +1263,13 @@ const levels = [
   "Academic Titan",
 ];
 
-const genderArray1 = ["Male", "Female", "Other"];
+const genderArray1 = [
+  { label: "Male", value: "1" },
+  { label: "Female", value: "2" },
+  { label: "Other", value: "3" },
+];
+
+
 
 const relations = [
   { label: "Father", value: "father" },

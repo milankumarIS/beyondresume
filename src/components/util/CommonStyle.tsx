@@ -18,6 +18,7 @@ export const BeyondResumeButton = styled((props: ButtonProps) => (
   transition: "all 0.3s",
   "&:hover": {
     transform: "scale(1.08)",
+    borderColor:'transparent'
   },
 }));
 

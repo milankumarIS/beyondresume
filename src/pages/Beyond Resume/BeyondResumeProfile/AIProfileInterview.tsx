@@ -6,7 +6,6 @@ import { BeyondResumeButton } from "../../../components/util/CommonStyle";
 import color from "../../../theme/color";
 import { commonFormTextFieldSx } from "../../../components/util/CommonFunctions";
 
-
 const AIProfileInterview = (open) => {
   if (!open) return null;
 
@@ -31,10 +30,10 @@ const AIProfileInterview = (open) => {
   };
 
   const startRecording = () => {
-const SpeechRecognitionAPI =
-  window.SpeechRecognition || window.webkitSpeechRecognition;
+    const SpeechRecognitionAPI =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
 
-const recognition = new SpeechRecognitionAPI();
+    const recognition = new SpeechRecognitionAPI();
 
     if (!SpeechRecognitionAPI) return alert("Not supported");
 

@@ -34,9 +34,10 @@ export default function SkillsForm({
     <form onSubmit={handleSubmit(onSave)}>
       <Stack spacing={2}>
         <FormTextField
-          label="Skills (comma separated)"
+          label="Skills"
           valueProp="skills"
           errors={errors}
+          placeholder="Eg. React, Node.js"
           register={register}
           withValidationClass={false}
           sx={commonFormTextFieldSx}

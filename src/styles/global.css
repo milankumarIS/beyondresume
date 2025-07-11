@@ -31,7 +31,7 @@ html, body {
   color: black;
   background-color: #ffffff;
   box-sizing: border-box;
-    /* min-height: 100vh; */
+  /* min-height: 100vh; */
   /* min-height: calc(100vh - 78px); */
 
   /* overflow-y: auto; */
@@ -57,7 +57,7 @@ html, body {
   }
 } */
 
-.full-screen-div{
+.full-screen-div {
   min-width: 100vw;
   padding: 16px;
   background: white;
@@ -712,8 +712,12 @@ ion-loading.custom-loading {
 }
 
 @keyframes rotate {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 .out-top {
   animation: rotate 20s linear infinite;
@@ -722,17 +726,14 @@ ion-loading.custom-loading {
 .in-top {
   animation: rotate 10s linear infinite;
   transform-origin: 13px 25px;
-
 }
 .out-bottom {
   animation: rotate 25s linear infinite;
   transform-origin: 84px 97px;
-
 }
 .in-bottom {
   animation: rotate 15s linear infinite;
   transform-origin: 84px 93px;
-
 }
 
 @keyframes floatBoth {
@@ -768,8 +769,7 @@ ion-loading.custom-loading {
   transform: translateY(0);
 }
 
-
-/* From Uiverse.io by G4b413l */ 
+/* From Uiverse.io by G4b413l */
 .newtons-cradle {
   --uib-size: 50px;
   --uib-speed: 1.2s;
@@ -780,65 +780,114 @@ ion-loading.custom-loading {
   justify-content: center;
   width: var(--uib-size);
   height: var(--uib-size);
- }
- 
- .newtons-cradle__dot {
+}
+
+.newtons-cradle__dot {
   position: relative;
   display: flex;
   align-items: center;
   height: 100%;
   width: 25%;
   transform-origin: center top;
- }
- 
- .newtons-cradle__dot::after {
-  content: '';
+}
+
+.newtons-cradle__dot::after {
+  content: "";
   display: block;
   width: 100%;
   height: 25%;
   border-radius: 50%;
   background-color: var(--uib-color);
- }
- 
- .newtons-cradle__dot:first-child {
+}
+
+.newtons-cradle__dot:first-child {
   animation: swing var(--uib-speed) linear infinite;
- }
- 
- .newtons-cradle__dot:last-child {
+}
+
+.newtons-cradle__dot:last-child {
   animation: swing2 var(--uib-speed) linear infinite;
- }
- 
- @keyframes swing {
+}
+
+@keyframes swing {
   0% {
-   transform: rotate(0deg);
-   animation-timing-function: ease-out;
+    transform: rotate(0deg);
+    animation-timing-function: ease-out;
   }
- 
+
   25% {
-   transform: rotate(70deg);
-   animation-timing-function: ease-in;
+    transform: rotate(70deg);
+    animation-timing-function: ease-in;
   }
- 
+
   50% {
-   transform: rotate(0deg);
-   animation-timing-function: linear;
+    transform: rotate(0deg);
+    animation-timing-function: linear;
   }
- }
- 
- @keyframes swing2 {
+}
+
+@keyframes swing2 {
   0% {
-   transform: rotate(0deg);
-   animation-timing-function: linear;
+    transform: rotate(0deg);
+    animation-timing-function: linear;
   }
- 
+
   50% {
-   transform: rotate(0deg);
-   animation-timing-function: ease-out;
+    transform: rotate(0deg);
+    animation-timing-function: ease-out;
   }
- 
+
   75% {
-   transform: rotate(-70deg);
-   animation-timing-function: ease-in;
+    transform: rotate(-70deg);
+    animation-timing-function: ease-in;
   }
- }
- 
+}
+
+.MuiButton-root:focus {
+  outline: none;
+}
+.MuiToggleButton-root:focus {
+  outline: none;
+}
+.MuiTab-root:focus {
+  outline: none;
+}
+.MuiIconButton-root:focus {
+  outline: none;
+}
+.MuiPickersMonth-monthButton {
+  line-height: 0 !important;
+  outline: none;
+  line-height: fit-content !important;
+}
+.MuiPickersMonth-monthButton:focus {
+  line-height: 0 !important;
+  outline: none;
+}
+.MuiPickersYear-yearButton {
+  line-height: 0 !important;
+  outline: none;
+  line-height: fit-content !important;
+}
+.MuiPickersYear-yearButton:focus {
+  line-height: 0 !important;
+  outline: none;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(0, 123, 255, 0.7);
+  }
+  70% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 10px rgba(0, 123, 255, 0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(0, 123, 255, 0);
+  }
+}
+
+.pulse-button {
+  animation: pulse 2s infinite;
+}

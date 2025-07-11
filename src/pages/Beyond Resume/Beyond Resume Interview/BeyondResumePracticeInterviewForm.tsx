@@ -10,6 +10,7 @@ import {
 } from "../../../components/util/CommonStyle";
 import { getUserId } from "../../../services/axiosClient";
 import {
+  getProfile,
   insertDataInTable,
   searchListDataFromTable
 } from "../../../services/services";
@@ -40,7 +41,7 @@ const BeyondResumePracticeInterviewForm = () => {
   const [about, setAbout] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [userExperience, setUserExperience] = useState("");
+  // const [userExperience, setUserExperience] = useState("");
 
   const history = useHistory();
   const openSnackBar = useSnackbar();
@@ -52,6 +53,29 @@ const BeyondResumePracticeInterviewForm = () => {
   const [loading, setLoading] = useState(true);
 
   // console.log(jobsData)
+
+    const [currentUser, setCurrentUser] = useState<any>();
+    useEffect(() => {
+      getProfile().then((result: any) => {
+        const data = result?.data?.data;
+        setCurrentUser(data);
+        if (data?.userPersonalInfo || data?.userContact) {
+          const fullName = [
+            data?.userPersonalInfo?.firstName,
+            data?.userPersonalInfo?.middleName,
+            data?.userPersonalInfo?.lastName,
+          ]
+            .filter(Boolean)
+            .join(" ");
+  
+          setName(fullName);
+          setEmail(data?.userContact?.userEmail || "");
+          setPhone(data?.userContact?.userPhoneNumber || "");
+  
+          setAbout(data?.userPersonalInfo?.about || "");
+        }
+      });
+    }, []);
 
   useEffect(() => {
     searchListDataFromTable("brMockInterviews", {
@@ -72,7 +96,7 @@ const BeyondResumePracticeInterviewForm = () => {
       brInterviewStatus: "INPROGRESS",
       name,
       about,
-      userExperience,
+      // userExperience,
     };
 
     // console.log(payload)
@@ -177,14 +201,14 @@ const BeyondResumePracticeInterviewForm = () => {
               },
             }}
           />
-          <TextField
+          {/* <TextField
             fullWidth
             label="Experience Summary"
             variant="outlined"
             value={userExperience}
             onChange={(e) => setUserExperience(e.target.value)}
             sx={{ ...commonFormTextFieldSx, mb: 2 }}
-          />
+          /> */}
         </Box>
 
         <BeyondResumeButton

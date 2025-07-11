@@ -15,17 +15,17 @@ export default function FormAutocomplete2({
   search = "Search & Select",
 }: any) {
   const getLabel = (option: any) =>
-    typeof option === "string" ? option : option?.[labelProp];
+    typeof option === "string" ? option : option?.[labelProp] ?? "";
 
   const getPrimaryKey = (option: any) =>
-    typeof option === "string" ? option : option?.[primeryKey];
+    typeof option === "string" ? option : option?.[primeryKey] ?? option;
 
-  const [selectedValue, setSelectedValue] = React.useState(
+  const [selectedValue, setSelectedValue] = React.useState<any>(
     options.find((option: any) =>
       primeryKey
         ? getPrimaryKey(option) === getPrimaryKey(defaultValue)
         : option === defaultValue
-    ) || null
+    ) || defaultValue || null
   );
 
   React.useEffect(() => {
@@ -34,7 +34,7 @@ export default function FormAutocomplete2({
         primeryKey
           ? getPrimaryKey(option) === getPrimaryKey(defaultValue)
           : option === defaultValue
-      ) || null
+      ) || defaultValue || null
     );
   }, [options, defaultValue, primeryKey]);
 
@@ -67,8 +67,9 @@ export default function FormAutocomplete2({
         />
       ) : (
         <Autocomplete
+          freeSolo
           options={options}
-          getOptionLabel={(option: any) => getLabel(option) || ""}
+          getOptionLabel={(option: any) => getLabel(option)}
           value={selectedValue}
           onChange={handleOptionChange}
           renderInput={(params) => (
@@ -81,7 +82,7 @@ export default function FormAutocomplete2({
               placeholder={`${search} ${label}`}
               variant="outlined"
               fullWidth
-              label={`${label}`}
+              label={label}
             />
           )}
           isOptionEqualToValue={(option, value) =>

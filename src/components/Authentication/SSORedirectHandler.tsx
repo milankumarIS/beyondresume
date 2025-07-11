@@ -1,18 +1,18 @@
-import { Typography } from "@mui/material";
+import { Typography, Snackbar, Alert as MuiAlert } from "@mui/material";
 import Box from "@mui/material/Box";
 import { jwtDecode } from "jwt-decode";
 import { useEffect, useState } from "react";
 import { useHistory, useLocation } from "react-router-dom";
-import { setCurrentAccessToken } from "../../services/axiosClient";
+import { getUserRole, setCurrentAccessToken } from "../../services/axiosClient";
 import {
   login,
+  logoutAnyNomous,
   registerMobileProfile,
   searchDataFromTable,
   syncByTwoUniqueKeyData,
   syncDataInTable,
 } from "../../services/services";
 import color from "../../theme/color";
-import { useSnackbar } from "../shared/SnackbarProvider";
 import {
   getCountryCode,
   getDeviceIp,
@@ -23,17 +23,44 @@ import { Device } from "@capacitor/device";
 const SSORedirectHandler = () => {
   const location = useLocation();
   const history = useHistory();
-  const openSnackBar = useSnackbar();
+
   const [loading, setLoading] = useState(true);
   const [info, setInfo] = useState<any | null>(null);
   const [ip, setIp] = useState<any | null>(null);
   const [countryCode, setCountryCode] = useState<string | null>(null);
+  const queryParams = new URLSearchParams(location.search);
+  const token = queryParams.get("token") || "";
+  // const token =
+  //   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyTmFtZSI6IkNBTjE4QTAwMTE1IiwidXNlckVtYWlsIjoiaml0aGluLmtrQGhvdG1haWwuY29tIiwicGFzc3dvcmQiOiJUaGVlcmFtQDM2MCIsIkZpcnN0TmFtZSI6IkppdGhpbiIsIk1pZGRsZU5hbWUiOiIiLCJMYXN0TmFtZSI6IktLIiwidXNlclR5cGUiOiJJbmRpdmlkdWFsIiwiaXNQcm9maWxlQ3JlYXRlZCI6ZmFsc2UsImV4cCI6MTcyNTQ3ODYwMCwiaWF0IjoxNzUxODY3Mjc1fQ.FcqiKMCdyEyZUJDur4haE9ADyWljR7jeBDvx4AuF9f8";
+  const [decoded, setDecoded] = useState<any | null>(null);
 
-  //   const token = queryParams.get("token");
-  const token =
-    "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJPbmxpbmUgSldUIEJ1aWxkZXIiLCJpYXQiOjE3NTE2MDg1NjcsImV4cCI6MTc4MzE0NDU2NywiYXVkIjoid3d3LmV4YW1wbGUuY29tIiwic3ViIjoianJvY2tldEBleGFtcGxlLmNvbSIsInVzZXJOYW1lIjoiSm9oZGUzMiIsInBhc3N3b3JkIjoiUm9zZHF3d2V0QDEyMyIsInVzZXJFbWFpbCI6Impya2pud3dzYm9ja2V0QGV4YW1wbGUuY29tIiwidXNlclR5cGUiOiJJbmRpdmlkdWFsIiwiRmlyc3ROYW1lIjoiSm9obnMiLCJMYXN0TmFtZSI6IkpyIiwiTWlkZGxlTmFtZSI6IkxvcGV6In0.yVRDlznJYBZmgIYcR5ioRxCgGNGZSIsRX65z_Yik4cU";
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState<
+    "success" | "error" | "info" | "warning"
+  >("info");
 
-  const decoded: any = jwtDecode(token);
+  const showSnackbar = (
+    message: string,
+    severity: "success" | "error" | "info" | "warning" = "info"
+  ) => {
+    setSnackbarMessage(message);
+    setSnackbarSeverity(severity);
+    setSnackbarOpen(true);
+  };
+
+  useEffect(() => {
+    if (token) {
+      try {
+        const decoded1: any = jwtDecode(token);
+        setDecoded(decoded1);
+      } catch (err) {
+        // showSnackbar("Invalid token format", "error");
+        // history.replace("/login");
+      }
+    }
+  }, [token]);
+
   const {
     userName,
     password,
@@ -44,7 +71,8 @@ const SSORedirectHandler = () => {
     LastName,
     isProfileCreated,
     isNewUser,
-  } = decoded;
+  } = decoded || {};
+
   useEffect(() => {
     async function fetchCountryCode() {
       const code = await getCountryCode();
@@ -57,7 +85,6 @@ const SSORedirectHandler = () => {
   useEffect(() => {
     async function fetchInfo() {
       const info = await Device.getInfo();
-
       const ip = await getDeviceIp();
       setIp(ip);
       setInfo(info);
@@ -69,16 +96,18 @@ const SSORedirectHandler = () => {
   useEffect(() => {
     if (!info || !countryCode) return;
 
+
     if (!token) {
-      openSnackBar("Token missing in SSO request");
-      history.replace("/login");
+      // showSnackbar("Token missing in SSO request", "error");
+      // console.log("Token missing in SSO request");
       return;
     }
 
     try {
       if (!userName || !userEmail) {
-        openSnackBar("Invalid SSO payload");
-        history.replace("/login");
+        // showSnackbar("Invalid SSO payload", "error");
+        // console.log("Invalid SSO payload");
+
         return;
       }
 
@@ -102,31 +131,21 @@ const SSORedirectHandler = () => {
         userLoginDeviceIP: ip,
       };
 
-      console.log(payload);
       registerMobileProfile(payload)
         .then((res: any) => {
-          console.log(res);
           proceedToLogin(loginPayload);
-
-          moduleSetter({
-            moduleRoleId: userType === "Individual" ? 40 : 39,
-            userId: res?.data?.data?.userId,
-            isDefault: true,
-            displaySequence: userType === "Individual" ? 40 : 39,
-            userModuleRoleStatus: "ACTIVE",
-          });
+          // showSnackbar("Signup Successful", "success");
         })
         .catch((err) => {
+
           proceedToLogin(loginPayload);
-          openSnackBar("Signup via SSO failed");
-          history.replace("/signup");
+          // showSnackbar("Signup via SSO failed", "error");
         });
     } catch (e) {
       console.error("SSO Decode failed", e);
-      openSnackBar("Invalid token format");
-      history.replace("/login");
+      // showSnackbar("Invalid token format", "error");
     }
-  }, [info, countryCode, location]);
+  }, [info, countryCode, location, decoded]);
 
   const moduleSetter = async (payload: any) => {
     await syncByTwoUniqueKeyData(
@@ -140,40 +159,45 @@ const SSORedirectHandler = () => {
   const proceedToLogin = async (payload: any) => {
     try {
       const result = await login(payload);
+      showSnackbar("Login Successful", "success");
+
 
       if (result?.data?.data?.userLoginSessionToken) {
         const userId = result.data.data.userId;
         const moduleRoleId = userType === "Individual" ? 40 : 39;
 
-        payload = {
+
+        const personalPayload = {
           userId: userId,
           firstName: FirstName,
           middleName: MiddleName,
           lastName: LastName,
         };
-        console.log(payload);
 
-        syncDataInTable("userPersonalInfo", payload, "userId").catch(
+        syncDataInTable("userPersonalInfo", personalPayload, "userId").catch(
           (error) => {
-            openSnackBar(error?.response?.data?.msg);
+            showSnackbar(
+              error?.response?.data?.msg || "Error updating profile",
+              "error"
+            );
           }
         );
 
-        moduleSetter({
+        const payload = {
           moduleRoleId,
           userId,
           isDefault: true,
           displaySequence: moduleRoleId,
           userModuleRoleStatus: "ACTIVE",
-        });
+        };
+
+
+        moduleSetter(payload);
 
         setCurrentAccessToken(result.data.data.userLoginSessionToken);
 
-        const userModuleRole = await searchDataFromTable("userModuleRole", {
-          userId,
-        });
         const moduleRole = await searchDataFromTable("moduleRole", {
-          moduleRoleId: userModuleRole?.data?.data?.moduleRoleId,
+          moduleRoleId: moduleRoleId,
         });
         const dlModule = await searchDataFromTable("DlModule", {
           moduleId: moduleRole?.data?.data?.moduleId,
@@ -189,18 +213,20 @@ const SSORedirectHandler = () => {
           defaultName.moduleCode,
         ].join("_");
 
+
         localStorage.setItem("userRole", roleValue);
 
         setTimeout(() => {
           window.location.href = `/${defaultRole.moduleLandingPage}`;
         }, 100);
       } else {
-        console.log("Login failed");
-        history.replace("/login");
+        localStorage.clear();
+        window.location.reload();
+        // showSnackbar("Login failed", "error");
+
       }
     } catch (err) {
-      openSnackBar("SSO login error");
-      history.replace("/login");
+      // showSnackbar("SSO login error", "error");
     } finally {
       setLoading(false);
     }
@@ -212,9 +238,7 @@ const SSORedirectHandler = () => {
       alignItems="center"
       justifyContent="center"
       minHeight="100vh"
-      sx={{
-        background: color.background2,
-      }}
+      sx={{ background: color.background2 }}
     >
       {loading ? (
         <Box
@@ -239,6 +263,23 @@ const SSORedirectHandler = () => {
       ) : (
         <div>Redirecting...</div>
       )}
+
+      {/* Snackbar Component */}
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={4000}
+        onClose={() => setSnackbarOpen(false)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <MuiAlert
+          elevation={6}
+          variant="filled"
+          onClose={() => setSnackbarOpen(false)}
+          severity={snackbarSeverity}
+        >
+          {snackbarMessage}
+        </MuiAlert>
+      </Snackbar>
     </Box>
   );
 };

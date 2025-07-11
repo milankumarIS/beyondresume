@@ -5,26 +5,25 @@ import {
   faDownload,
   faEdit,
   faSave,
-  faTimes,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   Box,
   Button,
   CircularProgress,
-  Divider,
-  Slider,
   Tab,
   Tabs,
   Typography,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { useHistory, useLocation } from "react-router";
+import { evaluationCategories, pricingPlans } from "../../components/form/data";
 import { copyToClipboard } from "../../components/shared/Clipboard";
 import { useSnackbar } from "../../components/shared/SnackbarProvider";
 import {
   normalizeHTMLToText,
   readExcelFileAsJson,
+  safeParseAiJson,
 } from "../../components/util/CommonFunctions";
 import {
   BeyondResumeButton,
@@ -32,20 +31,19 @@ import {
   CustomToggleButtonGroup,
 } from "../../components/util/CommonStyle";
 import QuillInputEditor from "../../components/util/QuilInputEditor";
+import { getUserId, getUserRole } from "../../services/axiosClient";
 import {
   getUserAnswerFromAi,
-  getUserModuleRole,
+  getUserAnswerFromAiThroughPdf,
   searchDataFromTable,
   searchListDataFromTable,
   updateByIdDataInTable,
-  UploadFileInTable,
+  UploadAuthFile,
 } from "../../services/services";
-import GeneratedAiQnaResponse from "./GeneratedAiQnaResponse";
-import { getUserId, getUserRole } from "../../services/axiosClient";
-import { map } from "zod";
-import { evaluationCategories, pricingPlans } from "../../components/form/data";
 import BeyondResumeUpgradeRequiredModal from "./Beyond Resume Components/BeyondResumeUpgradeRequiredModal";
-import color from "../../theme/color";
+import CustomEvaluationDriver from "./Beyond Resume Components/CustomEvaluationDriver";
+import FileUpload from "./Beyond Resume Components/FileUpload";
+import GeneratedAiQnaResponse from "./GeneratedAiQnaResponse";
 
 interface JobDescriptionResponseProps {
   response: string;
@@ -60,25 +58,53 @@ const JobDescriptionResponse: React.FC<JobDescriptionResponseProps> = ({
   jobId,
   onJobUpdate,
 }) => {
-  const cleanedResponse = response.replace(/^```html\s*|\s*```$/g, "").trim();
-
   const location = useLocation();
-
   const isJobPage = location.pathname.startsWith("/beyond-resume-jobdetails/");
 
+  const [generatedJd, setGeneratedJd] = useState(response);
+  const [editorContent, setEditorContent] = useState("");
+  const [displayContent, setDisplayContent] = useState("");
+
+  useEffect(() => {
+    setGeneratedJd(response);
+  }, [response]);
+
+  useEffect(() => {
+    const cleanedResponse = generatedJd
+      .replace(/^```html\s*|\s*```$/g, "")
+      .trim();
+
+    setEditorContent(cleanedResponse);
+    setDisplayContent(cleanedResponse);
+  }, [generatedJd]);
+
   const [isEditing, setIsEditing] = useState(false);
-  const [editorContent, setEditorContent] = useState(cleanedResponse);
-  const [displayContent, setDisplayContent] = useState(cleanedResponse);
   const [isCopied, setIsCopied] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [loading1, setLoading1] = useState(false);
   const [qnResponse, setQnResponse] = useState("");
   const history = useHistory();
   const openSnackBar = useSnackbar();
   const [questionFile, setQuestionFile] = useState<File | null>(null);
   const [addQuestionFile, setAddQuestionFile] = useState(false);
+  const [simulatorMode, setSimulatorMode] = useState<
+    "yes" | "templatised" | "adaptive"
+  >("templatised");
   const [showModal, setShowModal] = useState(false);
-
+  const [jd, setJd] = useState<File | null>(null);
+  const [addJd, setAddJd] = useState(false);
   const [jobStatus, setJobStatus] = useState("");
+  const [isTotalValid, setIsTotalValid] = useState(true);
+  const [selectedTab, setSelectedTab] = useState<number>(2);
+  const durationTabs = [20, 40, 60];
+
+  const [percentages, setPercentages] = useState<Record<string, number>>(
+    Object.fromEntries(evaluationCategories.map((cat) => [cat, 20]))
+  );
+
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setSelectedTab(newValue);
+  };
 
   useEffect(() => {
     const getStatus = async () => {
@@ -252,7 +278,7 @@ const JobDescriptionResponse: React.FC<JobDescriptionResponseProps> = ({
   
         1. The total interview time is **${durationTime} minutes**, and the average time per question is **2 minutes**, resulting in exact ${totalQuestions} total questions**.
   
-        2. Distribute the questions across the following 5 categories based on their specified percentage weights:
+        2. Distribute the questions across the following categories based on their specified percentage weights:
   
         ${JSON.stringify(newFilteredList, null, 2)}
   
@@ -312,7 +338,6 @@ const JobDescriptionResponse: React.FC<JobDescriptionResponseProps> = ({
           interviewDuration: durationTime,
           percentageList: newFilteredList,
         };
-        // console.log(payload);
         await updateByIdDataInTable("brJobs", jobId, payload, "brJobId");
 
         // const updatedRecord = await searchDataFromTable("brJobs", {
@@ -337,34 +362,48 @@ const JobDescriptionResponse: React.FC<JobDescriptionResponseProps> = ({
     history.push(`/beyond-resume-JobInterviewForm/${jobId}`);
   };
 
-  const [selectedTab, setSelectedTab] = useState<number>(0);
-  const durationTabs = [20, 40, 60];
+  useEffect(() => {
+    if (!jd) return;
 
-  const [percentages, setPercentages] = useState<Record<string, number>>(
-    Object.fromEntries(evaluationCategories.map((cat) => [cat, 20]))
-  );
+    const generateFromFile = async () => {
+      setLoading1(true);
 
-  const marks = [
-    { value: 0, label: "0%" },
-    { value: 20, label: "20%" },
-    { value: 40, label: "40%" },
-    { value: 60, label: "60%" },
-    { value: 80, label: "80%" },
-    { value: 100, label: "100%" },
-  ];
+      try {
+        const formData = new FormData();
+        formData.append("file", jd);
+        const result = await UploadAuthFile(formData);
+        const jdLink = result?.data?.data?.location;
+        if (!jdLink) throw new Error("Resume upload failed. No link returned.");
 
-  const handleSliderChange = (category: string, value: number) => {
-    setPercentages((prev) => ({
-      ...prev,
-      [category]: value,
-    }));
+        const prompt =
+          `Here I'm attaching a job description link. From the linked PDF, extract the text and give the response in plain innerHTML. 
+          Make it look good with by adding HTML Tags`.replace(/\s+/g, " ");
 
-    // console.log(`Updated ${category}: ${value}%`);
-  };
+        const res = await getUserAnswerFromAiThroughPdf({
+          question: prompt,
+          urls: [jdLink],
+        });
+        const rawText = res?.data?.data;
+        // console.log(res);
+        // console.log(rawText);
+        setGeneratedJd(rawText);
 
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
-    setSelectedTab(newValue);
-  };
+        handleSave();
+
+        setTimeout(() => {
+          document
+            .getElementById("jdSection")
+            ?.scrollIntoView({ behavior: "smooth" });
+        }, 400);
+      } catch (err) {
+        console.error("JD extraction failed", err);
+      } finally {
+        setLoading1(false);
+      }
+    };
+
+    generateFromFile();
+  }, [jd]);
 
   return (
     <Box m={4} id="responseSection">
@@ -415,80 +454,163 @@ const JobDescriptionResponse: React.FC<JobDescriptionResponseProps> = ({
             ></FontAwesomeIcon>
           </Button>
         )}
-      </Box>
-
-      <Box
-        p={3}
-        pt={2}
-        sx={{
-          backgroundColor: "#f5f5f5",
-          borderRadius: "12px",
-          boxShadow: "0px 0px 20px rgba(0, 0, 0, 0.16)",
-          color: "black",
-          position: "relative",
-        }}
-      >
-        {!isJobPage && (
-          <Box
+        {getUserRole() === "CAREER SEEKER" && isJobPage && (
+          <Button
+            onClick={() => {
+              history.push("/beyond-resume-fitment-analysis", { jobId });
+            }}
             sx={{
-              display: "flex",
-              gap: 1,
-              position: "absolute",
-              top: 20,
-              right: 20,
+              width: "fit-content",
+              color: "black",
+              p: 1,
+              px: 2,
+              textTransform: "none",
+              mb: 4,
+              borderRadius: "999px",
+              border: "solid 1px",
+              height: "fit-content",
             }}
           >
-            <Button
-              variant="contained"
-              sx={{
-                color: "white",
-                textTransform: "none",
-                background: "linear-gradient(180deg, #50bcf6, #5a81fd)",
-                borderRadius: "44px",
-              }}
-              onClick={handleCopy}
-            >
-              {isCopied ? "Copied!" : "Copy"}
-
-              <FontAwesomeIcon icon={faCopy} style={{ marginLeft: 8 }} />
-            </Button>
-            <Button
-              variant="outlined"
-              onClick={isEditing ? handleSave : handleEdit}
-              sx={{
-                color: "white",
-                textTransform: "none",
-                background: "linear-gradient(180deg, #50bcf6, #5a81fd)",
-                borderRadius: "44px",
-              }}
-            >
-              {isEditing ? "Save" : "Edit"}
-              <FontAwesomeIcon
-                icon={isEditing ? faSave : faEdit}
-                style={{ marginLeft: 8 }}
-              />
-            </Button>
-          </Box>
-        )}
-
-        {!isEditing ? (
-          <Typography
-            sx={{ mt: { xs: 8, md: 0 } }}
-            dangerouslySetInnerHTML={{
-              __html: displayContent,
-            }}
-          />
-        ) : (
-          <Box mt={8}>
-            <QuillInputEditor
-              sx={{ minHeight: "920px" }}
-              value={editorContent}
-              setValue={(content: string) => setEditorContent(content)}
-              placeholder="Write your Response here"
-            />
-          </Box>
+            Get Fitment Analysis
+            <FontAwesomeIcon
+              style={{ marginLeft: "6px" }}
+              icon={faChevronCircleRight}
+            ></FontAwesomeIcon>
+          </Button>
         )}
       </Box>
+
+      {getUserRole() === "TALENT PARTNER" && jobStatus !== "COMPLETED" && (
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+            position: "relative",
+            mb: 3,
+          }}
+        >
+          <CustomToggleButtonGroup
+            value={addJd ? "yes" : "no"}
+            exclusive
+            onChange={() => setAddJd((prev) => !prev)}
+          >
+            <CustomToggleButton value="no">AI Generated JD</CustomToggleButton>
+            <CustomToggleButton value="yes">
+              Upload Custom JD
+            </CustomToggleButton>
+          </CustomToggleButtonGroup>
+        </Box>
+      )}
+
+      {addJd && (
+        <>
+          <FileUpload
+            questionFile={jd}
+            setQuestionFile={setJd}
+            acceptFormat=".pdf"
+          />
+        </>
+      )}
+
+      {loading1 ? (
+        <Box
+          sx={{
+            minHeight: "100vh",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            flexDirection: "column",
+            color: "black",
+          }}
+        >
+          <div className="newtons-cradle">
+            <div className="newtons-cradle__dot"></div>
+            <div className="newtons-cradle__dot"></div>
+            <div className="newtons-cradle__dot"></div>
+            <div className="newtons-cradle__dot"></div>
+          </div>
+
+          <Typography variant="h6" sx={{ mb: 2 }}>
+            Fetching Your Job Description
+          </Typography>
+        </Box>
+      ) : (
+        <Box
+          id="jdSection"
+          p={3}
+          pt={2}
+          sx={{
+            backgroundColor: "#f5f5f5",
+            borderRadius: "12px",
+            boxShadow: "0px 0px 20px rgba(0, 0, 0, 0.16)",
+            color: "black",
+            position: "relative",
+          }}
+        >
+          {!isJobPage && (
+            <Box
+              sx={{
+                display: "flex",
+                gap: 1,
+                position: "absolute",
+                top: 20,
+                right: 20,
+              }}
+            >
+              <Button
+                variant="contained"
+                sx={{
+                  color: "white",
+                  textTransform: "none",
+                  background: "linear-gradient(180deg, #50bcf6, #5a81fd)",
+                  borderRadius: "44px",
+                }}
+                onClick={handleCopy}
+              >
+                {isCopied ? "Copied!" : "Copy"}
+
+                <FontAwesomeIcon icon={faCopy} style={{ marginLeft: 8 }} />
+              </Button>
+              <Button
+                variant="outlined"
+                onClick={isEditing ? handleSave : handleEdit}
+                sx={{
+                  color: "white",
+                  textTransform: "none",
+                  background: "linear-gradient(180deg, #50bcf6, #5a81fd)",
+                  borderRadius: "44px",
+                }}
+              >
+                {isEditing ? "Save" : "Edit"}
+                <FontAwesomeIcon
+                  icon={isEditing ? faSave : faEdit}
+                  style={{ marginLeft: 8 }}
+                />
+              </Button>
+            </Box>
+          )}
+
+          {!isEditing ? (
+            <Typography
+              sx={{ mt: { xs: 8, md: 0 } }}
+              dangerouslySetInnerHTML={{
+                __html: displayContent,
+              }}
+            />
+          ) : (
+            <Box mt={8}>
+              <QuillInputEditor
+                sx={{ minHeight: "920px" }}
+                value={editorContent}
+                setValue={(content: string) => setEditorContent(content)}
+                placeholder="Write your Response here"
+              />
+            </Box>
+          )}
+        </Box>
+      )}
 
       {isJobPage && jobStatus !== "INPROGRESS" ? (
         <>
@@ -539,18 +661,74 @@ const JobDescriptionResponse: React.FC<JobDescriptionResponseProps> = ({
               Select Simulator Mode
             </Typography>
             <CustomToggleButtonGroup
-              value={addQuestionFile ? "yes" : "no"}
+              value={simulatorMode}
               exclusive
-              onChange={() => setAddQuestionFile((prev) => !prev)}
+              onChange={(_event, newValue) => {
+                if (newValue !== null) setSimulatorMode(newValue);
+                setAddQuestionFile(newValue === "yes");
+              }}
             >
               <CustomToggleButton value="yes">
-                Add Custom Interview Question File
+                Bring Your Own Question
               </CustomToggleButton>
-              <CustomToggleButton value="no">
-                Let AI Create Interview Questions
+              <CustomToggleButton value="templatised">
+                Templatised Questions
+              </CustomToggleButton>
+              <CustomToggleButton value="adaptive">
+                Adaptive Evaluation
               </CustomToggleButton>
             </CustomToggleButtonGroup>
           </Box>
+
+          <Box px={4} py={2} mt={2}>
+            <Typography
+              gutterBottom
+              align="center"
+              fontWeight="bold"
+              color="black"
+              mb={2}
+            >
+              Select Interview Duration
+            </Typography>
+
+            <Tabs
+              value={selectedTab}
+              onChange={handleTabChange}
+              centered
+              sx={{
+                "& .MuiTab-root": {
+                  // border: "1px solid #ccc",
+                  borderRadius: "999px",
+                  mx: 1,
+                  minWidth: 80,
+                  backgroundColor: "#f5f5f5",
+                  color: "#555",
+                  fontWeight: 500,
+                  px: 4,
+                },
+                "& .Mui-selected": {
+                  backgroundColor: "#50bcf6",
+                  color: "white !important",
+                },
+                "& .MuiTabs-indicator": {
+                  backgroundColor: "transparent",
+                },
+              }}
+            >
+              {durationTabs.map((min) => (
+                <Tab key={min} label={`${min} min`} />
+              ))}
+            </Tabs>
+          </Box>
+
+          {!addQuestionFile && (
+            <CustomEvaluationDriver
+              selectedTabIndex={selectedTab}
+              percentages={percentages}
+              setPercentages={setPercentages}
+              setIsTotalValid={setIsTotalValid}
+            />
+          )}
 
           {addQuestionFile && (
             <Box>
@@ -559,8 +737,7 @@ const JobDescriptionResponse: React.FC<JobDescriptionResponseProps> = ({
                   sx={{
                     ml: "auto",
                     display: "block",
-                    background: "transparent",
-                    color: color.newFirstColor,
+
                     border: "solid 1px",
                     fontSize: "12px",
                     px: 3,
@@ -582,251 +759,19 @@ const JobDescriptionResponse: React.FC<JobDescriptionResponseProps> = ({
                   />
                 </BeyondResumeButton>
               </Box>
-              <Box
-                sx={{
-                  background: "#e7e8ed",
-                  p: 4,
-                  borderRadius: "12px",
-                  justifyContent: "space-between",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  gap: 2,
-                  margin: "auto",
-                }}
-                component="label"
-              >
-                {!questionFile && (
-                  <>
-                    <Typography
-                      sx={{
-                        textAlign: "center",
-                        color: "grey",
-                        fontSize: "14px",
-                        px: 2,
-                        mb: -1,
-                      }}
-                    >
-                      Drag and drop file or click To Upload XLSX (Max file size
-                      2MB)
-                    </Typography>
-                    <Typography
-                      sx={{
-                        textAlign: "center",
-                        color: "grey",
-                        fontSize: "14px",
-                        px: 2,
-                      }}
-                    >
-                      The file format must strictly follow the structure
-                      provided above, without any changes.
-                    </Typography>
-                  </>
-                )}
-
-                <input
-                  type="file"
-                  accept=".xlsx"
-                  hidden
-                  style={{ minHeight: "300px" }}
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      setQuestionFile(file);
-                    }
-                  }}
-                />
-
-                {questionFile && (
-                  <Box
-                    sx={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      backgroundColor: "#f0f0f0",
-                      borderRadius: "44px",
-                      px: 2,
-                      py: 1,
-                      mt: 1,
-                      position: "relative",
-                      boxShadow: "0px 0px 20px rgba(0, 0, 0, 0.05)",
-
-                      // border: "solid 1px black",
-                    }}
-                  >
-                    <Typography sx={{ color: "black", mr: 1 }}>
-                      {questionFile.name}
-                    </Typography>
-                    <Button
-                      size="small"
-                      onClick={() => setQuestionFile(null)}
-                      sx={{
-                        p: 1,
-                        position: "absolute",
-                        top: -5,
-                        right: 0,
-                        color: "black",
-                        background: "white",
-                        borderRadius: "50%",
-                        minHeight: "16px",
-                        minWidth: "16px",
-                        height: "16px",
-                        width: "16px",
-                        boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.15)",
-                      }}
-                    >
-                      <FontAwesomeIcon icon={faTimes} />
-                    </Button>
-                  </Box>
-                )}
-
-                <Typography
-                  variant="body2"
-                  sx={{
-                    background: "linear-gradient(180deg, #50bcf6, #50bcf6)",
-                    color: "white",
-                    p: 1,
-                    px: 4,
-                    borderRadius: "44px",
-                  }}
-                >
-                  {" "}
-                  {questionFile ? "Change File" : "Upload"}
-                </Typography>
-              </Box>
-            </Box>
-          )}
-
-          {!addQuestionFile && (
-            <Box px={4} py={2} mt={2}>
-              <Typography
-                gutterBottom
-                align="center"
-                fontWeight="bold"
-                color="black"
-                mb={2}
-              >
-                Select Interview Duration
-              </Typography>
-
-              <Tabs
-                value={selectedTab}
-                onChange={handleTabChange}
-                centered
-                sx={{
-                  "& .MuiTab-root": {
-                    // border: "1px solid #ccc",
-                    borderRadius: "999px",
-                    mx: 1,
-                    minWidth: 80,
-                    backgroundColor: "#f5f5f5",
-                    color: "#555",
-                    fontWeight: 500,
-                    px: 4,
-                  },
-                  "& .Mui-selected": {
-                    backgroundColor: "#50bcf6",
-                    color: "white !important",
-                  },
-                  "& .MuiTabs-indicator": {
-                    backgroundColor: "transparent",
-                  },
-                }}
-              >
-                {durationTabs.map((min) => (
-                  <Tab key={min} label={`${min} min`} />
-                ))}
-              </Tabs>
-
-              <Typography
-                gutterBottom
-                align="center"
-                fontWeight="bold"
-                color="black"
-                my={2}
-                mt={4}
-              >
-                Allocate Percentage for Each Evaluation Category
-              </Typography>
-
-              <Box
-                display={"flex"}
-                flexWrap={"wrap"}
-                // flexDirection={'column'}
-                borderRadius={"12px"}
-                mt={4}
-                gap={1}
-                justifyContent={"center"}
-                sx={{
-                  boxShadow: "0px 0px 20px rgba(0, 0, 0, 0.10)",
-                }}
-              >
-                {evaluationCategories.map((category) => (
-                  <Box
-                    key={category}
-                    // mb={4}
-                    minWidth={"450px"}
-                    maxWidth={"400px"}
-                    sx={{
-                      p: 3,
-                      px: 4,
-                      borderRadius: "12px",
-                      // boxShadow: "0px 0px 20px rgba(0, 0, 0, 0.10)",
-                    }}
-                  >
-                    <Typography
-                      gutterBottom
-                      fontWeight={600}
-                      color="white"
-                      sx={{
-                        background: "linear-gradient(180deg, #50bcf6, #5a81fd)",
-                        width: "fit-content",
-                        borderRadius: "12px",
-                        px: 1,
-                      }}
-                    >
-                      {category}
-                    </Typography>
-                    <Slider
-                      value={percentages[category]}
-                      onChange={(e, value) =>
-                        handleSliderChange(category, value as number)
-                      }
-                      min={0}
-                      max={100}
-                      step={5}
-                      marks={marks.map((mark) => ({
-                        ...mark,
-                        label: (
-                          <span
-                            style={{
-                              padding: "2px 10px",
-                              borderRadius: "12px",
-                              backgroundColor:
-                                percentages[category] === mark.value
-                                  ? "#50bcf6"
-                                  : "#ffffff22",
-                              color:
-                                percentages[category] === mark.value
-                                  ? "white"
-                                  : "#50bcf6",
-                            }}
-                          >
-                            {mark.label}
-                          </span>
-                        ),
-                      }))}
-                      valueLabelDisplay="auto"
-                      sx={{ color: "#50bcf6", mt: 1 }}
-                    />
-                  </Box>
-                ))}
-              </Box>
+              <FileUpload
+                questionFile={questionFile}
+                setQuestionFile={setQuestionFile}
+                acceptFormat=".csv"
+                fileFormatNote="Please make sure the CSV follows the exact column order of the sample file."
+              />
             </Box>
           )}
 
           <Button
             onClick={handleClick}
             variant="contained"
+            disabled={!isTotalValid}
             color="primary"
             sx={{
               borderRadius: "44px",

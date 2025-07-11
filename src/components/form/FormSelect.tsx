@@ -8,7 +8,7 @@ import {
   MenuItem,
   Select,
 } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./Form.css";
 
 export default function FormSelect({
@@ -27,23 +27,25 @@ export default function FormSelect({
   px = 2,
   mt = 2,
   sx,
-  withValidationClass = true, 
+  withValidationClass = true,
 }: any) {
   const [selectedOption, setSelectedOption] = useState({ ...defaultValue });
 
+  useEffect(() => {
+    if (defaultValue) {
+      setSelectedOption({ ...defaultValue });
+    }
+  }, [defaultValue]);
+
   const handleOption = (property: any, value: any) => {
-    let optionCopy: any = { ...selectedOption };
+    const optionCopy: any = { ...selectedOption };
+    optionCopy[property] = value;
+    setSelectedOption(optionCopy);
+
     if (filtering) {
-      optionCopy[property] = value;
-      setSelectedOption({ ...optionCopy });
-      if (filtering) {
-        setFilteredOption([
-          ...filteringFullOption.filter((o: any) => o.categoryId === value),
-        ]);
-      }
-    } else {
-      optionCopy[property] = value;
-      setSelectedOption({ ...optionCopy });
+      setFilteredOption([
+        ...filteringFullOption.filter((o: any) => o.categoryId === value),
+      ]);
     }
   };
 

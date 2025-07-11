@@ -61,7 +61,7 @@ const BeyondResumeInterviewList = () => {
       },
     }).then((result: any) => {
       setTotalCount(result?.data?.data?.count);
-console.log(result?.data?.data?.rows)
+// console.log(result?.data?.data?.rows)
       const sortedList = result?.data?.data?.rows?.sort((a: any, b: any) => {
         return (
           new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
@@ -376,7 +376,7 @@ console.log(result?.data?.data?.rows)
                             textAlign: !isPractice ? "left" : "center",
                           }}
                         >
-                          {interview.interviewOverview}
+                          {interview.interviewSuggestion}
                         </Typography>
 
                         <BeyondResumeButton

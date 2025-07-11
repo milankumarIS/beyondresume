@@ -120,10 +120,10 @@ const Header: React.FC = () => {
             <Grid2 size={1.6}>
               <img
                 className="header_logo"
-                src="/assets/logo.png"
-                onClick={() =>
-                  handleNavClick(history, setButtonColors, "/home")
-                }
+                src="/assets/skllogo.png"
+                // onClick={() =>
+                //   handleNavClick(history, setButtonColors, "/home")
+                // }
               ></img>
             </Grid2>
 

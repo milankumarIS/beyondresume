@@ -26,6 +26,7 @@ import {
 } from "../../../../components/util/CommonStyle";
 import { getProfile } from "../../../../services/services";
 import { formatDate } from "../../../../components/util/CommonFunctions";
+import { genderArray1 } from "../../../../components/form/data";
 
 export default function BasicDetailsSection({ data, onSave }: any) {
   const [isEditing, setIsEditing] = useState(false);
@@ -34,9 +35,8 @@ export default function BasicDetailsSection({ data, onSave }: any) {
   useEffect(() => {
     getProfile().then((result: any) => {
       setCurrentUser({ ...result?.data?.data });
-      console.log({ ...result?.data?.data });
     });
-  }, []);
+  }, [isEditing]);
 
   if (!currentUser && !isEditing) {
     return (
@@ -70,14 +70,25 @@ export default function BasicDetailsSection({ data, onSave }: any) {
               .map((lang) => lang.trim())
               .filter((lang) => lang);
 
+            const selectedGender = genderArray1.find(
+              (g) => g.value === formData.gender
+            );
+
             setCurrentUser((prev: any) => ({
               ...prev,
               userPersonalInfo: {
-                ...prev.userPersonalInfo,
+                ...prev?.userPersonalInfo,
                 about: formData.about,
+                dob: formData.dob,
                 languagesKnown: languagesArray,
+                gender: {
+                  ...prev?.userPersonalInfo?.gender,
+                  gender: selectedGender?.label,
+                  genderId: Number(selectedGender?.value),
+                },
               },
             }));
+
             setIsEditing(false);
           }}
           onCancel={() => setIsEditing(false)}
@@ -112,11 +123,19 @@ export default function BasicDetailsSection({ data, onSave }: any) {
         )}
 
         <Typography style={{ marginBottom: "-12px" }} variant="h6">
-          {/* {data.name} */}
-          {currentUser?.userPersonalInfo?.firstName} {''}
-          {currentUser?.userPersonalInfo?.middleName} {''}
-          {currentUser?.userPersonalInfo?.lastName}
+          {currentUser?.userPersonalInfo?.firstName ||
+          currentUser?.userPersonalInfo?.middleName ||
+          currentUser?.userPersonalInfo?.lastName ? (
+            <>
+              {currentUser?.userPersonalInfo?.firstName || ""}{" "}
+              {currentUser?.userPersonalInfo?.middleName || ""}{" "}
+              {currentUser?.userPersonalInfo?.lastName || ""}
+            </>
+          ) : (
+            "No name"
+          )}
         </Typography>
+
         <Typography
           sx={{
             fontFamily: "Montserrat-Regular",
@@ -171,22 +190,28 @@ export default function BasicDetailsSection({ data, onSave }: any) {
 
           <IconTextRow
             icon={faPhone}
-            text={currentUser?.userContact?.userPhoneNumber}
+            text={currentUser?.userContact?.userPhoneNumber || "No data"}
           />
+
           <IconTextRow
             icon={faCake}
-            text={formatDate(
-              currentUser?.userPersonalInfo?.dob || "Unknown DOB"
-            )}
+            text={
+              currentUser?.userPersonalInfo?.dob
+                ? formatDate(currentUser.userPersonalInfo.dob)
+                : "No data"
+            }
           />
+
           <IconTextRow
             icon={faVenusMars}
-            text={currentUser?.userPersonalInfo?.gender?.gender}
+            text={currentUser?.userPersonalInfo?.gender?.gender || "No data"}
           />
+
           <IconTextRow
             icon={faGlobe}
             text={
-              Array.isArray(currentUser?.userPersonalInfo?.languagesKnown)
+              Array.isArray(currentUser?.userPersonalInfo?.languagesKnown) &&
+              currentUser.userPersonalInfo.languagesKnown.length > 0
                 ? currentUser.userPersonalInfo.languagesKnown.join(", ")
                 : "No data"
             }

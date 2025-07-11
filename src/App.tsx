@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter, Redirect, Route, Switch } from 'react-router-dom';
+import { BrowserRouter, Route, Switch } from 'react-router-dom';
 
 import 'regenerator-runtime/runtime';
 import './theme/variables.css';
@@ -11,6 +11,7 @@ import { ProtectedRoute } from './components/shared/ProtectedRoute';
 import { getUserRole } from './services/axiosClient';
 import './styles/global.css';
 import fontTheme from './theme/fontTheme';
+import '@google/model-viewer';
 
 import { NotificationProvider } from './components/util/NotificationContext';
 import './components/util/Service.css';
@@ -37,6 +38,7 @@ import BeyondResumePayment from './pages/Beyond Resume/BeyondResumePayment';
 import BeyondResumePricing from './pages/Beyond Resume/BeyondResumePricing';
 import CandidateProfilePage from './pages/Beyond Resume/BeyondResumeProfile/CandidateProfilePage';
 import BeyondResumeQuestionBankForm from './pages/Beyond Resume/BeyondResumeQuestionBankForm';
+import JobFitmentPage from './pages/Beyond Resume/BeyondResumeProfile/JobFitmentAnalysis';
 // import { AvatarProvider } from './pages/Daily Education/Components/AvatarContext';
 // import DailyEducationRegister from './pages/Daily Education/DailyEducationRegister';
 // import MyTeamPerformance from './pages/MyTeamPerformance';
@@ -75,11 +77,24 @@ const App: React.FC = () => {
                 <HeaderMob />
                 <Switch>
 
-                <Route exact path="/" render={() => <Redirect to="/auth-callback" />} />
+                <Route
+                  exact
+                  path="/"
+                  render={({ location, history }) => {
+                    const queryParams = new URLSearchParams(location.search);
+                    const token = queryParams.get("token");
+                    if (token) {
+                      history.replace({
+                        pathname: "/auth-callback",
+                        search: `?token=${token}`,
+                      });
+                    }
+
+                    return null; 
+                  }}
+                />
+
                   <Route path="/auth-callback" component={SSORedirectHandler} />
-
-
-  
 
                   <ProtectedRoute path="/beyond-resume" component={BeyondResumeHome} />
                   <ProtectedRoute path="/beyond-resume-jobs" component={BeyondResumeJobs} />
@@ -103,6 +118,9 @@ const App: React.FC = () => {
                   <ProtectedRoute path="/beyond-resume-payment" component={BeyondResumePayment} /> 
                   <ProtectedRoute path="/beyond-resume-questionBankForm" component={BeyondResumeQuestionBankForm} /> 
                   <ProtectedRoute path="/beyond-resume-practiceInterviewForm/:brMockInterviewId" component={BeyondResumePracticeInterviewForm} /> 
+
+                  <ProtectedRoute path="/beyond-resume-fitment-analysis" component={JobFitmentPage} />
+
 
               
 

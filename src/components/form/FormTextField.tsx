@@ -24,6 +24,7 @@ export default function FormTextField({
   register,
   fieldType,
   defaultValue,
+  placeholder,
   readonly,
   required,
   setError,
@@ -35,7 +36,7 @@ export default function FormTextField({
   sx,
   getValues,
   watch,
-  withValidationClass = true, 
+  withValidationClass = true,
 }: any) {
   const handleBlur = (event: React.FocusEvent<HTMLInputElement>) => {
     const value = event.target.value.trim();
@@ -79,6 +80,7 @@ export default function FormTextField({
           />
         ) : (
           <TextField
+            placeholder={placeholder}
             label={label}
             type={fieldType || "text"}
             defaultValue={defaultValue}
@@ -86,6 +88,7 @@ export default function FormTextField({
             {...register(valueProp)}
             error={!!errors[valueProp]}
             multiline={multiline}
+            required={required}
             rows={multiline ? rows : 1}
             onBlur={handleBlur}
             sx={sx}

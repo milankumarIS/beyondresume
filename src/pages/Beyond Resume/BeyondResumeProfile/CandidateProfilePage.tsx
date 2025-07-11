@@ -8,6 +8,7 @@ import SkillsSection from "./sections/SkillsSection";
 import { BeyondResumeButton } from "../../../components/util/CommonStyle";
 import { useHistory } from "react-router";
 import AIProfileInterview from "./AIProfileInterview";
+import ResumeUploadSection from "./sections/ResumeUploadSection";
 
 export default function CandidateProfilePage() {
   const [profileData, setProfileData] = useState<any>(null);
@@ -74,15 +75,13 @@ export default function CandidateProfilePage() {
           />
 
           <JobPreferenceSection
-            data={profileData?.jobPreferences}
-            onSave={(data) => updateSection("jobPreferences", data)}
           />
 
           {modalOpen && <AIProfileInterview open={modalOpen} />}
-          {/* <ResumeUploadSection
+          <ResumeUploadSection
             resumeUrl={profileData?.resume}
             onSave={(data) => updateSection("resume", data)}
-          /> */}
+          />
         </Box>
       </Box>
     </Box>

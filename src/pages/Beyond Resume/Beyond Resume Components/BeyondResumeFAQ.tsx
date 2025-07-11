@@ -55,7 +55,7 @@ export const faqList = [
 const BeyondResumeFAQ = () => {
   return (
     <Box mx="auto" my={5} px={4}>
-      <Typography 
+      <Typography
         variant="h3"
         sx={{
           fontFamily: "Custom-Bold",
@@ -65,7 +65,8 @@ const BeyondResumeFAQ = () => {
           borderRadius: "12px",
           m: "auto",
         }}
-        fontWeight="bold">
+        fontWeight="bold"
+      >
         Frequently Asked Questions
       </Typography>
       {faqList.map((faq, index) => (
@@ -74,7 +75,7 @@ const BeyondResumeFAQ = () => {
           style={{
             marginTop: "12px",
             boxShadow: "none",
-            background:'transparent',
+            background: "transparent",
             // background: "linear-gradient(145deg, #0d0d0d, #2D3436)",
             border: `2px solid black`,
             borderRadius: "12px",
@@ -95,16 +96,14 @@ const BeyondResumeFAQ = () => {
             sx={{
               "& .MuiAccordionSummary-content": {
                 margin: 0,
-                minHeight:'0px'
-
+                minHeight: "0px",
               },
               "& .MuiAccordionSummary-content.Mui-expanded": {
                 margin: 0,
-                minHeight:'0px'
+                minHeight: "0px",
               },
               "& .MuiButtonBase-root-MuiAccordionSummary-root.Mui-expanded": {
-                minHeight: 0,
-
+                minHeight: "0px",
               },
             }}
             expandIcon={
@@ -118,7 +117,11 @@ const BeyondResumeFAQ = () => {
               {faq.question}
             </Typography>
           </AccordionSummary>
-          <AccordionDetails>
+          <AccordionDetails
+            sx={{
+              pt: 0,
+            }}
+          >
             <Typography color="text.secondary">{faq.answer}</Typography>
           </AccordionDetails>
         </Accordion>

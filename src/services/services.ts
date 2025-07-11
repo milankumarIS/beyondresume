@@ -331,6 +331,10 @@ export function UploadFileInTable(tableName: string, query: any, body: any) {
   return client.post(`${tableName}/uploadFile`, body, { params: query });
 }
 
+export function UploadAuthFile(body: any) {
+  return client.post(`auth/uploadfile`, body);
+}
+
 
 export function addOrUpdateProduct(body: any, query: any, moduleCode: string) {
   return client.put("product/detectChangeInProductPrice", body, { params: { uniqueKey: query, moduleCode } });
@@ -418,6 +422,9 @@ export function getUserAnswerFromAi(payload: any) {
 
 export function getUserAnswerFromAiThroughJson(payload: any) {
   return client.post(`ai/getUserAnswerFromAiThroughJson`, payload);
+}
+export function getUserAnswerFromAiThroughPdf(payload: any) {
+  return client.post(`ai/getUserAnswerFromAiThroughPdf`, payload);
 }
 
 export function makeMeOnlineForSelectedTopic(payload: any) {

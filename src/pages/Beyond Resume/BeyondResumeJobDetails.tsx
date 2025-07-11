@@ -17,6 +17,7 @@ const BeyondResumeJobDetails = () => {
     const result: any = await searchListDataFromTable("brJobs", {
       brJobId: brJobId,
     });
+    console.log(result?.data?.data)
     setJobsData(result?.data?.data);
     setJobStatus(result?.data?.data[0]?.brJobStatus);
     setLoading(false);

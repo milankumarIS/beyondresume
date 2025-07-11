@@ -33,8 +33,9 @@ import {
   getUserAnswerFromAi,
   insertDataInTable,
   searchDataFromTable,
-  syncDataInTable
+  syncDataInTable,
 } from "../../services/services";
+import BeyondResumeAvatar from "./Beyond Resume Components/BeyondResumeAvatar";
 import JobDescriptionResponse from "./JobDescriptionResponse";
 
 const BeyondResumeHome: React.FC = () => {
@@ -43,6 +44,16 @@ const BeyondResumeHome: React.FC = () => {
   const responseRef = useRef<HTMLDivElement | null>(null);
   const [lastDateOfApply, setLastDateOfApply] = useState("");
   // const [lastDateError, setLastDateError] = useState<string | null>(null);
+  const [open, setOpen] = useState(false);
+  const [avatarStatus, setAvatarStatus] = useState("");
+
+  const scriptLines = [
+    "Welcome, visionary! I’m your AI Talent Guide from Beyond Resume. Tired of sifting through endless resumes on LinkedIn or Naukri? Let me show you how we revolutionize hiring—saving you time while finding perfect-fit candidates.",
+    "Imagine describing a role in plain English—say, ‘Need a data scientist with Python and leadership skills’—and poof! Our AI crafts a full job description and tailored interview questions. Or upload your own. Either way, your job goes live in 30 seconds. No more template headaches!",
+    "Here’s the game-changer: Candidates choose how they’re assessed. Traditional hour-long written tests? Or an interactive AI voice interview that feels like a live chat? You get the same rich insights either way. Watch as candidates solve real problems—not just polish resumes.",
+    "See every applicant at a glance. Filter by ‘shortlisted,’ ‘rejected,’ or ‘needs review.’ Love a candidate? Shortlist them instantly. Best part? Grab a cumulative report—one PDF with every applicant’s skills, scores, and interview highlights. No more juggling spreadsheets!",
+    "Picture this: 70% less screening time, 50% deeper candidate insights, and zero ‘resume fluff.’ Our AI even flags hidden gems you might miss. Ready to hire smarter, not harder? Click ‘Post a Job’ now—or explore your dashboard. Let’s build your dream team together!",
+  ];
 
   const {
     control,
@@ -71,6 +82,22 @@ const BeyondResumeHome: React.FC = () => {
   const [selectedJobTitle, setSelectedJobTitle] = useState("");
 
   useEffect(() => {
+    const getAvatarStatus = async () => {
+      try {
+        const getStatus = await searchDataFromTable("userAvatar", {
+          userId: getUserId(),
+        });
+        const status = getStatus?.data?.data?.avatarStatus;
+        setAvatarStatus(status || "");
+        if (status !== "CLOSED" || !status) {
+          setOpen(true);
+        }
+      } catch (err) {
+        console.error("Error fetching avatar status:", err);
+        setAvatarStatus("");
+      }
+    };
+
     const saveBrPayment = async () => {
       const userId = getUserId();
 
@@ -106,6 +133,7 @@ const BeyondResumeHome: React.FC = () => {
     };
 
     saveBrPayment();
+    getAvatarStatus();
   }, []);
 
   useEffect(() => {
@@ -250,6 +278,7 @@ const BeyondResumeHome: React.FC = () => {
               <Grid2 size={{ xs: 12, sm: 6 }}>
                 <FormTextField
                   label="Company Name"
+                  placeholder="Eg. Xyz Pvt. Ltd."
                   valueProp="companyName"
                   errors={errors}
                   register={register}
@@ -275,9 +304,8 @@ const BeyondResumeHome: React.FC = () => {
                   labelProp=""
                   primeryKey=""
                   setter={setSelectedJobTitle}
-                  sx={{ ...commonFormTextFieldSx, marginTop: "12px" }}
+                  sx={{ ...commonFormTextFieldSx }}
                   px={2}
-                  mt={2}
                   search={""}
                 />
               </Grid2>
@@ -286,6 +314,7 @@ const BeyondResumeHome: React.FC = () => {
                 <FormTextField
                   label="Required Skills"
                   valueProp="skills"
+                  placeholder="Eg. React, Node.js"
                   errors={errors}
                   register={register}
                   withValidationClass={false}
@@ -298,6 +327,7 @@ const BeyondResumeHome: React.FC = () => {
                   label="Required Experience"
                   valueProp="experience"
                   errors={errors}
+                  placeholder="Eg. 3+ years"
                   register={register}
                   withValidationClass={false}
                   sx={commonFormTextFieldSx}
@@ -343,6 +373,7 @@ const BeyondResumeHome: React.FC = () => {
                 <FormTextField
                   label="Compensation"
                   valueProp="compensation"
+                  placeholder="Eg. ₹8-12 LPA"
                   errors={errors}
                   register={register}
                   withValidationClass={false}
@@ -358,6 +389,7 @@ const BeyondResumeHome: React.FC = () => {
                   register={register}
                   withValidationClass={false}
                   sx={commonFormTextFieldSx}
+                  placeholder="Eg. Bengaluru"
                 />
               </Grid2>
               <Grid2 size={{ xs: 12, sm: 4 }}>
@@ -426,6 +458,16 @@ const BeyondResumeHome: React.FC = () => {
         </Box>
       </Box>
       {response && <JobDescriptionResponse jobId={jobid} response={response} />}
+
+      {avatarStatus !== null && avatarStatus !== "CLOSED" && open && (
+        <div>
+          <BeyondResumeAvatar
+            open={open}
+            scriptLines={scriptLines}
+            onClose={() => setOpen(false)}
+          />
+        </div>
+      )}
     </Box>
   );
 };

@@ -662,3 +662,45 @@ export const readExcelFileAsJson = async (file: File) => {
 
   return result;
 };
+
+
+export const safeParseAiJson = (
+  raw: string
+): { summary: string; detail: string } | null => {
+  if (!raw) return null;
+
+  let cleaned = raw
+    .replace(/^```(json|html)?/i, "")
+    .replace(/```$/i, "")
+    .replace(/^json\s*/i, "")
+    .trim();
+
+  const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(jsonMatch[0]);
+  } catch (err) {
+    try {
+      let fixed = jsonMatch[0]
+        .replace(/\r?\n/g, "\\n")
+        .replace(/\\(?!n|")/g, "\\\\")
+        .replace(/“|”/g, '"')
+        .replace(/([^\]\\])"/g, '$1\\"');
+
+      return JSON.parse(fixed);
+    } catch (secondErr) {
+      console.log("Raw text that failed:", jsonMatch[0]);
+      return null;
+    }
+  }
+};
+
+export function extractCleanFileName(url: string): string {
+  const fileName = url.split("/").pop() || "";
+  const decoded = decodeURIComponent(fileName); 
+  const hyphenIndex = decoded.indexOf("-");
+  return hyphenIndex !== -1 ? decoded.substring(hyphenIndex + 1) : decoded;
+}

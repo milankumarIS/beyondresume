@@ -1,13 +1,11 @@
-import { faEarth } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Box, Button, Grid2 } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 import { useHistory, useLocation } from "react-router";
-import { logout, logoutAnyNomous } from "../../../services/services";
 import color from "../../../theme/color";
-import { handleNavClick } from "../../util/CommonFunctions";
 import { BeyondResumeButton } from "../../util/CommonStyle";
 import { useNotifications } from "../../util/NotificationContext";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faSignOut } from "@fortawesome/free-solid-svg-icons";
 
 export const ButtonsInHeader = ({ buttonsArray, isLogout }: any) => {
   const locationurl = useLocation();
@@ -87,9 +85,9 @@ export const ButtonsInHeader = ({ buttonsArray, isLogout }: any) => {
         <Grid2 size={1}>
           <img
             className="header_logo"
-            src="/assets/logo.png"
+            src="/assets/skllogo.png"
             style={{ color: buttonColors["/home"] }}
-            onClick={() => handleNavClick(history, setButtonColors, "/home")}
+            // onClick={() => handleNavClick(history, setButtonColors, "/home")}
           ></img>
         </Grid2>
 
@@ -117,10 +115,24 @@ export const ButtonsInHeader = ({ buttonsArray, isLogout }: any) => {
                       sx={{ position: "relative", display: "inline-block" }}
                     >
                       <Button
-                        sx={{ color: color.background2,  
-                          textTransform:'none',
-                          fontFamily:'Custom-bold'
-                         }}
+                        sx={{
+                          borderRadius: 0,
+                          borderBottom: "solid 2px",
+                          borderColor:
+                            locationurl.pathname === o.url
+                              ? 'inherit'
+                              : "transparent",
+                          color:
+                            locationurl.pathname === o.url
+                              ? color.newFirstColor
+                              : "grey",
+                          textTransform: "none",
+                          fontFamily: "Custom-bold",
+                          '&:hover':{
+                            borderColor:'transparent',
+                            color:color.newFirstColor
+                          }
+                        }}
                         // id="header_btns"
                         onClick={() => (location.href = o.url)}
                       >
@@ -211,27 +223,25 @@ export const ButtonsInHeader = ({ buttonsArray, isLogout }: any) => {
             </>
           )}
 
-
-
           <div
             style={{
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              marginLeft:'8px',
+              marginLeft: "8px",
             }}
           >
-            <BeyondResumeButton
-              onClick={() => {
-                if (isLogout) {
-                  logout("login");
-                } else {
-                  logoutAnyNomous("login");
-                }
-              }}
-            >
-              {isLogout ? "Logout" : "Login"}
-            </BeyondResumeButton>
+            {isLogout && (
+              <BeyondResumeButton
+                onClick={() => {
+                  localStorage.clear();
+                  window.close();
+                }}
+                sx={{fontSize:'12px', px:3}}
+              >
+                Logout <FontAwesomeIcon style={{marginLeft:'8px'}} icon={faSignOut}/>
+              </BeyondResumeButton>
+            )}
           </div>
         </Grid2>
       </Grid2>

@@ -1,12 +1,10 @@
 import {
+  faArrowRight,
   faBriefcase,
-  faChevronCircleRight,
   faClock,
-  faFilter,
   faInfoCircle,
   faLayerGroup,
-  faLocationDot,
-  faPen,
+  faMoneyBill1Wave,
   faSearch,
   faUserTie,
   faXmarkCircle,
@@ -21,6 +19,7 @@ import {
   CircularProgress,
   Grid,
   Grid2,
+  IconButton,
   TextField,
   Typography,
 } from "@mui/material";
@@ -38,6 +37,7 @@ import {
   formatDateJob,
   timeAgo,
 } from "../../components/util/CommonFunctions";
+import { BeyondResumeButton } from "../../components/util/CommonStyle";
 import ConfirmationPopup from "../../components/util/ConfirmationPopup";
 import { getUserId, getUserRole } from "../../services/axiosClient";
 import {
@@ -47,8 +47,8 @@ import {
   updateByIdDataInTable,
 } from "../../services/services";
 import color from "../../theme/color";
+import BeyondResumeAvatar from "./Beyond Resume Components/BeyondResumeAvatar";
 import BeyondResumeJobFilterComponent from "./Beyond Resume Components/BeyondResumeJobFilterComponent";
-import { BeyondResumeButton } from "../../components/util/CommonStyle";
 
 type Job = {
   brJobId: string;
@@ -75,6 +75,19 @@ const BeyondResumeJobs = () => {
   const [popupOpen, setPopupOpen] = useState(false);
   const [selectedJobId, setSelectedJobId] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [open, setOpen] = useState(false);
+  const [avatarStatus, setAvatarStatus] = useState("");
+
+  const scriptLines = [
+    "Hey future superstar! I’m your Career Coach from Beyond Resume. Forget LinkedIn’s resume spam—we help you land roles by showing your skills, not just stating them. Ready for a job hunt that actually works? Let’s go!",
+    "Say, ‘Find me remote marketing jobs,’ and boom! Our AI scans thousands of openings instantly. No more typing filters. See a match? Click ‘Apply’—and here’s where magic happens",
+    "Option 1: Traditional written assessment.",
+    "Option 2 (our favorite!): An AI-powered voice interview. Chat naturally for an hour—no cameras, no nerves. Our AI adapts to your answers, making it feel like practice with a mentor!",
+    "Post-interview, get instant feedback: ‘Your Python skills shined, but practice cloud concepts—here’s a free module!’ Plus, use our ‘Fitment Analyzer’ to test your match for any job. Low fit? We’ll suggest skills to learn",
+    "Try preloaded tests for top companies (yes, Google’s included!). Or build custom practice drills—like ‘5 data questions + 2 leadership scenarios.’ Nail weaknesses before the real deal!",
+    "No more ‘apply and pray.’ We turn interviews into growth moments. Ready to stand out? Click ‘Find Jobs’ and use your voice—or test your fitment for that dream role right now. Your next career leap starts today!",
+  ];
+
   type Filters = {
     payroll: string[];
     jobType: string[];
@@ -83,6 +96,22 @@ const BeyondResumeJobs = () => {
   };
 
   useEffect(() => {
+    const getAvatarStatus = async () => {
+      try {
+        const getStatus = await searchDataFromTable("userAvatar", {
+          userId: getUserId(),
+        });
+        const status = getStatus?.data?.data?.avatarStatus;
+        setAvatarStatus(status || "");
+        if (status !== "CLOSED" || !status) {
+          setOpen(true);
+        }
+      } catch (err) {
+        console.error("Error fetching avatar status:", err);
+        setAvatarStatus("");
+      }
+    };
+
     const saveBrPayment = async () => {
       const userId = getUserId();
 
@@ -118,6 +147,7 @@ const BeyondResumeJobs = () => {
     };
 
     saveBrPayment();
+    getAvatarStatus();
   }, []);
 
   const getInitialFilters = (): Filters => ({
@@ -377,15 +407,19 @@ const BeyondResumeJobs = () => {
             <Grid item xs={12} sm={6} md={4} key={index}>
               <Card
                 sx={{
-                  borderRadius: 2,
+                  borderRadius: "12px",
                   height: "100%",
-                  boxShadow: "4px 4px 16px rgba(0, 0, 0, 0.1)",
+                  boxShadow: "0px 0px 16px rgba(0, 0, 0, 0.1)",
                   border: "solid 1.5px transparent",
                   transition: "all 0.3s",
+                  background: "rgba(94, 94, 94, 0.15)",
 
                   "&:hover": {
-                    border: "solid 1.5px",
-                    borderColor: color.newFirstColor,
+                    transform: "scale(1.02)",
+                    boxShadow: "0px 2px 36px rgba(0, 0, 0, 0.25)",
+                  // border: "solid 1.5px",
+                  // borderColor:color.newFirstColor
+
                   },
                 }}
               >
@@ -393,6 +427,9 @@ const BeyondResumeJobs = () => {
                   sx={{ position: "relative" }}
                   style={{
                     paddingBottom: "16px",
+                    background: "white",
+                    borderRadius: "12px",
+                    overflow: "hidden",
                   }}
                 >
                   <Box
@@ -403,7 +440,7 @@ const BeyondResumeJobs = () => {
                     position={"relative"}
                   >
                     <Typography
-                      mt={2}
+                      mt={isPracticePage ? 0 : 2}
                       variant="h6"
                       sx={{
                         display: "-webkit-box",
@@ -416,41 +453,42 @@ const BeyondResumeJobs = () => {
                       {job.jobTitle}
                     </Typography>
 
-                    <Button
-                      onClick={() => {
-                        setSelectedJobId(job.brJobId);
-                        setPopupOpen(true);
-                      }}
-                      sx={{
-                        background: "linear-gradient(180deg, #50bcf6, #5a81fd)",
-                        px: 2,
-                        borderRadius: "6px 0px 6px 0px",
-                        position: "absolute",
-
-                        ml: -2,
-                        mt: -7,
-                        minWidth: "0px",
-                        cursor: "pointer",
-                        color: "white",
-                        textTransform: "none",
-                        fontSize: "12px",
-                      }}
-                    >
-                      <Typography mt={1} fontSize={"12px"}>
-                        {" "}
-                        {timeAgo(job.createdAt)}{" "}
-                      </Typography>
-                    </Button>
-
-                    {!isPracticePage && title !== "Completed Jobs" && (
+                    {!isPracticePage && (
                       <Button
                         onClick={() => {
                           setSelectedJobId(job.brJobId);
                           setPopupOpen(true);
                         }}
                         sx={{
-                          background:
-                            "linear-gradient(180deg, #50bcf6, #5a81fd)",
+                          background: color.newFirstColor,
+                          px: 2,
+                          borderRadius: "6px 0px 6px 0px",
+                          position: "absolute",
+
+                          ml: -2,
+                          mt: -6.5,
+                          minWidth: "0px",
+                          cursor: "pointer",
+                          color: "white",
+                          textTransform: "none",
+                          fontSize: "12px",
+                        }}
+                      >
+                        <Typography fontSize={"12px"}>
+                          {" "}
+                          {timeAgo(job.createdAt)}{" "}
+                        </Typography>
+                      </Button>
+                    )}
+
+                    {isJobPage && title !== "Completed Jobs" && (
+                      <Button
+                        onClick={() => {
+                          setSelectedJobId(job.brJobId);
+                          setPopupOpen(true);
+                        }}
+                        sx={{
+                          background: color.newFirstColor,
                           px: 2,
                           borderRadius: "0px 0px 0px 6px",
                           mr: -2,
@@ -469,6 +507,19 @@ const BeyondResumeJobs = () => {
                       </Button>
                     )}
                   </Box>
+
+                  <Typography fontSize={"14px"} mt={-1} mb={1}>
+                    {job.companyName}
+                  </Typography>
+
+                  <Typography
+                    fontSize={"14px"}
+                    mt={-1}
+                    mb={2}
+                    sx={{ fontFamily: "montserrat-regular" }}
+                  >
+                    {job.location}
+                  </Typography>
 
                   {isPracticePage ? (
                     <Grid2 container>
@@ -515,179 +566,123 @@ const BeyondResumeJobs = () => {
                       </Grid2>
                     </Grid2>
                   ) : (
-                    <Grid2 container>
-                      <Grid2 size={{ xs: 12, md: 6 }}>
-                        <Typography
-                          variant="body2"
-                          color="text.secondary"
-                          mb={1}
-                          sx={{
-                            display: "-webkit-box",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            WebkitLineClamp: 1,
-                            WebkitBoxOrient: "vertical",
-                          }}
-                        >
-                          <FontAwesomeIcon icon={faBriefcase} />{" "}
-                          {job.companyName}
-                        </Typography>
-                        <Typography
-                          variant="body2"
-                          color="text.secondary"
-                          mb={1}
-                        >
-                          <FontAwesomeIcon icon={faClock} />{" "}
-                          {formatDateJob(job?.endDate)}
-                        </Typography>
-                      </Grid2>
+                    <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+                      <Typography sx={commonPillStyle}>
+                        <FontAwesomeIcon icon={faUserTie} /> {job.jobType}
+                      </Typography>
 
-                      <Grid2 size={{ xs: 12, md: 6 }} sx={{ pl: 4 }}>
-                        <Typography
-                          variant="body2"
-                          color="text.secondary"
-                          mb={1}
-                                         sx={{
-                            display: "-webkit-box",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            WebkitLineClamp: 1,
-                            WebkitBoxOrient: "vertical",
-                          }}
-                        >
-                          <FontAwesomeIcon icon={faUserTie} /> {job.jobType}
-                        </Typography>
-                        <Typography
-                          variant="body2"
-                          color="text.secondary"
-                          mb={1}
-                                         sx={{
-                            display: "-webkit-box",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            WebkitLineClamp: 1,
-                            WebkitBoxOrient: "vertical",
-                          }}
-                        >
-                          <FontAwesomeIcon icon={faLocationDot} /> {job.jobMode}
-                        </Typography>
-                      </Grid2>
-                    </Grid2>
-                  )}
-                  <Box
-                    display="flex"
-                    justifyContent="space-between"
-                    alignItems="center"
-                    mt={1}
-                  >
-                    {!isPracticePage && (
-                      <Box
-                        display="flex"
-                        alignItems="center"
-                        gap={1}
-                        color="#50bcf6"
-                      >
-                        {/* <FontAwesomeIcon icon={faLocationDot} />
-                      <Typography variant="caption">{job.location}</Typography> */}
-                        {applicantsMap[job.brJobId]?.length > 0 ? (
-                          <Grid2
-                            size={{ xs: 12, md: 6 }}
-                            sx={{
-                              display: "flex",
-                              justifyContent: "flex-end",
-                              alignItems: "flex-start",
-                            }}
-                          >
-                            <>
-                              {loadingApplicants ? (
-                                <Typography
-                                  variant="body2"
-                                  color="text.secondary"
-                                  sx={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: 1,
-                                    p: 0.5,
-                                    fontSize: "13px",
-                                  }}
-                                >
-                                  <CircularProgress size={16} /> Loading
-                                  applicants...
-                                </Typography>
-                              ) : (
-                                applicantsMap[job.brJobId]?.length > 0 && (
-                                  <Typography
-                                    color="text.secondary"
-                                    variant="body2"
-                                    mb={1}
-                                    sx={{
-                                      transition: "all 0.6s ease",
-                                      borderRadius: "4px",
-                                      p: 0.5,
-                                    }}
-                                  >
-                                    <FontAwesomeIcon icon={faUserTie} />{" "}
-                                    {(() => {
-                                      const count =
-                                        applicantsMap[job.brJobId]?.length || 0;
-                                      return count > 100
-                                        ? "100+ Applicants"
-                                        : `${count} Applicant${
-                                            count !== 1 ? "s" : ""
-                                          }`;
-                                    })()}
-                                  </Typography>
-                                )
-                              )}
-                            </>
-                          </Grid2>
-                        ) : (
-                          <>
-                            <Typography
-                              color="text.secondary"
-                              variant="body2"
-                              mb={0}
+                      <Typography sx={commonPillStyle}>
+                        <FontAwesomeIcon icon={faBriefcase} /> {job.jobMode}
+                      </Typography>
+                      {/* <Typography sx={commonPillStyle}>
+                        <FontAwesomeIcon icon={faClock} /> {job.experience}
+                      </Typography> */}
+                      <Typography sx={commonPillStyle}>
+                        <FontAwesomeIcon icon={faMoneyBill1Wave} />{" "}
+                        {job.payroll}
+                      </Typography>
+
+                      {!isPracticePage && (
+                        <Box display="flex" alignItems="center" gap={1}>
+                          {applicantsMap[job.brJobId]?.length > 0 ? (
+                            <Grid2
+                              size={{ xs: 12, md: 6 }}
                               sx={{
-                                transition: "all 0.6s ease",
-                                borderRadius: "4px",
-                                p: 0.5,
+                                display: "flex",
+                                justifyContent: "flex-end",
+                                alignItems: "flex-start",
                               }}
                             >
-                              <FontAwesomeIcon icon={faUserTie} /> 0
-                              Applicant(s)
-                            </Typography>
-                          </>
-                        )}
-                      </Box>
-                    )}
-                    <Button
-                      size="small"
-                      // variant="contained"
-                      onClick={() => handleViewMore(job)}
+                              <>
+                                {loadingApplicants ? (
+                                  <Typography sx={commonPillStyle}>
+                                    <CircularProgress size={16} /> Loading
+                                    applicants...
+                                  </Typography>
+                                ) : (
+                                  applicantsMap[job.brJobId]?.length > 0 && (
+                                    <Typography sx={commonPillStyle}>
+                                      <FontAwesomeIcon icon={faUserTie} />{" "}
+                                      {(() => {
+                                        const count =
+                                          applicantsMap[job.brJobId]?.length ||
+                                          0;
+                                        return count > 100
+                                          ? "100+ Applicants"
+                                          : `${count} Applicant${
+                                              count !== 1 ? "s" : ""
+                                            }`;
+                                      })()}
+                                    </Typography>
+                                  )
+                                )}
+                              </>
+                            </Grid2>
+                          ) : (
+                            <>
+                              <Typography sx={commonPillStyle}>
+                                <FontAwesomeIcon icon={faUserTie} /> 0
+                                Applicant(s)
+                              </Typography>
+                            </>
+                          )}
+                        </Box>
+                      )}
+                    </Box>
+                  )}
+                </CardContent>
+                <Box
+                  display="flex"
+                  justifyContent={isPracticePage ? "flex-end" : "space-between"}
+                  alignItems="center"
+                  p={1}
+                  px={2}
+                  color={"white"}
+                >
+                  {!isPracticePage && (
+                    <Typography
                       sx={{
-                        background: "linear-gradient(180deg, #50bcf6, #5a81fd)",
-                        // color: color.newFirstColor,
-                        color: "white",
+                        color: "black",
                         textTransform: "none",
+                        fontSize: "14px",
                         // border: "solid 1px",
-                        px: 2,
-                        py: 1,
                         borderRadius: "999px",
-                        display: "flex",
-                        justifyContent: "center",
-                        gap: 1,
-                        alignItems: "center",
-                        width: isPracticePage ? "100%" : "auto",
+                        // px: 2,
+                        py: 0.5,
+                        fontFamily: "custom-regular",
                       }}
                     >
-                      {isPracticePage ? "Proceed To Practice" : "View more"}{" "}
-                      <FontAwesomeIcon
-                        style={{ marginTop: "2px" }}
-                        icon={faChevronCircleRight}
-                      />
-                    </Button>
-                  </Box>
-                </CardContent>
+                      Valid till {formatDateJob(job?.endDate)}
+                    </Typography>
+                  )}
+                  <BeyondResumeButton
+                    onClick={() => handleViewMore(job)}
+                    sx={{
+                      background: "white",
+                      color: color.newFirstColor,
+                      textTransform: "none",
+                      fontSize: "14px",
+                      // border: "solid 1px",
+                      boxShadow: "0px 0px 20px rgba(6, 15, 19, 0.07)",
+                      borderRadius: "999px",
+                      px: 2,
+                      py: 0.5,
+                    }}
+                  >
+                    {isPracticePage ? "Proceed To Practice" : "Explore"}{" "}
+                    <IconButton
+                      sx={{
+                        p: 0,
+                        ml: 1,
+                        fontSize: "16px",
+                        borderRadius: "999px",
+                        color: color.newFirstColor,
+                      }}
+                    >
+                      <FontAwesomeIcon icon={faArrowRight} />
+                    </IconButton>
+                  </BeyondResumeButton>
+                </Box>
               </Card>
             </Grid>
           ))}
@@ -860,12 +855,30 @@ const BeyondResumeJobs = () => {
             <Box sx={{ mb: 2 }}>
               <BeyondResumeButton
                 onClick={() => history.push("/beyond-resume-interviewForm")}
-                sx={{ position: "absolute", right: 30 }}
+                sx={{
+                  position: "absolute",
+                  right: 30,
+                  animation: "pulse 2s infinite",
+                  "@keyframes pulse": {
+                    "0%": {
+                      transform: "scale(1)",
+                      boxShadow: "0 0 0 0 rgba(0, 123, 255, 0.7)",
+                    },
+                    "70%": {
+                      transform: "scale(1.05)",
+                      boxShadow: "0 0 0 10px rgba(0, 123, 255, 0)",
+                    },
+                    "100%": {
+                      transform: "scale(1)",
+                      boxShadow: "0 0 0 0 rgba(0, 123, 255, 0)",
+                    },
+                  },
+                }}
               >
                 <FontAwesomeIcon
                   style={{ marginRight: "4px" }}
-                  icon={faPen}
-                ></FontAwesomeIcon>{" "}
+                  icon={faBriefcase}
+                />
                 Create Custom Interview
               </BeyondResumeButton>
             </Box>
@@ -941,8 +954,32 @@ const BeyondResumeJobs = () => {
           />
         }
       />
+
+      {avatarStatus !== null &&
+        !isPracticePage &&
+        getUserRole() === "CAREER SEEKER" &&
+        avatarStatus !== "CLOSED" &&
+        open && (
+          <div>
+            <BeyondResumeAvatar
+              open={open}
+              scriptLines={scriptLines}
+              onClose={() => setOpen(false)}
+            />
+          </div>
+        )}
     </Box>
   );
 };
 
 export default BeyondResumeJobs;
+
+const commonPillStyle = {
+  borderRadius: "999px",
+  background: color.newFirstColor,
+  color: "white",
+  width: "fit-content",
+  px: 1,
+  fontFamily: "montserrat-regular",
+  fontSize: "12px",
+};

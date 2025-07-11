@@ -70,20 +70,24 @@ export default function ExperienceForm({
         />
         <FormTextField
           label="Company Name"
+          placeholder="Eg. TCS, Infosys"
           valueProp="company"
           errors={errors}
           register={register}
           withValidationClass={false}
           sx={commonFormTextFieldSx}
         />
+
         <FormTextField
-          label="Experience (e.g., 2 years)"
+          label="Experience"
+          placeholder="Eg. 2 years"
           valueProp="years"
           errors={errors}
           register={register}
           withValidationClass={false}
           sx={commonFormTextFieldSx}
         />
+
         <FormSelect
           options={jobType}
           label="Employment Type"

@@ -1,6 +1,7 @@
 import {
   Autocomplete,
   Box,
+  CircularProgress,
   Slider,
   TextField,
   ToggleButton,
@@ -10,9 +11,16 @@ import {
 import { styled } from "@mui/system";
 import React, { useEffect, useState } from "react";
 import { useHistory } from "react-router";
-import { experienceLevels, jobFunctions, pricingPlans } from "../../../components/form/data";
+import {
+  experienceLevels,
+  jobFunctions,
+  pricingPlans,
+} from "../../../components/form/data";
 import { useSnackbar } from "../../../components/shared/SnackbarProvider";
-import { commonFormTextFieldSx } from "../../../components/util/CommonFunctions";
+import {
+  commonFormTextFieldSx,
+  extractCleanFileName,
+} from "../../../components/util/CommonFunctions";
 import {
   BeyondResumeButton,
   BlobAnimation,
@@ -21,7 +29,9 @@ import {
 } from "../../../components/util/CommonStyle";
 import { getUserId } from "../../../services/axiosClient";
 import {
+  getProfile,
   getUserAnswerFromAi,
+  getUserAnswerFromAiThroughPdf,
   insertDataInTable,
   searchDataFromTable,
   searchListDataFromTable,
@@ -30,7 +40,8 @@ import {
 } from "../../../services/services";
 import BeyondResumeLoader from "../Beyond Resume Components/BeyondResumeLoader";
 import BeyondResumeUpgradeRequiredModal from "../Beyond Resume Components/BeyondResumeUpgradeRequiredModal";
-
+import { faArrowCircleRight } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 const Container = styled(Box)({
   //   background: 'linear-gradient(180deg, #50bcf6, #5a81fd)',
@@ -57,7 +68,7 @@ const BeyondResumeInterviewForm = () => {
   const [duration, setDuration] = useState(20);
   const [addJobDescription, setAddJobDescription] = useState(false);
   const [jobDescription, setJobDescription] = useState("");
-  const [resume, setResume] = useState<File | null>(null);
+  const [resume, setResume] = useState<File | string | null>(null);
   const [addResume, setAddResume] = useState(true);
   const [name, setName] = useState("");
   const [about, setAbout] = useState("");
@@ -66,13 +77,52 @@ const BeyondResumeInterviewForm = () => {
   const [userExperience, setUserExperience] = useState("");
   const [previousCompany, setPreviousCompany] = useState("");
   const [selectedJob, setSelectedJob] = useState<string | undefined>(undefined);
-
+  const [loading, setLoading] = useState(false);
   const history = useHistory();
   const openSnackBar = useSnackbar();
   const [progress, setProgress] = useState(0);
   const [open, setOpen] = useState(false);
 
   const [showModal, setShowModal] = useState(false);
+
+  const [currentUser, setCurrentUser] = useState<any>();
+  useEffect(() => {
+    getProfile().then((result: any) => {
+      const data = result?.data?.data;
+      setCurrentUser(data);
+      if (data?.userPersonalInfo || data?.userContact) {
+        const fullName = [
+          data?.userPersonalInfo?.firstName,
+          data?.userPersonalInfo?.middleName,
+          data?.userPersonalInfo?.lastName,
+        ]
+          .filter(Boolean)
+          .join(" ");
+
+        setName(fullName);
+        setEmail(data?.userContact?.userEmail || "");
+        setPhone(data?.userContact?.userPhoneNumber || "");
+
+        setAbout(data?.userPersonalInfo?.about || "");
+        setResume(data?.userPersonalInfo?.resumeFile || "");
+      }
+    });
+  }, [addResume]);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setResume(file);
+    }
+  };
+
+  const getResumeFileName = () => {
+    if (!resume) return "";
+    if (typeof resume === "string") {
+      return extractCleanFileName(resume);
+    }
+    return resume.name;
+  };
 
   // useEffect(() => {
   //   const result: any = searchDataFromTable("brInterviews", {
@@ -113,7 +163,9 @@ const BeyondResumeInterviewForm = () => {
         return;
       }
 
-      const planDetails = pricingPlans.find((plan) => plan.title === subscription.planName);
+      const planDetails = pricingPlans.find(
+        (plan) => plan.title === subscription.planName
+      );
 
       if (!planDetails) {
         setShowModal(true);
@@ -146,6 +198,7 @@ const BeyondResumeInterviewForm = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
 
     const payload = {
       experience,
@@ -167,6 +220,17 @@ const BeyondResumeInterviewForm = () => {
     ) => {
       const hasJobDescription = !!jobDescription;
       const hasResume = !!resumeLink;
+
+      let resumeText = "";
+
+      if (resumeLink) {
+        const res = await getUserAnswerFromAiThroughPdf({
+          question:
+            "Extract the exact text from the attached pdf and give me plain html text.",
+          urls: [resumeLink],
+        });
+        resumeText = res?.data?.data || "";
+      }
 
       let baseCommand = `
         Please analyze the following ${
@@ -219,7 +283,7 @@ const BeyondResumeInterviewForm = () => {
         }
         ${
           hasResume
-            ? `Here is the resume link: ${resumeLink}`
+            ? `Here is the resume text: ${resumeText}`
             : `Here are some user-provided details:\nName: ${name}\nAbout: ${about}\nExperience: ${userExperience}\nPrevious Company: ${previousCompany}\nSelected Job:${selectedJob}`
         }
       `.replace(/\s+/g, " ");
@@ -274,33 +338,47 @@ const BeyondResumeInterviewForm = () => {
       .then(async (result: any) => {
         const interviewId = result?.data?.data?.brInterviewId;
 
-        if (resume) {
-          const formData = new FormData();
-          formData.append("file", resume);
+        if (addResume && resume) {
+          const isFile = resume instanceof File;
 
-          UploadFileInTable(
-            "brInterviews",
-            {
-              primaryKey: "brInterviewId",
-              primaryKeyValue: interviewId,
-              fieldToUpload: "resumeFile",
-              folderName: `brlnterviews/resumeFile`,
-            },
-            formData
-          )
-            .then(async () => {
-              const result1: any = await searchDataFromTable("brInterviews", {
-                brInterviewId: interviewId,
+          if (isFile) {
+            const formData = new FormData();
+            formData.append("file", resume);
+            UploadFileInTable(
+              "brInterviews",
+              {
+                primaryKey: "brInterviewId",
+                primaryKeyValue: interviewId,
+                fieldToUpload: "resumeFile",
+                folderName: `brInterviews/resumeFile`,
+              },
+              formData
+            )
+              .then(async () => {
+                const result1: any = await searchDataFromTable("brInterviews", {
+                  brInterviewId: interviewId,
+                });
+
+                const resumeLink = result1?.data?.data?.resumeFile;
+                proceedWithAIRequest(interviewId, resumeLink);
+              })
+              .catch(() => {
+                openSnackBar(
+                  "There is an error occurred during the file upload. It may be due to the file size. File size should be less than 50Kb"
+                );
               });
+          } else if (typeof resume === "string" && resume.startsWith("http")) {
+            await updateByIdDataInTable(
+              "brInterviews",
+              interviewId,
+              {
+                resumeFile: resume,
+              },
+              "brInterviewId"
+            );
 
-              const resumeLink = result1?.data?.data?.resumeFile;
-              proceedWithAIRequest(interviewId, resumeLink);
-            })
-            .catch((error) => {
-              openSnackBar(
-                "There is an error occurred during the file upload. It may be due to the file size. File size should be less than 50Kb"
-              );
-            });
+            proceedWithAIRequest(interviewId, resume);
+          }
         } else {
           proceedWithAIRequest(interviewId, null);
         }
@@ -460,13 +538,16 @@ const BeyondResumeInterviewForm = () => {
 
         {addResume ? (
           <Box>
-            <Typography gutterBottom mb={1} align="center">
-              Upload Resume
-            </Typography>
+            {!resume && (
+              <Typography gutterBottom mb={1} align="center">
+                Upload Resume
+              </Typography>
+            )}
             <Box
+              component="label"
               sx={{
                 background: "#e7e8ed",
-                p: 4,
+                p: 2,
                 borderRadius: "12px",
                 justifyContent: "space-between",
                 display: "flex",
@@ -474,57 +555,72 @@ const BeyondResumeInterviewForm = () => {
                 alignItems: "center",
                 gap: 2,
                 margin: "auto",
+                cursor: "pointer",
               }}
-              component="label"
             >
               <input
                 type="file"
                 accept=".pdf,.doc,.docx"
                 hidden
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    setResume(file);
-                  }
-                }}
+                onChange={handleFileChange}
               />
+
               {!resume && (
-                <Typography
-                  sx={{
-                    textAlign: "center",
-                    color: "grey",
-                    fontSize: "14px",
-                    px: 2,
-                  }}
-                >
-                  Drag and drop file or click To Upload PDF or DOCX • Max file
-                  size 2MB
-                </Typography>
+                <>
+                  <Typography
+                    sx={{
+                      textAlign: "center",
+                      color: "grey",
+                      fontSize: "14px",
+                      px: 2,
+                    }}
+                  >
+                    Drag and drop file or click to upload PDF or DOCX • Max size
+                    2MB
+                  </Typography>
+
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      background: "linear-gradient(180deg, #50bcf6, #50bcf6)",
+                      color: "white",
+                      p: 1,
+                      px: 4,
+                      borderRadius: "44px",
+                    }}
+                  >
+                    Upload
+                  </Typography>
+                </>
               )}
+
               {resume && (
-                <Typography
-                  sx={{
-                    color: "black",
-                    p: 1,
-                    px: 4,
-                    borderRadius: "44px",
-                  }}
-                >
-                  {resume.name}
-                </Typography>
+                <>
+                  <Typography
+                    sx={{
+                      color: "black",
+                      p: 1,
+                      px: 4,
+                      borderRadius: "44px",
+                    }}
+                  >
+                    {getResumeFileName()}
+                  </Typography>
+
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      background: "linear-gradient(180deg, #50bcf6, #50bcf6)",
+                      color: "white",
+                      p: 1,
+                      px: 4,
+                      borderRadius: "44px",
+                    }}
+                  >
+                    Change
+                  </Typography>
+                </>
               )}
-              <Typography
-                variant="body2"
-                sx={{
-                  background: "linear-gradient(180deg, #50bcf6, #50bcf6)",
-                  color: "white",
-                  p: 1,
-                  px: 4,
-                  borderRadius: "44px",
-                }}
-              >
-                Upload
-              </Typography>
             </Box>
           </Box>
         ) : (
@@ -534,8 +630,8 @@ const BeyondResumeInterviewForm = () => {
               Please fill out the following details
             </Typography>
             <TextField
+              disabled
               fullWidth
-              required
               label="Name"
               variant="outlined"
               value={name}
@@ -543,8 +639,8 @@ const BeyondResumeInterviewForm = () => {
               sx={{ ...commonFormTextFieldSx, mb: 2 }}
             />
             <TextField
+              disabled
               fullWidth
-              required
               label="Email"
               variant="outlined"
               value={email}
@@ -583,6 +679,7 @@ const BeyondResumeInterviewForm = () => {
               label="About"
               variant="outlined"
               multiline
+              placeholder="Eg. Passionate frontend developer with a love for clean UI/UX."
               rows={3}
               value={about}
               onChange={(e) => setAbout(e.target.value)}
@@ -606,12 +703,14 @@ const BeyondResumeInterviewForm = () => {
               value={userExperience}
               onChange={(e) => setUserExperience(e.target.value)}
               sx={{ ...commonFormTextFieldSx, mb: 2 }}
+              placeholder="Eg. 5 years of experience in React, Node.js, and AWS."
             />
             <TextField
               fullWidth
               required
               label="Previous Employer / Company Name"
               variant="outlined"
+              placeholder="Eg. ABC Technologies Pvt. Ltd."
               value={previousCompany}
               onChange={(e) => setPreviousCompany(e.target.value)}
               sx={{ ...commonFormTextFieldSx }}
@@ -665,10 +764,26 @@ const BeyondResumeInterviewForm = () => {
           type="submit"
           variant="contained"
           color="secondary"
-          disabled={isSubmitDisabled}
           sx={{ mt: 2, py: 1.5, fontSize: "1rem" }}
         >
-          Submit
+          {loading ? (
+            <>
+              Creating interview{" "}
+              <CircularProgress
+                color="inherit"
+                size={18}
+                style={{ marginLeft: "8px" }}
+              />
+            </>
+          ) : (
+            <BeyondResumeButton>
+              Submit{" "}
+              <FontAwesomeIcon
+                style={{ marginLeft: "6px" }}
+                icon={faArrowCircleRight}
+              />
+            </BeyondResumeButton>
+          )}
         </BeyondResumeButton>
       </Form>
       <BeyondResumeLoader open={open} progress={progress} />

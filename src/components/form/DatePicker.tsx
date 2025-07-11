@@ -45,12 +45,13 @@ export default function BasicDatePicker({
         sx={{
           marginInline: 2,
           marginTop,
-          borderRadius: "10px",
+          borderRadius: "44px",
+          overflow:'hidden',
           boxShadow: "1px 1px 10px #00000028",
           ...sx,
         }}
       >
-        <Box>
+        <Box width={'100%'}>
           {minimum ? (
             <DatePicker
               label={label}

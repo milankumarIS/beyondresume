@@ -15,12 +15,13 @@ import {
 } from "../../components/util/CommonStyle";
 import { getUserId } from "../../services/axiosClient";
 import {
+  getProfile,
   insertDataInTable,
   searchDataFromTable,
 } from "../../services/services";
 import { faArrowCircleRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import InterviewModeModal from "./Beyond Resume Components/BeyondResumeInterviewModeModal";
 
 const Container = styled(Box)({
@@ -48,7 +49,9 @@ const BeyondResumeJobInterviewForm = () => {
   const {
     control,
     register,
+    setValue,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<InterviewFormSchemaType>({
     resolver: zodResolver(interviewFormSchema),
@@ -68,6 +71,27 @@ const BeyondResumeJobInterviewForm = () => {
   const [loading, setLoading] = useState(false);
   const [showModeModal, setShowModeModal] = useState(false);
   const [applicantId, setApplicantId] = useState<string | null>(null);
+
+  const [currentUser, setCurrentUser] = useState<any>();
+  useEffect(() => {
+    getProfile().then((result: any) => {
+      const data = result?.data?.data;
+      setCurrentUser(data);
+      if (data?.userPersonalInfo || data?.userContact) {
+        const fullName = [
+          data?.userPersonalInfo?.firstName,
+          data?.userPersonalInfo?.middleName,
+          data?.userPersonalInfo?.lastName,
+        ]
+          .filter(Boolean)
+          .join(" ");
+
+        setValue("fullName", fullName);
+        setValue("email", data?.userContact?.userEmail || "");
+        setValue("phone", data?.userContact?.userPhoneNumber || "");
+      }
+    });
+  }, [setValue]);
 
   const onSubmitHandler: SubmitHandler<InterviewFormSchemaType> = async (
     data
@@ -166,6 +190,8 @@ const BeyondResumeJobInterviewForm = () => {
             register={register}
             withValidationClass={false}
             sx={commonFormTextFieldSx}
+            watch={watch}
+            required
           />
 
           <FormTextField
@@ -175,6 +201,8 @@ const BeyondResumeJobInterviewForm = () => {
             register={register}
             withValidationClass={false}
             sx={commonFormTextFieldSx}
+            watch={watch}
+            required
           />
 
           <FormTextField
@@ -184,6 +212,8 @@ const BeyondResumeJobInterviewForm = () => {
             register={register}
             withValidationClass={false}
             sx={commonFormTextFieldSx}
+            watch={watch}
+            required
           />
           <FormTextField
             label="Previous Employer / Company Name"
@@ -200,6 +230,7 @@ const BeyondResumeJobInterviewForm = () => {
             errors={errors}
             register={register}
             withValidationClass={false}
+            required
             sx={commonFormTextFieldSx}
           />
 

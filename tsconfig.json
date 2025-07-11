@@ -13,15 +13,17 @@
     "noImplicitAny": false,
     "allowJs": false,
     "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true, 
+    "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "types": ["node"] 
+    "types": ["node"],
   },
   "include": [
     "src",
     "public/assets",
-    "src/leaflet-routing-machine.d.ts"
+    "src/leaflet-routing-machine.d.ts",
+    "src/global.d.ts",
+    "src/vite-env.d.ts"
   ],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

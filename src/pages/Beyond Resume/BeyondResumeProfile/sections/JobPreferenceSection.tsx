@@ -1,17 +1,87 @@
-import { faBuilding, faCloudSun, faLocation, faLocationDot, faLocationPin, faUserTie } from "@fortawesome/free-solid-svg-icons";
+import {
+  faBuilding,
+  faCloudSun,
+  faLocationPin,
+  faUserTie,
+} from "@fortawesome/free-solid-svg-icons";
 import { Stack, Typography } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   BeyondResumeButton,
   IconTextRow1,
 } from "../../../../components/util/CommonStyle";
+import { getUserId } from "../../../../services/axiosClient";
+import {
+  searchDataFromTable,
+  syncDataInTable
+} from "../../../../services/services";
 import ProfileSectionCard from "../../Beyond Resume Components/ProfileSectionCard";
 import JobPreferenceForm from "../forms/JobPreferenceForm";
 
-export default function JobPreferenceSection({ data = {}, onSave }: any) {
+export default function JobPreferenceSection() {
   const [isEditing, setIsEditing] = useState(false);
+  const [jobPreference, setJobPreference] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-  if ((!data || Object.keys(data).length === 0) && !isEditing) {
+  useEffect(() => {
+    const fetchJobPreference = async () => {
+      try {
+        const response = await searchDataFromTable("userJobPreference", {
+           userId: getUserId()
+        });
+
+        // console.log(response)
+
+        if (response) {
+          const item = response?.data?.data;
+          setJobPreference({
+            location: item.preferedLocation,
+            shift: item.preferedShipt,
+            workplace: item.workplace,
+            employmentType: item.employmentType,
+          });
+        }
+      } catch (error) {
+        console.error("Failed to fetch job preference", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchJobPreference();
+  }, []);
+
+  const handleSave = async (formData: any) => {
+    const payload = {
+      preferedLocation: formData.location,
+      employmentType: formData.employmentType,
+      workplace: formData.workplace,
+      preferedShipt: formData.shift,
+      userId: getUserId(),
+    };
+
+    try {
+      await syncDataInTable("userJobPreference", payload, "userId");
+
+      setJobPreference(formData);
+      setIsEditing(false);
+    } catch (error) {
+      console.error("Failed to update job preference:", error);
+    }
+  };
+
+  if (loading) {
+    return (
+      <ProfileSectionCard title="Job Preference">
+        <Typography>Loading...</Typography>
+      </ProfileSectionCard>
+    );
+  }
+
+  if (
+    (!jobPreference || Object.keys(jobPreference).length === 0) &&
+    !isEditing
+  ) {
     return (
       <ProfileSectionCard title="Job Preference">
         <Stack spacing={2}>
@@ -28,11 +98,8 @@ export default function JobPreferenceSection({ data = {}, onSave }: any) {
     return (
       <ProfileSectionCard title="Job Preference">
         <JobPreferenceForm
-          defaultValues={data}
-          onSave={(formData) => {
-            onSave(formData);
-            setIsEditing(false);
-          }}
+          defaultValues={jobPreference}
+          onSave={handleSave}
           onCancel={() => setIsEditing(false)}
         />
       </ProfileSectionCard>
@@ -60,18 +127,23 @@ export default function JobPreferenceSection({ data = {}, onSave }: any) {
         <IconTextRow1
           heading="Location"
           icon={faLocationPin}
-          text={data.location}
-        />
-        <IconTextRow1 heading="Shift" icon={faCloudSun} text={data.shift} />
-        <IconTextRow1
-          heading="Workplace"
-          icon={faBuilding}
-          text={data.workplace}
+          text={jobPreference.location}
         />
         <IconTextRow1
           heading="Employment Type"
           icon={faUserTie}
-          text={data.employmentType}
+          text={jobPreference.employmentType}
+        />
+        <IconTextRow1
+          heading="Workplace"
+          icon={faBuilding}
+          text={jobPreference.workplace}
+        />
+
+        <IconTextRow1
+          heading="Shift"
+          icon={faCloudSun}
+          text={jobPreference.shift}
         />
       </Stack>
     </ProfileSectionCard>
