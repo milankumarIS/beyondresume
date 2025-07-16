@@ -285,3 +285,13 @@ export const IconTextRow1 = ({
      }}>{text}</Typography>
   </Box>
 );
+
+export const commonPillStyle = {
+  borderRadius: "999px",
+  background: color.newFirstColor,
+  color: "white",
+  width: "fit-content",
+  px: 1,
+  fontFamily: "montserrat-regular",
+  fontSize: "12px",
+};

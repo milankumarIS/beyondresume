@@ -14,7 +14,7 @@ const Proceed = ({ setIsOpen, isOpen, dismissprop, fromHome }: any) => {
   };
 
   const handleClick1 = () => {
-    location.href = "/login";
+    // location.href = "/login";
     dismiss();
     if (!fromHome) dismissprop();
   };

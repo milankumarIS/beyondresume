@@ -112,7 +112,7 @@ const Signup: React.FC = () => {
 
   const afterRegistration = (result: any) => {
     openSnackBar(result?.data?.msg);
-    history.push("/login");
+    // history.push("/login");
   };
 
   return (

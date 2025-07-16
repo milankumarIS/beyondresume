@@ -152,17 +152,32 @@ const ExamSession: React.FC<ExamSessionProps> = ({
     setQuestionSpoken(true);
   };
 
-  const speakText = async (text: string) => {
-    return new Promise<void>(async (resolve) => {
-      setIsSpeaking(true);
+const speakText = (text: string): Promise<void> => {
+  return new Promise((resolve) => {
+ setIsSpeaking(true);
       setConversation((prev) => [...prev, { speaker: "AI", text }]);
+          // await speakWithElevenLabs(text);
 
-      await speakWithElevenLabs(text);
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "en-US";
+    setIsSpeaking(true);
 
+    utterance.onend = () => {
       setIsSpeaking(false);
       resolve();
-    });
-  };
+    };
+
+    utterance.onerror = (e) => {
+      console.error("Speech synthesis error:", e);
+      setIsSpeaking(false);
+      resolve(); 
+    };
+
+    speechSynthesis.cancel();
+
+    speechSynthesis.speak(utterance);
+  });
+};
 
   const startRecording = async () => {
     try {
@@ -177,7 +192,7 @@ const ExamSession: React.FC<ExamSessionProps> = ({
 
       recognitionRef.current = new SpeechRecognitionAPI();
       const recognition = recognitionRef.current;
-      recognition.continuous = false;
+      recognition.continuous = true;
       recognition.lang = "en-US";
       recognition.interimResults = false;
       recognition.maxAlternatives = 1;
@@ -262,7 +277,6 @@ const ExamSession: React.FC<ExamSessionProps> = ({
       setLoading,
     });
   };
-
 
   return (
     <Box
@@ -453,7 +467,7 @@ const ExamSession: React.FC<ExamSessionProps> = ({
           }
         />
 
-        {loading ? (
+        {/* {loading ? (
           <BeyondResumeButton variant="contained" style={{ color: "white" }}>
             Submitting Interview...{" "}
             <CircularProgress
@@ -471,12 +485,10 @@ const ExamSession: React.FC<ExamSessionProps> = ({
           >
             Submit Interview
           </BeyondResumeButton>
-        )}
+        )} */}
       </Box>
     </Box>
   );
 };
 
 export default ExamSession;
-
-

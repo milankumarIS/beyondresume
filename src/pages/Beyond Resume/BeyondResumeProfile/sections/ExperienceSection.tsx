@@ -29,6 +29,7 @@ export default function ExperienceSection() {
   const [isEditingIndex, setIsEditingIndex] = useState<number | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const isAlreadyCurrentlyWorking = data.some((d) => d.current);
 
   const fetchExperienceData = async () => {
     setLoading(true);
@@ -109,7 +110,7 @@ export default function ExperienceSection() {
     try {
       const id = data[index]?.id;
       if (id) {
-        await deleteDataFromTable("experience", id, "id");
+        await deleteDataFromTable("experience", id, "experienceId");
         await fetchExperienceData();
       }
     } catch (err) {
@@ -140,6 +141,9 @@ export default function ExperienceSection() {
                     defaultValues={exp}
                     onSave={(d) => handleSave(d, index)}
                     onCancel={() => setIsEditingIndex(null)}
+                    disableCurrentCheckbox={
+                      isAlreadyCurrentlyWorking && !exp.current
+                    }
                   />
                 ) : (
                   <Stack
@@ -195,7 +199,7 @@ export default function ExperienceSection() {
                       text={exp.employmentType}
                     />
 
-                    {exp.noticePeriod && (
+                    {exp.noticePeriod && exp.current && (
                       <Typography>
                         <b>* Notice Period:</b> {exp.noticePeriod}
                       </Typography>
@@ -249,6 +253,7 @@ export default function ExperienceSection() {
               <ExperienceForm
                 onSave={(d) => handleSave(d, null)}
                 onCancel={() => setFormOpen(false)}
+                disableCurrentCheckbox={isAlreadyCurrentlyWorking}
               />
             )}
 

@@ -28,18 +28,81 @@ const ExamSessionVideoCamBox: React.FC<ExamSessionVideoCamBoxProps> = ({
 }) => {
   const [isMicOn, setIsMicOn] = useState(false);
   const [isVideoOn, setIsVideoOn] = useState(false);
-
-  useEffect(() => {
-    setIsMicOn(micStatus);
-  }, [micStatus]);
-
-  useEffect(() => {
-    setIsVideoOn(videoStatus);
-  }, [videoStatus]);
+  const [micAccessible, setMicAccessible] = useState(true);
+  const [micSilent, setMicSilent] = useState(false);
 
   const webcamRef = useRef<Webcam>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
+  const checkIntervalRef = useRef<number | null>(null);
+
   const [webcamSize, setWebcamSize] = useState({ width: 0, height: 0 });
+
+  useEffect(() => setIsMicOn(micStatus), [micStatus]);
+  useEffect(() => setIsVideoOn(videoStatus), [videoStatus]);
+
+  useEffect(() => {
+    const initMicCheck = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaStreamRef.current = stream;
+        const audioContext = new AudioContext();
+        audioContextRef.current = audioContext;
+
+        const source = audioContext.createMediaStreamSource(stream);
+        const analyser = audioContext.createAnalyser();
+        analyser.fftSize = 512;
+        analyserRef.current = analyser;
+
+        source.connect(analyser);
+
+        const bufferLength = analyser.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+
+        let silentCount = 0;
+
+        checkIntervalRef.current = window.setInterval(() => {
+          if (!analyserRef.current) return;
+          analyserRef.current.getByteFrequencyData(dataArray);
+          const volume = dataArray.reduce((a, b) => a + b, 0) / bufferLength;
+
+          if (volume < 1) {
+            silentCount++;
+            if (silentCount >= 10) {
+              setMicSilent(true);
+              setIsMicOn(false);
+            }
+          } else {
+            silentCount = 0;
+            setMicSilent(false);
+          }
+        }, 500);
+
+        setMicAccessible(true);
+      } catch (err) {
+        console.error("Mic access failed:", err);
+        setMicAccessible(false);
+        setIsMicOn(false);
+        setMicSilent(true);
+      }
+    };
+
+    initMicCheck();
+
+    return () => {
+      if (checkIntervalRef.current) clearInterval(checkIntervalRef.current);
+      analyserRef.current?.disconnect();
+      audioContextRef.current?.close();
+      mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
+    };
+  }, []);
+
   const handleMicToggle = () => {
+    if (!micAccessible || micSilent) {
+      alert("Microphone is not working or is muted/disabled.");
+      return;
+    }
     setIsMicOn((prev) => !prev);
   };
 
@@ -65,9 +128,9 @@ const ExamSessionVideoCamBox: React.FC<ExamSessionVideoCamBoxProps> = ({
         });
       }
     }, 500);
-
     return () => clearInterval(interval);
   }, []);
+
   return (
     <Grid2
       size={{ xs: 12, md: 8 }}
@@ -82,11 +145,8 @@ const ExamSessionVideoCamBox: React.FC<ExamSessionVideoCamBoxProps> = ({
         pb: { xs: "70px", sm: "16px" },
       }}
     >
-      <Box
-        sx={{
-          width: { xs: "100%", sm: "50%" },
-        }}
-      >
+      {/* Left Video Box */}
+      <Box sx={{ width: { xs: "100%", sm: "50%" } }}>
         <Box
           sx={{
             position: "relative",
@@ -113,23 +173,26 @@ const ExamSessionVideoCamBox: React.FC<ExamSessionVideoCamBoxProps> = ({
               sx={{
                 background: "linear-gradient(145deg, #0d0d0d, #2D3436)",
                 position: "relative",
-                width: webcamSize.width ? webcamSize.width : "100%",
-                height: webcamSize.height ? webcamSize.height : "300px",
+                width: webcamSize.width || "100%",
+                height: webcamSize.height || "300px",
               }}
             >
-              <div
-                style={{
-                  position: "absolute" as "absolute",
+              <Typography
+                variant="h6"
+                sx={{
+                  position: "absolute",
                   top: "50%",
                   left: "50%",
                   transform: "translate(-50%, -50%)",
                 }}
               >
-                <Typography variant="h6">Camera Off</Typography>
-              </div>
+                Camera Off
+              </Typography>
             </Box>
           )}
         </Box>
+
+        {/* Controls */}
         <Box
           display="flex"
           justifyContent="center"
@@ -168,12 +231,21 @@ const ExamSessionVideoCamBox: React.FC<ExamSessionVideoCamBoxProps> = ({
             />
           </BeyondResumeButton>
         </Box>
+
+        {micSilent && (
+          <Typography
+            sx={{ textAlign: "center", mt: 2, color: "#ff5252", fontSize: "14px" }}
+          >
+            Mic is not detecting any sound. Please check if it's muted or disabled.
+          </Typography>
+        )}
       </Box>
 
+      {/* Right AI Box */}
       <Box
         sx={{
-          width: {xs:'100%',sm: "50%" , md: webcamSize.width ? webcamSize.width : "50%"},
-          height: webcamSize.height ? webcamSize.height : "300px",
+          width: { xs: "100%", sm: "50%", md: webcamSize.width || "50%" },
+          height: webcamSize.height || "300px",
           flexGrow: 1,
           background: "linear-gradient(145deg, #0d0d0d, #2D3436)",
           borderRadius: "12px",
@@ -213,32 +285,19 @@ const ExamSessionVideoCamBox: React.FC<ExamSessionVideoCamBoxProps> = ({
           </Avatar>
         )}
 
-        {isRecording ? (
-          <Typography
-            sx={{
-              position: "absolute",
-              bottom: -40,
-              left: 10,
-            }}
-            color="white"
-          >
-            {" "}
-            Listening for answer...
-          </Typography>
-        ) : (
-          <Typography
-            sx={{
-              position: "absolute",
-              bottom: { xs: -50, sm: -60 },
-              left: 10,
-              fontSize: { xs: "12px", sm: "16px" },
-            }}
-            color="white"
-          >
-            {" "}
-            Click "Start Answering" Button below to give your answer.
-          </Typography>
-        )}
+        <Typography
+          sx={{
+            position: "absolute",
+            bottom: { xs: -50, sm: -60 },
+            left: 10,
+            fontSize: { xs: "12px", sm: "16px" },
+          }}
+          color="white"
+        >
+          {isRecording
+            ? "Listening for answer..."
+            : 'Click "Start Answering" Button below to give your answer.'}
+        </Typography>
       </Box>
     </Grid2>
   );

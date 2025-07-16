@@ -1,5 +1,6 @@
 import {
   faArrowRight,
+  faBookmark,
   faBriefcase,
   faClock,
   faInfoCircle,
@@ -37,18 +38,23 @@ import {
   formatDateJob,
   timeAgo,
 } from "../../components/util/CommonFunctions";
-import { BeyondResumeButton } from "../../components/util/CommonStyle";
+import {
+  BeyondResumeButton,
+  commonPillStyle,
+} from "../../components/util/CommonStyle";
 import ConfirmationPopup from "../../components/util/ConfirmationPopup";
 import { getUserId, getUserRole } from "../../services/axiosClient";
 import {
   searchDataFromTable,
   searchListDataFromTable,
+  syncByTwoUniqueKeyData,
   syncDataInTable,
   updateByIdDataInTable,
 } from "../../services/services";
 import color from "../../theme/color";
 import BeyondResumeAvatar from "./Beyond Resume Components/BeyondResumeAvatar";
 import BeyondResumeJobFilterComponent from "./Beyond Resume Components/BeyondResumeJobFilterComponent";
+import { AnimatePresence, motion } from "framer-motion";
 
 type Job = {
   brJobId: string;
@@ -57,12 +63,12 @@ type Job = {
   jobTitle: string;
   jobMode: string;
   endDate?: string;
-  // add any other fields you use
 };
 
 const BeyondResumeJobs = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeJobs, setActiveJobs] = useState<any[]>([]);
+  const [savedJobs, setSavedJobs] = useState<any[]>([]);
   const [pendingJobs, setPendingJobs] = useState<any[]>([]);
   const [completedJobs, setCompletedJobs] = useState<any[]>([]);
   const [filteredJobs, setFilteredJobs] = useState<any[]>([]);
@@ -74,9 +80,16 @@ const BeyondResumeJobs = () => {
   const openSnackBar = useSnackbar();
   const [popupOpen, setPopupOpen] = useState(false);
   const [selectedJobId, setSelectedJobId] = useState(null);
+  const [showSavedJobs, setShowSavedJobs] = useState(false);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [avatarStatus, setAvatarStatus] = useState("");
+  const [savingJobId, setSavingJobId] = useState<string | null>(null);
+  const fadeVariant = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
+    exit: { opacity: 0, y: -20, transition: { duration: 0.3 } },
+  };
 
   const scriptLines = [
     "Hey future superstar! I’m your Career Coach from Beyond Resume. Forget LinkedIn’s resume spam—we help you land roles by showing your skills, not just stating them. Ready for a job hunt that actually works? Let’s go!",
@@ -215,95 +228,89 @@ const BeyondResumeJobs = () => {
     );
 
   const fetchJobs = async () => {
+    setLoading(true);
     const now = new Date();
+    const createdBy = getUserId();
 
-    if (isJobPage) {
-      const createdBy = getUserId();
-      const [activeResult, pendingResult] = await Promise.all([
-        searchListDataFromTable("brJobs", {
-          createdBy,
-        }),
-        searchListDataFromTable("brJobs", {
-          brJobStatus: "INPROGRESS",
-          createdBy,
-        }),
-      ]);
+    try {
+      if (isJobPage) {
+        const [activeResult, pendingResult] = await Promise.all([
+          searchListDataFromTable("brJobs", { createdBy }),
+          searchListDataFromTable("brJobs", {
+            brJobStatus: "INPROGRESS",
+            createdBy,
+          }),
+        ]);
 
-      setLoading(false);
+        const allJobs = activeResult?.data?.data || [];
 
-      const allActiveJobs = activeResult?.data?.data.filter((job) => {
-        return job.brJobStatus === "ACTIVE";
-      });
-
-      // console.log(allActiveJobs)
-      // console.log(pendingResult?.data?.data)
-
-      const expiredJobs = activeResult?.data?.data.filter((job) => {
-        return (
-          (job.endDate &&
-            new Date(job.endDate) <= now &&
-            job.brJobStatus === "ACTIVE") ||
-          job.brJobStatus === "CLOSED"
+        const activeJobs = allJobs.filter(
+          (job) =>
+            job.brJobStatus === "ACTIVE" &&
+            (!job.endDate || new Date(job.endDate) > now)
         );
-      });
 
-      const nonExpiredJobs = allActiveJobs.filter((job) => {
-        return !job.endDate || new Date(job.endDate) > now;
-      });
+        const expiredJobs = allJobs.filter(
+          (job) =>
+            (job.brJobStatus === "ACTIVE" &&
+              job.endDate &&
+              new Date(job.endDate) <= now) ||
+            job.brJobStatus === "CLOSED"
+        );
 
-      const sortedActive = sortByNewest(nonExpiredJobs);
-      const sortedPending = sortByNewest(pendingResult?.data?.data || []);
-      const sortedCompleted = sortByNewest(expiredJobs);
+        setActiveJobs(sortByNewest(activeJobs));
+        setPendingJobs(sortByNewest(pendingResult?.data?.data || []));
+        setCompletedJobs(sortByNewest(expiredJobs));
+      } else if (isPracticePage) {
+        const result = await searchListDataFromTable("brMockInterviews", {
+          brMockInterviewStatus: "ACTIVE",
+        });
+        setActiveJobs(result?.data?.data || []);
+      } else {
+        const [result, userAppliedJobs, userSavedJobs] = await Promise.all([
+          searchListDataFromTable("brJobs", { brJobStatus: "ACTIVE" }),
+          searchListDataFromTable("brJobApplicant", {
+            createdBy,
+            brJobApplicantStatus: "CONFIRMED",
+          }),
+          searchListDataFromTable("brJobApplicant", {
+            createdBy,
+            brJobApplicantStatus: "REQUESTED",
+          }),
+        ]);
 
-      setActiveJobs(sortedActive);
-      setPendingJobs(sortedPending);
-      setCompletedJobs(sortedCompleted);
-    } else if (isPracticePage) {
-      const result = await searchListDataFromTable("brMockInterviews", {
-        brMockInterviewStatus: "ACTIVE",
-      });
-      // console.log(result);
+        const allActiveJobs = result?.data?.data || [];
+
+        const activeJobs = allActiveJobs.filter(
+          (job) => !job.endDate || new Date(job.endDate) > now
+        );
+
+        const appliedJobIds = new Set(
+          (userAppliedJobs?.data?.data || []).map((app) => app.brJobId)
+        );
+
+        const jobsNotYetApplied = activeJobs.filter(
+          (job) => !appliedJobIds.has(job.brJobId)
+        );
+
+        const sortedActive = sortByNewest(jobsNotYetApplied);
+        setActiveJobs(sortedActive);
+
+        const filtered = applyFilters(sortedActive);
+        setFilteredJobs(filtered);
+
+        setSavedJobs(userSavedJobs?.data?.data || []);
+      }
+    } catch (error) {
+      console.error("Failed to fetch jobs:", error);
+    } finally {
       setLoading(false);
-      setActiveJobs(result?.data?.data);
-    } else {
-      const result = await searchListDataFromTable("brJobs", {
-        brJobStatus: "ACTIVE",
-      });
-
-      const userAppliedJobs = await searchListDataFromTable("brJobApplicant", {
-        createdBy: getUserId(),
-        brJobApplicantStatus: "CONFIRMED",
-      });
-
-      setLoading(false);
-
-      const activeJobs = (result?.data?.data || []).filter((job) => {
-        if (!job.endDate) return true;
-        return new Date(job.endDate) > now;
-      });
-
-      const appliedJobIds = new Set(
-        (userAppliedJobs?.data?.data || []).map((app) => app.brJobId)
-      );
-
-      // console.log(appliedJobIds)
-
-      const jobsNotYetApplied = activeJobs.filter(
-        (job) => !appliedJobIds.has(job.brJobId)
-      );
-
-      const sortedActive = sortByNewest(jobsNotYetApplied);
-      setActiveJobs(sortedActive);
-      // console.log(sortedActive);
-
-      const filtered = applyFilters(sortedActive);
-      setFilteredJobs(filtered);
     }
   };
 
   useEffect(() => {
     fetchJobs();
-  }, [isJobPage]);
+  }, [isJobPage, showSavedJobs]);
 
   useEffect(() => {
     if (!isJobPage) {
@@ -356,23 +363,24 @@ const BeyondResumeJobs = () => {
       {}
     );
     const [loadingApplicants, setLoadingApplicants] = useState<boolean>(false);
-
+    const [savedJobs, setSavedJobs] = useState<Set<string>>(new Set());
     useEffect(() => {
       const fetchApplicants = async () => {
         setLoadingApplicants(true);
         const map: Record<string, any[]> = {};
-        const jobIds: string[] = [];
+        const savedJobSet = new Set<string>();
 
         const promises = jobs.map((job) =>
           searchListDataFromTable("brJobApplicant", {
-            brJobApplicantStatus: "CONFIRMED",
+            brJobApplicantStatus: ["CONFIRMED", "REQUESTED"],
             brJobId: job.brJobId,
           }).then((applicants) => {
-            const newApplicants = applicants.data.data;
-            map[job.brJobId] = newApplicants;
-
-            if (newApplicants.length > 0) {
-              jobIds.push(job.brJobId);
+            const data = applicants.data.data;
+            map[job.brJobId] = data.filter(
+              (a) => a.brJobApplicantStatus === "CONFIRMED"
+            );
+            if (data.some((a) => a.brJobApplicantStatus === "REQUESTED")) {
+              savedJobSet.add(job.brJobId);
             }
           })
         );
@@ -380,11 +388,59 @@ const BeyondResumeJobs = () => {
         await Promise.all(promises);
 
         setApplicantsMap(map);
+        setSavedJobs(savedJobSet);
         setLoadingApplicants(false);
       };
 
       fetchApplicants();
     }, [jobs]);
+
+    const handleSaveJob = async (job: any) => {
+      const jobId = job?.brJobId;
+      const userId = getUserId();
+      const isAlreadySaved = savedJobs.has(jobId);
+
+      setSavingJobId(jobId);
+
+      try {
+        await syncByTwoUniqueKeyData(
+          "brJobApplicant",
+          {
+            brJobId: jobId,
+            createdBy: userId,
+            brJobApplicantStatus: isAlreadySaved ? "INACTIVE" : "REQUESTED",
+            fullName: "",
+            email: "",
+            phone: "",
+            companyName: job.companyName,
+            jobTitle: job.jobTitle,
+            experience: job.experience,
+            jobType: job.jobType,
+            skills: job.skills,
+            location: job.location,
+            compensation: job.compensation,
+            jobDescriptions: job.jobDescriptions,
+            jobInterviewQuestions: job.jobInterviewQuestions,
+          },
+          "createdBy",
+          "brJobId"
+        );
+
+        setSavedJobs((prev) => {
+          const updated = new Set(prev);
+          if (isAlreadySaved) {
+            updated.delete(jobId);
+          } else {
+            updated.add(jobId);
+          }
+          return updated;
+        });
+      } catch (error) {
+        console.error("Error toggling save job status", error);
+      } finally {
+        setSavingJobId(null);
+      }
+    };
 
     return (
       <Box mt={4} mb={4}>
@@ -417,9 +473,8 @@ const BeyondResumeJobs = () => {
                   "&:hover": {
                     transform: "scale(1.02)",
                     boxShadow: "0px 2px 36px rgba(0, 0, 0, 0.25)",
-                  // border: "solid 1.5px",
-                  // borderColor:color.newFirstColor
-
+                    // border: "solid 1.5px",
+                    // borderColor:color.newFirstColor
                   },
                 }}
               >
@@ -507,6 +562,32 @@ const BeyondResumeJobs = () => {
                       </Button>
                     )}
                   </Box>
+
+                  {!isPracticePage && getUserRole() === "CAREER SEEKER" && (
+                    <IconButton
+                      onClick={() => handleSaveJob(job)}
+                      sx={{
+                        position: "absolute",
+                        top: 8,
+                        right: 8,
+                        background: "white",
+                        borderRadius: "50%",
+                        zIndex: 1,
+                        boxShadow: "0 2px 8px rgba(0, 0, 0, 0)",
+                      }}
+                    >
+                      {savingJobId === job.brJobId ? (
+                        <CircularProgress size={18} />
+                      ) : savedJobs.has(job.brJobId) ? (
+                        <FontAwesomeIcon
+                          icon={faBookmark}
+                          color={color.newFirstColor}
+                        />
+                      ) : (
+                        <FontAwesomeIcon icon={faBookmark} color="#ccc" />
+                      )}
+                    </IconButton>
+                  )}
 
                   <Typography fontSize={"14px"} mt={-1} mb={1}>
                     {job.companyName}
@@ -603,16 +684,29 @@ const BeyondResumeJobs = () => {
                                   applicantsMap[job.brJobId]?.length > 0 && (
                                     <Typography sx={commonPillStyle}>
                                       <FontAwesomeIcon icon={faUserTie} />{" "}
-                                      {(() => {
-                                        const count =
-                                          applicantsMap[job.brJobId]?.length ||
-                                          0;
-                                        return count > 100
-                                          ? "100+ Applicants"
-                                          : `${count} Applicant${
-                                              count !== 1 ? "s" : ""
-                                            }`;
-                                      })()}
+                                      <AnimatePresence mode="wait">
+                                        <motion.span
+                                          key={
+                                            applicantsMap[job.brJobId]
+                                              ?.length || 0
+                                          }
+                                          initial={{ opacity: 0, y: -5 }}
+                                          animate={{ opacity: 1, y: 0 }}
+                                          exit={{ opacity: 0, y: 5 }}
+                                          transition={{ duration: 0.3 }}
+                                        >
+                                          {(() => {
+                                            const count =
+                                              applicantsMap[job.brJobId]
+                                                ?.length || 0;
+                                            return count > 100
+                                              ? "100+ Applicants"
+                                              : `${count} Applicant${
+                                                  count !== 1 ? "s" : ""
+                                                }`;
+                                          })()}
+                                        </motion.span>
+                                      </AnimatePresence>
                                     </Typography>
                                   )
                                 )}
@@ -841,9 +935,33 @@ const BeyondResumeJobs = () => {
           </Typography>
         </Box>
       ) : (
-        <Box px={2} mb={4}>
+        <Box px={2} mb={4} position={"relative"}>
           {!isPracticePage && (
-            <Box sx={{ mb: 2 }}>
+            <Box
+              sx={{
+                position: "absolute",
+                right: 10,
+                top: 15,
+              }}
+            >
+              {getUserRole() === "CAREER SEEKER" && (
+                <BeyondResumeButton
+                  sx={{
+                    px: 1,
+                    mr: 1,
+                    background: showSavedJobs ? color.background : "grey",
+                    border: "none",
+                  }}
+                  variant="outlined"
+                  onClick={() => setShowSavedJobs((prev) => !prev)}
+                >
+                  <FontAwesomeIcon
+                    style={{ marginRight: "2px" }}
+                    icon={faBookmark}
+                  ></FontAwesomeIcon>{" "}
+                </BeyondResumeButton>
+              )}
+
               <BeyondResumeJobFilterComponent
                 filters={filters}
                 setFilters={setFilters}
@@ -884,56 +1002,151 @@ const BeyondResumeJobs = () => {
             </Box>
           )}
 
-          {isJobPage ? (
-            <>
-              {activeJobs.length > 0 ? (
-                <JobsSection
-                  title="Posted Jobs"
-                  jobs={activeJobs}
-                  type="active"
-                />
-              ) : null}
+          <AnimatePresence mode="wait">
+            {showSavedJobs ? (
+              <motion.div
+                key="savedJobs"
+                variants={fadeVariant}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+              >
+                <JobsSection title="Saved Jobs" jobs={savedJobs} />
+              </motion.div>
+            ) : (
+              <>
+                {isJobPage ? (
+                  <>
+                    {activeJobs.length > 0 && (
+                      <motion.div
+                        key="activeJobs"
+                        variants={fadeVariant}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                      >
+                        <JobsSection
+                          title="Posted Jobs"
+                          jobs={activeJobs}
+                          type="active"
+                        />
+                      </motion.div>
+                    )}
 
-              {pendingJobs.length > 0 ? (
-                <JobsSection title="Pending Jobs" jobs={pendingJobs} />
-              ) : null}
+                    {pendingJobs.length > 0 && (
+                      <motion.div
+                        key="pendingJobs"
+                        variants={fadeVariant}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                      >
+                        <JobsSection title="Pending Jobs" jobs={pendingJobs} />
+                      </motion.div>
+                    )}
 
-              {completedJobs.length > 0 ? (
-                <JobsSection title="Completed Jobs" jobs={completedJobs} />
-              ) : null}
+                    {completedJobs.length > 0 && (
+                      <motion.div
+                        key="completedJobs"
+                        variants={fadeVariant}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                      >
+                        <JobsSection
+                          title="Completed Jobs"
+                          jobs={completedJobs}
+                        />
+                      </motion.div>
+                    )}
 
-              {pendingJobs.length === 0 &&
-                activeJobs.length === 0 &&
-                completedJobs.length === 0 && (
-                  <Typography
-                    variant="body1"
-                    sx={{ textAlign: "center", mt: 4 }}
-                  >
-                    No jobs available.
-                  </Typography>
+                    {pendingJobs.length === 0 &&
+                      activeJobs.length === 0 &&
+                      completedJobs.length === 0 && (
+                        <motion.div
+                          key="noJobs"
+                          variants={fadeVariant}
+                          initial="hidden"
+                          animate="visible"
+                          exit="exit"
+                        >
+                          <Typography
+                            variant="body1"
+                            sx={{ textAlign: "center", mt: 4 }}
+                          >
+                            No jobs available.
+                          </Typography>
+                        </motion.div>
+                      )}
+                  </>
+                ) : isPracticePage ? (
+                  <>
+                    {filteredJobs.length > 0 ? (
+                      <motion.div
+                        key="practiceJobs"
+                        variants={fadeVariant}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                      >
+                        <JobsSection
+                          title="Practice Pools"
+                          jobs={filteredJobs}
+                        />
+                      </motion.div>
+                    ) : (
+                      <motion.div
+                        key="noPracticeJobs"
+                        variants={fadeVariant}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                      >
+                        <Typography
+                          variant="body1"
+                          sx={{ textAlign: "center", mt: 8 }}
+                        >
+                          No practice jobs yet.
+                        </Typography>
+                      </motion.div>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    {filteredJobs.length > 0 ? (
+                      <motion.div
+                        key="recommendedJobs"
+                        variants={fadeVariant}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                      >
+                        <JobsSection
+                          title="Recommended Jobs"
+                          jobs={filteredJobs}
+                        />
+                      </motion.div>
+                    ) : (
+                      <motion.div
+                        key="noRecommendedJobs"
+                        variants={fadeVariant}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                      >
+                        <Typography
+                          variant="body1"
+                          sx={{ textAlign: "center", mt: 8 }}
+                        >
+                          No recommended jobs found.
+                        </Typography>
+                      </motion.div>
+                    )}
+                  </>
                 )}
-            </>
-          ) : isPracticePage ? (
-            <>
-              {filteredJobs.length > 0 ? (
-                <JobsSection title="Practice Pools" jobs={filteredJobs} />
-              ) : (
-                <Typography variant="body1" sx={{ textAlign: "center", mt: 8 }}>
-                  No practice jobs yet.
-                </Typography>
-              )}
-            </>
-          ) : (
-            <>
-              {filteredJobs.length > 0 ? (
-                <JobsSection title="Recommended Jobs" jobs={filteredJobs} />
-              ) : (
-                <Typography variant="body1" sx={{ textAlign: "center", mt: 8 }}>
-                  No recommended jobs found.
-                </Typography>
-              )}
-            </>
-          )}
+              </>
+            )}
+          </AnimatePresence>
         </Box>
       )}
 
@@ -973,13 +1186,3 @@ const BeyondResumeJobs = () => {
 };
 
 export default BeyondResumeJobs;
-
-const commonPillStyle = {
-  borderRadius: "999px",
-  background: color.newFirstColor,
-  color: "white",
-  width: "fit-content",
-  px: 1,
-  fontFamily: "montserrat-regular",
-  fontSize: "12px",
-};

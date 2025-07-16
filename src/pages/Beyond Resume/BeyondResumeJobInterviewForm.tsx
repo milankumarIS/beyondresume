@@ -18,6 +18,8 @@ import {
   getProfile,
   insertDataInTable,
   searchDataFromTable,
+  syncByTwoUniqueKeyData,
+  syncDataInTable,
 } from "../../services/services";
 import { faArrowCircleRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -133,9 +135,11 @@ const BeyondResumeJobInterviewForm = () => {
 
       // console.log(payload)
 
-      const insertResult: any = await insertDataInTable(
+      const insertResult: any = await syncByTwoUniqueKeyData(
         "brJobApplicant",
-        payload
+        payload,
+        'createdBy',
+        'brJobId'
       );
       const brJobApplicantId = insertResult?.data?.data?.brJobApplicantId;
       setApplicantId(brJobApplicantId);

@@ -1,35 +1,37 @@
 import { Box } from "@mui/material";
-import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { useState } from "react";
+import { useHistory } from "react-router";
 import BasicDetailsSection from "./sections/BasicDetailsSection";
 import EducationSection from "./sections/EducationSection";
 import ExperienceSection from "./sections/ExperienceSection";
 import JobPreferenceSection from "./sections/JobPreferenceSection";
-import SkillsSection from "./sections/SkillsSection";
-import { BeyondResumeButton } from "../../../components/util/CommonStyle";
-import { useHistory } from "react-router";
-import AIProfileInterview from "./AIProfileInterview";
 import ResumeUploadSection from "./sections/ResumeUploadSection";
+import SkillsSection from "./sections/SkillsSection";
+
+const sectionVariant = {
+  hidden: { opacity: 0, y: 30 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.5 },
+  },
+};
+
+const containerVariants = {
+  hidden: {},
+  visible: {
+    transition: {
+      staggerChildren: 0.15,
+    },
+  },
+};
 
 export default function CandidateProfilePage() {
   const [profileData, setProfileData] = useState<any>(null);
   const history = useHistory();
-  const [modalOpen, setModalOpen] = useState(false);
-  useEffect(() => {
-    const fetchData = async () => {
-      const res = await fetch("/api/candidate-profile");
-      const data = await res.json();
-      setProfileData(data);
-    };
-    fetchData();
-  }, []);
 
   const updateSection = async (section: string, data: any) => {
-    console.log(data);
-    // await fetch(`/api/candidate-profile/${section}`, {
-    //   method: "PATCH",
-    //   body: JSON.stringify(data),
-    //   headers: { "Content-Type": "application/json" },
-    // });
     setProfileData((prev: any) => ({ ...prev, [section]: data }));
   };
 
@@ -44,46 +46,44 @@ export default function CandidateProfilePage() {
         position: "relative",
       }}
     >
-      {/* <BlobAnimation /> */}
-
-      <BeyondResumeButton sx={{ mb: 2 }} onClick={() => setModalOpen(true)}>
-        AI Interview
-      </BeyondResumeButton>
-
-      <Box sx={{ position: "relative", display: "flex", gap: 2 }}>
-        {/* <Typography variant="h4" gutterBottom>Candidate Profile</Typography> */}
-
-        <BasicDetailsSection
-          data={profileData?.basic}
-          onSave={(data) => updateSection("basic", data)}
-        />
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        style={{ position: "relative", display: "flex", gap: 16 }}
+      >
+        <motion.div variants={sectionVariant}>
+          <BasicDetailsSection
+            data={profileData?.basic}
+            onSave={(data) => updateSection("basic", data)}
+          />
+        </motion.div>
 
         <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
-          <ExperienceSection
-            data={profileData?.experiences}
-            onSave={(data) => updateSection("experiences", data)}
-          />
+          <motion.div variants={sectionVariant}>
+            <ExperienceSection />
+          </motion.div>
 
-          <EducationSection
-            data={profileData?.education}
-            onSave={(data) => updateSection("education", data)}
-          />
+          <motion.div variants={sectionVariant}>
+            <EducationSection />
+          </motion.div>
 
-          <SkillsSection
-            data={profileData?.skills}
-            onSave={(data) => updateSection("skills", data)}
-          />
+          <motion.div variants={sectionVariant}>
+            <SkillsSection />
+          </motion.div>
 
-          <JobPreferenceSection
-          />
+          <motion.div variants={sectionVariant}>
+            <JobPreferenceSection />
+          </motion.div>
 
-          {modalOpen && <AIProfileInterview open={modalOpen} />}
-          <ResumeUploadSection
-            resumeUrl={profileData?.resume}
-            onSave={(data) => updateSection("resume", data)}
-          />
+          <motion.div variants={sectionVariant}>
+            <ResumeUploadSection
+              resumeUrl={profileData?.resume}
+              onSave={(data) => updateSection("resume", data)}
+            />
+          </motion.div>
         </Box>
-      </Box>
+      </motion.div>
     </Box>
   );
 }

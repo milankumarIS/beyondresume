@@ -36,7 +36,6 @@ export default function EducationSection() {
         userId: getUserId(),
       });
 
-      console.log(res);
       const educationArray = res?.data?.data;
 
       if (Array.isArray(educationArray)) {
@@ -51,7 +50,6 @@ export default function EducationSection() {
 
         setData(mapped);
 
-        console.log(mapped);
       }
     } catch (err) {
       console.error("Error loading education data", err);

@@ -9,24 +9,22 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   Avatar,
   Box,
-  Button,
   Card,
-  Divider,
   Stack,
-  Typography,
+  Typography
 } from "@mui/material";
 import { useEffect, useState } from "react";
-import { getUserName } from "../../../../services/axiosClient";
-import color from "../../../../theme/color";
-import ProfileSectionCard from "../../Beyond Resume Components/ProfileSectionCard";
-import BasicDetailsForm from "../forms/BasicDetailsForm";
+import { genderArray1 } from "../../../../components/form/data";
+import { formatDate } from "../../../../components/util/CommonFunctions";
 import {
   BeyondResumeButton,
   IconTextRow,
 } from "../../../../components/util/CommonStyle";
+import { getUserName } from "../../../../services/axiosClient";
 import { getProfile } from "../../../../services/services";
-import { formatDate } from "../../../../components/util/CommonFunctions";
-import { genderArray1 } from "../../../../components/form/data";
+import color from "../../../../theme/color";
+import ProfileSectionCard from "../../Beyond Resume Components/ProfileSectionCard";
+import BasicDetailsForm from "../forms/BasicDetailsForm";
 
 export default function BasicDetailsSection({ data, onSave }: any) {
   const [isEditing, setIsEditing] = useState(false);
@@ -80,6 +78,7 @@ export default function BasicDetailsSection({ data, onSave }: any) {
                 ...prev?.userPersonalInfo,
                 about: formData.about,
                 dob: formData.dob,
+                userPhoneNumber: formData.phone,
                 languagesKnown: languagesArray,
                 gender: {
                   ...prev?.userPersonalInfo?.gender,

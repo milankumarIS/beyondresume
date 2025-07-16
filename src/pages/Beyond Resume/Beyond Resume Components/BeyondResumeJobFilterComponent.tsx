@@ -86,15 +86,21 @@ const BeyondResumeJobFilterComponent: React.FC<Props> = ({
   return (
     <>
       <BeyondResumeButton
-        sx={{ position: "absolute", right: 30 }}
+        sx={{
+          px: 1,
+          background: appliedCount > 0 ? color.background : "grey",
+          py: 1,
+          height:'32px',
+          border:'none'
+        }}
         variant="outlined"
         onClick={() => setOpen(true)}
       >
         <FontAwesomeIcon
-          style={{ marginRight: "4px" }}
+          style={{ marginRight: "2px" }}
           icon={faFilter}
         ></FontAwesomeIcon>{" "}
-        Filters {appliedCount > 0 && `(${appliedCount})`}
+        {appliedCount > 0 && `(${appliedCount})`}
       </BeyondResumeButton>
 
       <Modal open={open} onClose={() => setOpen(false)}>

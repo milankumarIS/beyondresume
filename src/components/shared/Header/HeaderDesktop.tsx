@@ -31,35 +31,7 @@ const Header: React.FC = () => {
 
   const moduleRole = getUserSelectedModuleCode();
 
-  const renderRoute = () => {
-    switch (moduleRole) {
-      case "DLHF":
-        return "/searchFoods";
-      case "DLC":
-        return "/searchConsumables";
-      case "DLF":
-        return "/searchFashions";
-      case "DLM":
-        return "/searchMedicines";
-      default:
-        return "";
-    }
-  };
 
-  const renderOrderRoute = () => {
-    switch (moduleRole) {
-      case "DLHF":
-        return "/foodOrders";
-      case "DLC":
-        return "/consumableOrders";
-      case "DLF":
-        return "/fashionOrders";
-      case "DLM":
-        return "/medicineOrders";
-      default:
-        return "";
-    }
-  };
 
   const buttonsArray: any[] = [
     {
@@ -134,7 +106,7 @@ const Header: React.FC = () => {
           display: {
             xs: "none",
             sm: "flex",
-            background: "white",
+            background: "transparent",
             position: "sticky",
           },
         }}

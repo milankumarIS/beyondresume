@@ -1,110 +1,371 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Box, Typography, TextField, Button, Paper } from "@mui/material";
-import { motion, AnimatePresence } from "framer-motion";
-import { getUserAnswerFromAi } from "../../../services/services";
-import { BeyondResumeButton } from "../../../components/util/CommonStyle";
-import color from "../../../theme/color";
+import { faPaperPlane } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { Box, Paper, TextField, Typography } from "@mui/material";
+import dayjs from "dayjs";
+import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
 import { commonFormTextFieldSx } from "../../../components/util/CommonFunctions";
+import { BeyondResumeButton } from "../../../components/util/CommonStyle";
+import { getUserId } from "../../../services/axiosClient";
+import {
+  getProfile,
+  getUserAnswerFromAi,
+  searchDataFromTable,
+  searchListDataFromTable,
+  syncDataInTable,
+} from "../../../services/services";
+import color from "../../../theme/color";
 
-const AIProfileInterview = (open) => {
+const AIProfileInterview = ({ open, onConversationComplete }) => {
   if (!open) return null;
 
-  const [step, setStep] = useState<number>(-1);
-  const [answers, setAnswers] = useState<{
-    [key: string]: { [key: string]: string };
-  }>({});
-  const [userInput, setUserInput] = useState("");
-  const [aiResponse, setAiResponse] = useState("");
-  const [isSpeaking, setIsSpeaking] = useState(false);
-  const recognitionRef = useRef<any>(null);
-
-  const current = QUESTIONS[step];
-
-  const speakText = (text: string) => {
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = "en-US";
-    setIsSpeaking(true);
-    utterance.onend = () => setIsSpeaking(false);
-    speechSynthesis.cancel();
-    speechSynthesis.speak(utterance);
-  };
-
-  const startRecording = () => {
-    const SpeechRecognitionAPI =
-      window.SpeechRecognition || window.webkitSpeechRecognition;
-
-    const recognition = new SpeechRecognitionAPI();
-
-    if (!SpeechRecognitionAPI) return alert("Not supported");
-
-    recognitionRef.current = recognition;
-    recognition.lang = "en-US";
-    recognition.interimResults = false;
-
-    recognition.onresult = (event: any) => {
-      const transcript = event.results[0][0].transcript;
-      setUserInput(transcript);
-    };
-
-    recognition.onerror = console.error;
-    recognition.start();
-  };
-
-  const handleNext = () => {
-    if (userInput.trim()) {
-      const autoCaptured = current.captures.reduce((acc, field, index) => {
-        acc[field] = index === 0 ? userInput.trim() : "";
-        return acc;
-      }, {} as Record<string, string>);
-
-      setAnswers((prev) => ({
-        ...prev,
-        [current.section]: {
-          ...(prev[current.section] || {}),
-          ...autoCaptured,
-        },
-      }));
-    }
-
-    if (step < QUESTIONS.length - 1) {
-      setStep(step + 1);
-      setUserInput("");
-    } else if (step === QUESTIONS.length - 1) {
-      setStep(step + 1);
-      handleSubmit();
-    }
-  };
-
-  const handleFieldChange = (key: string, value: string) => {
-    setAnswers((prev) => ({
-      ...prev,
-      [current.section]: {
-        ...(prev[current.section] || {}),
-        [key]: value,
-      },
-    }));
-  };
-
-  const handleSubmit = async () => {
-    const context = Object.entries(answers)
-      .flatMap(([sec, obj]) =>
-        Object.entries(obj).map(([k, v]) => `${k}: ${v}`)
-      )
-      .join("\n");
-
-    const res = await getUserAnswerFromAi({
-      question: `Build a profile with the following:\n${context} in a proper json format`,
+  const [currentUser, setCurrentUser] = useState<any>();
+  useEffect(() => {
+    getProfile().then((result: any) => {
+      setCurrentUser({ ...result?.data?.data });
     });
+  }, []);
+  const [step, setStep] = useState<number>(-1);
+  const [conversationContext, setConversationContext] = useState<string[]>([]);
+  const [userInput, setUserInput] = useState("");
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const recognitionRef = useRef<any>(null);
+  const [finalUserData, setFinalUserData] = useState<Record<string, string>>(
+    {}
+  );
+  const userSummary = summarizeKnownUserData(currentUser);
 
-    const finalAIProfile =
-      res?.data?.data?.candidates?.[0]?.content?.parts?.[0]?.text;
-    setAiResponse(finalAIProfile);
+  // console.log(userSummary)
+
+  const speakText = (text: string): Promise<void> => {
+    return new Promise((resolve) => {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = "en-US";
+      setIsSpeaking(true);
+
+      utterance.onend = () => {
+        setIsSpeaking(false);
+        resolve();
+      };
+
+      utterance.onerror = (e) => {
+        console.error("Speech synthesis error:", e);
+        setIsSpeaking(false);
+        resolve();
+      };
+
+      speechSynthesis.cancel();
+
+      speechSynthesis.speak(utterance);
+    });
   };
 
   useEffect(() => {
-    if (step >= 0 && step < QUESTIONS.length) {
-      const question = QUESTIONS[step].question;
-      speakText(question);
+    const stopSpeech = () => {
+      speechSynthesis.cancel();
+    };
+
+    window.addEventListener("beforeunload", stopSpeech);
+    window.addEventListener("popstate", stopSpeech);
+
+    return () => {
+      stopSpeech();
+      window.removeEventListener("beforeunload", stopSpeech);
+      window.removeEventListener("popstate", stopSpeech);
+    };
+  }, []);
+
+  const startRecording = async () => {
+    try {
+      const SpeechRecognitionAPI =
+        window.SpeechRecognition || window.webkitSpeechRecognition;
+
+      if (!SpeechRecognitionAPI) {
+        console.error("Speech Recognition API not supported in this browser.");
+        alert("Speech Recognition is not supported in this browser.");
+        return;
+      }
+
+      recognitionRef.current = new SpeechRecognitionAPI();
+      const recognition = recognitionRef.current;
+      recognition.continuous = true;
+      recognition.lang = "en-US";
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+
+      recognition.onstart = () => {
+        setIsListening(true);
+      };
+
+      recognition.onresult = (event: SpeechRecognitionEvent) => {
+        const transcript = event.results[0][0].transcript;
+
+        if (transcript) {
+          setUserInput(transcript);
+        } else {
+          console.warn("Empty transcript received.");
+        }
+
+        setIsListening(false);
+
+        recognition.stop();
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+
+      recognition.onerror = (event: any) => {
+        console.error("Speech Recognition Error:", event.error);
+        setIsListening(false);
+        recognition.stop();
+      };
+
+      recognition.start();
+    } catch (error) {
+      console.error("Speech recognition failed:", error);
+    }
+  };
+
+  useEffect(() => {
+    const fetchAllUserData = async () => {
+      const userId = getUserId();
+
+      try {
+        const [profile, education, experience, preference, skills] =
+          await Promise.all([
+            getProfile(),
+            searchListDataFromTable("userEducation", { userId }),
+            searchListDataFromTable("experience", { userId }),
+            searchDataFromTable("userJobPreference", { userId }),
+            searchDataFromTable("userPersonalInfo", { userId }),
+          ]);
+
+        const basic = profile?.data?.data;
+        const eduArray = (education?.data?.data || []).map((entry: any) => ({
+          academy: entry.academyName,
+          degree: entry.degreeName,
+          specialization: entry.specialization,
+          startMonthYear: entry.startDate,
+          endMonthYear: entry.endDate,
+        }));
+
+        const expArray = (experience?.data?.data || []).map((entry: any) => ({
+          jobTitle: entry.jobTitle,
+          employmentType: entry.employmentType,
+          noticePeriod: entry.noticePeriod,
+          current: entry.isCurrentlyWorking,
+          years: entry.duration,
+          company: entry.jobProviderName,
+        }));
+
+        const jobPref = {
+          location: preference?.data?.data?.preferedLocation,
+          shift: preference?.data?.data?.preferedShipt,
+          workplace: preference?.data?.data?.workplace,
+          employmentType: preference?.data?.data?.employmentType,
+        };
+
+        const skillList = Array.isArray(skills?.data?.data?.skills)
+          ? skills.data.data.skills
+          : [];
+
+        setCurrentUser({
+          ...basic,
+          education: eduArray,
+          experience: expArray,
+          preference: jobPref,
+          skills: skillList,
+        });
+      } catch (err) {
+        console.error("Failed fetching user data:", err);
+      }
+    };
+
+    fetchAllUserData();
+  }, []);
+
+  const handleUserSubmit = async () => {
+    if (!userInput.trim()) return;
+    setLoading(true);
+
+    const fullPrompt = getConversationPrompt({
+      conversationContext: [...conversationContext, userSummary],
+      userInput,
+      currentUser,
+    });
+    // console.log(fullPrompt)
+
+    try {
+      const res = await getUserAnswerFromAi({ question: fullPrompt });
+      const aiText =
+        res?.data?.data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+
+      setConversationContext((prev) => [
+        ...prev,
+        `Candidate: ${userInput}`,
+        `AI: ${aiText}`,
+      ]);
+
+      // console.log(conversationContext);
+      setUserInput("");
+      await speakText(aiText);
+
+      const finalJsonPrompt = getFinalJsonPrompt(conversationContext);
+
+      if (
+        aiText.toLowerCase().includes("you’re all set to do great") ||
+        aiText.toLowerCase().includes("let’s go crush")
+      ) {
+        try {
+          const res = await getUserAnswerFromAi({
+            question: finalJsonPrompt,
+          });
+
+          const jsonString =
+            res?.data?.data?.candidates?.[0]?.content?.parts?.[0]?.text;
+          console.log("Final Captured Data:", jsonString);
+
+          const cleanJsonString = jsonString
+            .replace(/```json/g, "")
+            .replace(/```/g, "")
+            .trim();
+
+          const parsedJson = JSON.parse(cleanJsonString);
+          setFinalUserData(parsedJson);
+          console.log("Final Captured Data:", parsedJson);
+
+          const userId = getUserId();
+
+          if (parsedJson.basicDetails) {
+            const languagesArray = parsedJson.basicDetails.languages
+              ?.split(",")
+              .map((lang: string) => lang.trim())
+              .filter(Boolean);
+
+            const dobInIST = parsedJson.basicDetails.dob
+              ? dayjs
+                  .utc(dayjs(parsedJson.basicDetails.dob).format("YYYY-MM-DD"))
+                  .toISOString()
+              : null;
+
+            const payload = {
+              userId,
+              dob: dobInIST,
+              languagesKnown: languagesArray,
+              about: parsedJson.basicDetails.about?.trim() || "",
+            };
+
+            console.log("userPersonalInfo payload:", payload);
+            await syncDataInTable("userPersonalInfo", payload, "userId");
+          }
+
+          if (parsedJson.preference) {
+            const payload = {
+              userId,
+              preferedLocation: parsedJson.preference.location?.trim() || "",
+              preferedShipt: parsedJson.preference.shift?.trim() || "",
+              workplace: parsedJson.preference.workplace?.trim() || "",
+              employmentType:
+                parsedJson.preference.employmentType?.trim() || "",
+            };
+
+            console.log("userJobPreference payload:", payload);
+            await syncDataInTable("userJobPreference", payload, "userId");
+          }
+
+          for (const edu of parsedJson.education || []) {
+            const {
+              academy,
+              degree,
+              specialization,
+              startMonthYear,
+              endMonthYear,
+            } = edu;
+
+            const payload = {
+              userId,
+              academyName: academy.trim(),
+              degreeName: degree.trim(),
+              specialization: specialization?.trim() || "",
+              startDate: startMonthYear || null,
+              endDate: endMonthYear || null,
+            };
+
+            console.log("userEducation payload:", payload);
+            await syncDataInTable("userEducation", payload, "userId");
+          }
+
+          for (const exp of parsedJson.experience || []) {
+            const {
+              jobTitle,
+              company,
+              years,
+              employmentType,
+              current,
+              noticePeriod,
+            } = exp;
+
+            if (!jobTitle || !company) continue;
+
+            const payload = {
+              userId,
+              jobTitle: jobTitle.trim(),
+              jobProviderName: company.trim(),
+              duration: years || "",
+              employmentType: employmentType?.trim() || "",
+              isCurrentlyWorking: current ?? false,
+              noticePeriod: noticePeriod?.trim() || "",
+
+              aStartDate: "Tue, 08 Jul 2025 07:22:30 GMT",
+              aEndDate: "Tue, 08 Jul 2025 07:22:30 GMT",
+              city: "example",
+              state: "example",
+              country: "example",
+              categoryId: 1,
+              subCategoryId: 1,
+            };
+
+            console.log("experience payload:", payload);
+            await syncDataInTable("experience", payload, "userId");
+          }
+
+          if (parsedJson.skills?.skills) {
+            const skillsArray = parsedJson.skills.skills
+              .split(",")
+              .map((s: string) => s.trim())
+              .filter(Boolean);
+
+            if (skillsArray.length > 0) {
+              const payload = {
+                userId,
+                skills: skillsArray,
+              };
+
+              console.log("skills payload (userPersonalInfo):", payload);
+              await syncDataInTable("userPersonalInfo", payload, "userId");
+            }
+          }
+
+          onConversationComplete?.();
+        } catch (err) {
+          console.error("Failed to fetch or parse final AI data:", err);
+        }
+      }
+    } catch (err) {
+      console.error("AI follow-up error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (step === 0) {
+      const intro = `Hey ${currentUser?.userPersonalInfo?.firstName}! I’ll be your friendly guide before the interview. Let’s start with something simple. Tell me a bit about yourself?`;
+      setConversationContext([`${intro}`]);
+      speakText(intro);
     }
   }, [step]);
 
@@ -137,7 +398,6 @@ const AIProfileInterview = (open) => {
             sx={{
               width: { xs: "90vw", sm: "600px" },
               maxHeight: "80vh",
-              // minHeight: "300px",
               overflowY: "auto",
               p: 4,
               borderRadius: 4,
@@ -152,11 +412,11 @@ const AIProfileInterview = (open) => {
             {step === -1 && (
               <>
                 <Typography variant="h4" align="center" mb={2}>
-                  Welcome to your AI Profile Builder
+                  Welcome to your AI Companion
                 </Typography>
                 <Typography align="center" mb={4}>
-                  You'll be asked a series of friendly questions to help build
-                  your profile.
+                  You'll be asked a series of friendly questions to help get
+                  into the interview.
                 </Typography>
                 <Box textAlign="center">
                   <BeyondResumeButton
@@ -169,32 +429,22 @@ const AIProfileInterview = (open) => {
               </>
             )}
 
-            {step >= 0 && step < QUESTIONS.length && (
+            {step === 0 && (
               <Box>
                 <Typography variant="h5" gutterBottom>
-                  {current.question}
-                </Typography>
-                <Typography
-                  sx={{
-                    color: "rgba(211, 211, 211, 0.58)",
-                    fontSize: "14px",
-                  }}
-                  gutterBottom
-                >
-                  ({current.suggestion})
+                  {conversationContext.at(-1)?.replace("AI: ", "")}
                 </Typography>
 
                 <BeyondResumeButton
                   variant="outlined"
                   onClick={startRecording}
-                  disabled={isSpeaking}
+                  disabled={isSpeaking || loading}
                   sx={{ m: "auto", display: "block", my: 4, mt: 3 }}
                 >
-                  Speak your answer
+                  {isListening ? "Listening..." : "Speak your answer"}
                 </BeyondResumeButton>
-
-                <AnimatePresence mode="wait">
-                  {userInput && (
+                {userInput.trim() && (
+                  <AnimatePresence mode="wait">
                     <motion.div
                       key="textField"
                       initial={{ opacity: 0, y: 10 }}
@@ -216,46 +466,22 @@ const AIProfileInterview = (open) => {
                         }}
                       />
                     </motion.div>
-                  )}
-                </AnimatePresence>
-                {/* {current.captures.map((field) => (
-                  <TextField
-                    fullWidth
-                    label={field}
-                    value={answers?.[current.section]?.[field] || ""}
-                    onChange={(e) => handleFieldChange(field, e.target.value)}
-                    sx={{ ...commonFormTextFieldSx, mb: 2 }}
-                    key={field}
-                  />
-                ))} */}
-
+                  </AnimatePresence>
+                )}
                 <Box display="flex" justifyContent="flex-end" mt={3}>
                   <BeyondResumeButton
                     variant="contained"
-                    onClick={handleNext}
-                    disabled={!userInput.trim()}
+                    onClick={handleUserSubmit}
+                    disabled={!userInput.trim() || loading}
                   >
-                    {step === QUESTIONS.length - 1 ? "Finish" : "Next"}
+                    Send{" "}
+                    <FontAwesomeIcon
+                      style={{ marginLeft: "4px" }}
+                      icon={faPaperPlane}
+                    />
                   </BeyondResumeButton>
                 </Box>
               </Box>
-            )}
-
-            {step === QUESTIONS.length && aiResponse && (
-              <>
-                <Typography variant="h5" mb={2}>
-                  Final Profile Preview
-                </Typography>
-                {aiResponse}
-
-                {/* <Button
-                  variant="contained"
-                  color="success"
-                  onClick={handleSubmit}
-                >
-                  Generate AI Summary
-                </Button> */}
-              </>
             )}
           </Paper>
         </motion.div>
@@ -266,288 +492,214 @@ const AIProfileInterview = (open) => {
 
 export default AIProfileInterview;
 
-const QUESTIONS = [
-  {
-    section: "Personal & Contact Information",
-    question:
-      "Tell me a bit about yourself - what should I call you, and how can we stay in touch?",
-    captures: ["Name", "Email", "Phone"],
-    suggestion: "State your name, email address, and phone number.",
-  },
-  {
-    section: "Personal & Contact Information",
-    question:
-      "I'd love to know more about your background - where are you originally from, and where do you call home now?",
-    captures: ["Location", "Background"],
-    suggestion:
-      "Mention your birthplace, current residence, and any cultural or personal background you'd like to share.",
-  },
-  {
-    section: "Personal & Contact Information",
-    question:
-      "What's your story? When did your journey begin, and what has shaped who you are today?",
-    captures: ["Date of birth", "Personal background"],
-    suggestion:
-      "Provide your date of birth and share key moments or influences in your life.",
-  },
-  {
-    section: "Personal & Contact Information",
-    question:
-      "How would you describe yourself to someone you're meeting for the first time?",
-    captures: ["Gender", "Personality traits"],
-    suggestion:
-      "Include your gender (if you’re comfortable) and a few words about your personality.",
-  },
-  {
-    section: "Personal & Contact Information",
-    question:
-      "What does your support system look like? Do you have family or close relationships that influence your career decisions?",
-    captures: ["Relationship status", "Family influence"],
-    suggestion:
-      "Describe your relationship status and how your family or close ones affect your career path.",
-  },
-  {
-    section: "Personal & Contact Information",
-    question:
-      "If someone wanted to connect with you professionally, what's the best way to reach out?",
-    captures: ["Preferred communication methods", "Professional contact"],
-    suggestion:
-      "Share your preferred way of communication (email, phone, LinkedIn, etc.).",
-  },
+const summarizeKnownUserData = (user: any): string => {
+  if (!user) return "";
 
-  {
-    section: "Professional Background",
-    question:
-      "What gets you excited to wake up every morning? Tell me about what you're currently working on.",
-    captures: ["Current position", "Job satisfaction"],
-    suggestion: "Mention your current role and what you enjoy about it.",
-  },
-  {
-    section: "Professional Background",
-    question:
-      "What's the proudest academic achievement that laid the foundation for where you are today?",
-    captures: ["Highest qualification", "Graduation details"],
-    suggestion:
-      "State your highest qualification and the institution and year of graduation.",
-  },
-  {
-    section: "Professional Background",
-    question:
-      "If you could design your ideal work situation, what would it look like in terms of environment and commitment?",
-    captures: ["Preferred location", "Employment type"],
-    suggestion:
-      "Describe your ideal job setting and whether you prefer full-time, part-time, or remote work.",
-  },
-  {
-    section: "Professional Background",
-    question:
-      "What's the most challenging project you've tackled, and how did it change your perspective on your career?",
-    captures: ["Experience level", "Project complexity"],
-    suggestion:
-      "Briefly explain your experience level and a complex project you handled.",
-  },
-  {
-    section: "Professional Background",
-    question:
-      "How has your educational journey prepared you for the professional world you're in now?",
-    captures: ["Academic timeline", "Relevance to career"],
-    suggestion: "Outline your education path and how it's helped your career.",
-  },
-  {
-    section: "Professional Background",
-    question:
-      "When you think about your professional identity, what role or industry feels most like 'home' to you?",
-    captures: ["Industry preference", "Professional identity"],
-    suggestion:
-      "Mention the industry and role where you feel you truly belong.",
-  },
+  const parts: string[] = [];
 
-  {
-    section: "Skills & Expertise",
-    question:
-      "What comes naturally to you? What skills do people often come to you for help with?",
-    captures: ["Core skills", "Expertise areas"],
-    suggestion:
-      "List your top strengths or skills that people recognize in you.",
-  },
-  {
-    section: "Skills & Expertise",
-    question:
-      "Tell me about a project you're genuinely proud of - what made it special and what role did you play?",
-    captures: ["Project details", "Technical involvement"],
-    suggestion:
-      "Describe a project you’re proud of and your key contributions to it.",
-  },
-  {
-    section: "Skills & Expertise",
-    question:
-      "What accomplishments or recognitions have meant the most to you in your journey so far?",
-    captures: ["Certifications", "Achievements"],
-    suggestion:
-      "List important certifications, awards, or accomplishments you've earned.",
-  },
-  {
-    section: "Skills & Expertise",
-    question:
-      "When you're not working, what activities or interests keep you engaged and energized?",
-    captures: ["Hobbies", "Personal interests"],
-    suggestion: "Mention hobbies or passions you pursue in your free time.",
-  },
-  {
-    section: "Skills & Expertise",
-    question:
-      "If you had to teach someone else what you know, what would be your top areas of expertise?",
-    captures: ["Technical skills", "Knowledge depth"],
-    suggestion:
-      "Identify the areas or skills you’re most confident teaching others.",
-  },
-  {
-    section: "Skills & Expertise",
-    question:
-      "What languages do you speak, and have you found them useful in your professional life?",
-    captures: ["Language skills", "Communication abilities"],
-    suggestion:
-      "List languages you know and how they’ve helped in your work life.",
-  },
+  const { userPersonalInfo, education, experience, preference, skills } = user;
 
-  {
-    section: "Career Preferences",
-    question:
-      "When you imagine your ideal career path, what industry or field excites you the most?",
-    captures: ["Industry type preference"],
-    suggestion:
-      "Mention the industry or sector you’re most interested in working.",
-  },
-  {
-    section: "Career Preferences",
-    question:
-      "What type of work energizes you? Do you prefer hands-on technical work, leading teams, or something else entirely?",
-    captures: ["Functional area preference"],
-    suggestion:
-      "Describe the type of tasks or responsibilities you enjoy most.",
-  },
-  {
-    section: "Career Preferences",
-    question:
-      "What would financial success look like for you in your next role?",
-    captures: ["Expected CTC range"],
-    suggestion: "State your salary expectations or desired compensation range.",
-  },
-  {
-    section: "Career Preferences",
-    question:
-      "If I asked you where you see yourself in 2-3 years, what story would you tell me?",
-    captures: ["Short-term goals"],
-    suggestion:
-      "Share your career goals or aspirations for the next couple of years.",
-  },
-  {
-    section: "Career Preferences",
-    question:
-      "What's your bigger vision? What impact do you want to make in your career over the next decade?",
-    captures: ["Long-term goals"],
-    suggestion:
-      "Talk about your long-term ambitions and how you want to make a difference.",
-  },
-  {
-    section: "Career Preferences",
-    question:
-      "What matters most to you in a workplace - the culture, the challenges, the growth opportunities, or something else?",
-    captures: ["Job preferences", "Work values"],
-    suggestion: "Highlight what you value most in a job or workplace.",
-  },
+  const name = `${userPersonalInfo?.firstName || ""} ${
+    userPersonalInfo?.lastName || ""
+  }`.trim();
+  if (userPersonalInfo?.dob) parts.push(`- DOB: ${userPersonalInfo.dob}`);
+  if (userPersonalInfo?.gender?.gender)
+    parts.push(`- Gender: ${userPersonalInfo.gender.gender}`);
+  if (Array.isArray(userPersonalInfo?.languagesKnown))
+    parts.push(`- Languages: ${userPersonalInfo.languagesKnown.join(", ")}`);
+  if (userPersonalInfo?.about) parts.push(`- About: ${userPersonalInfo.about}`);
 
-  {
-    section: "Experience Timeline",
-    question:
-      "Walk me through your career story - what have been the key chapters so far?",
-    captures: ["Complete work history", "Timeline"],
-    suggestion: "Summarize your job history with roles and durations.",
-  },
-  {
-    section: "Experience Timeline",
-    question:
-      "How did your educational journey unfold? What were the milestones that got you to where you are?",
-    captures: ["Academic timeline", "Progression"],
-    suggestion:
-      "List key education stages and how they contributed to your growth.",
-  },
-  {
-    section: "Experience Timeline",
-    question:
-      "What experiences have contributed most to your professional growth over the years?",
-    captures: ["Years of experience", "Key learnings"],
-    suggestion: "Mention major learning moments and total experience years.",
-  },
-  {
-    section: "Experience Timeline",
-    question:
-      "Tell me about any internships or early career experiences that shaped your path.",
-    captures: ["Internship details", "Early experience"],
-    suggestion:
-      "Share any internships or early jobs that were meaningful to your career.",
-  },
-  {
-    section: "Experience Timeline",
-    question:
-      "What has been your career progression like? How have your roles evolved over time?",
-    captures: ["Career advancement", "Role progression"],
-    suggestion:
-      "Explain how you’ve grown and moved into different roles over time.",
-  },
-  {
-    section: "Experience Timeline",
-    question:
-      "Looking back at your journey, what experiences taught you the most about yourself and your capabilities?",
-    captures: ["Significant experiences", "Self-awareness"],
-    suggestion:
-      "Describe key experiences that shaped your understanding of yourself.",
-  },
+  if (Array.isArray(education) && education.length > 0) {
+    const edu = education[0];
+    parts.push(
+      `- Education: ${edu.degree} in ${edu.specialization} from ${edu.academy} (${edu.startMonthYear} – ${edu.endMonthYear})`
+    );
+  }
 
-  {
-    section: "Additional Information",
-    question:
-      "How do you like to present yourself professionally? Are you comfortable being on camera or do you prefer other ways to showcase your personality?",
-    captures: ["Profile picture/video preferences"],
-    suggestion:
-      "Mention if you prefer video profiles, photos, or other formats for self-presentation.",
+  if (Array.isArray(experience) && experience.length > 0) {
+    const exp = experience[0];
+    parts.push(
+      `- Work: ${exp.jobTitle} at ${exp.company} (${exp.years}), ${
+        exp.current ? "currently working" : "previously"
+      }`
+    );
+  }
+
+  if (preference?.location || preference?.shift || preference?.workplace) {
+    parts.push(
+      `- Job Preference: ${[
+        preference?.location,
+        preference?.shift,
+        preference?.workplace,
+        preference?.employmentType,
+      ]
+        .filter(Boolean)
+        .join(", ")}`
+    );
+  }
+
+  if (Array.isArray(skills) && skills.length > 0) {
+    parts.push(`- Skills: ${skills.join(", ")}`);
+  }
+
+  return `\n\nKnown background info about the candidate ${
+    name ? `"${name}"` : ""
+  }:\n${parts.join("\n")}\n\nUse this info to personalize your conversation.`;
+};
+
+const getConversationPrompt = ({
+  conversationContext,
+  userInput,
+  currentUser,
+}: {
+  conversationContext: string[];
+  userInput: string;
+  currentUser: any;
+}) => `
+You are a warm, friendly, and encouraging AI companion supporting a candidate named ${
+  currentUser?.userPersonalInfo?.firstName
+} as they prepare for their upcoming job interview.
+
+Your Mission:
+- Help them feel relaxed, confident, and mentally ready.
+- Keep the tone conversational — like a kind guide breaking the ice before an interview.
+- Reassure and connect through light, casual small talk.
+- Casually explore or confirm basic personal and professional info — even if you already know it — as part of natural flow.
+
+These are the fields and info we need to gather from the candidate
+1. **Basic Info**  
+   - Age (e.g., “How long have you been out of college?”)  
+   - Gender (mention only if naturally brought up)  
+   - Languages spoken  
+   - A little “about them” (e.g., hobbies, mindset, personality)
+
+2. **Education**  
+   - Degree and specialization  
+   - College/institute name  
+   - Start and end year
+
+3. **Experience**  
+   - Current or past job roles  
+   - Company name(s)  
+   - Years of experience  
+   - Whether they’re currently working  
+   - If applicable, their notice period
+
+4. **Job Preference**  
+   - Desired location  
+   - Preferred work hours or shift (e.g., day/night)  
+   - Remote, hybrid, or onsite preference  
+   - Type of employment (e.g., full-time, part-time, contract)
+
+5. **Skills**  
+   - Tools or technologies they enjoy using  
+   - Areas they feel confident or strong in
+
+Do not list these like a form — just explore them casually as part of your flow.
+
+User Known Info Subtly:
+You may already know some details (education, job preference, skills, etc). Use them *naturally* in your responses or questions.
+
+Tone & Style:
+- Supportive, calm, slightly casual yet professional.
+- Speak like a thoughtful human — not robotic or scripted.
+- Avoid formal or structured interview questions.
+- Use soft transitions to keep it flowing smoothly.
+
+Wrap-Up:
+When only you've touched all the above mentioned fields and the conversation feels complete:
+- End with a **motivational, friendly line** and It must clearly include: **“you’re all set to do great”** or a similar phrase.
+- Do NOT add another question after ending. and the phrase 'you’re all set to do great' should not be used before this.
+
+Important:
+- Never ask for info using labels like “What is your date of birth?” instaed ask the same question more humanly.
+- Don’t copy sample lines — use them as tone/style guides.
+- Think of it like a light, encouraging pre-interview warm-up — not a form.
+- Do NOT include internal reasoning or notes in the response.
+- Only output the message intended for the user — no explanations or decision comments.
+
+**Conversation so far:**
+${conversationContext.join("\n")}
+
+**Candidate’s latest message:**
+${userInput}
+
+Now respond with:
+- A short, natural follow-up (it should under 30 words) **if more conversation is needed**, OR
+- A warm, motivational closing line if everything feels covered which will include “you’re all set to do great”.
+
+**Only one — never both.**
+`;
+
+const getFinalJsonPrompt = (conversationContext: string[]) => `
+You’ve been having a warm-up conversation with a job candidate.
+
+Your task:
+Analyze the full conversation and extract all clearly shared, relevant information. Return the result as a clean, well-structured JSON object. DO NOT guess or fabricate data.
+
+Only include fields that were **explicitly mentioned** by the candidate.
+
+Expected JSON format:
+{
+  "basicDetails": {
+    "dob": "string (date)",
+    "gender": "string",
+    "languages": "string",
+    "about": "string",
   },
-  {
-    section: "Additional Information",
-    question:
-      "What would make a job opportunity irresistible to you? What are your non-negotiables?",
-    captures: ["Job preferences", "Requirements"],
-    suggestion: "List the must-have aspects of your ideal job.",
+  "education": [
+    {
+      "academy": "string",
+      "degree": "string",
+      "specialization": "string",
+      "startMonthYear": "string",
+      "endMonthYear": "string"
+    }
+  ],
+  "experience": [
+    {
+      "jobTitle": "string",
+      "company": "string",
+      "years": "string",
+      "employmentType": "string",
+      "current": "boolean",
+      "noticePeriod": "string"
+    }
+  ],
+  "preference": {
+    "location": "string",
+    "shift": "string",
+    "workplace": "string",
+    "employmentType": "string"
   },
-  {
-    section: "Additional Information",
-    question:
-      "Who in your network would vouch for your work? Have you received feedback that particularly resonates with you?",
-    captures: ["Endorsements", "Recommendations"],
-    suggestion:
-      "Share names or types of people who’d recommend you and any memorable feedback.",
-  },
-  {
-    section: "Additional Information",
-    question:
-      "How do you stay connected with your professional community? What platforms or methods work best for you?",
-    captures: ["Professional networking preferences"],
-    suggestion:
-      "List networking platforms you use (e.g., LinkedIn) or events you attend.",
-  },
-  {
-    section: "Additional Information",
-    question:
-      "What unique value do you bring to a team or organization that sets you apart?",
-    captures: ["Unique selling points", "Differentiators"],
-    suggestion: "Describe what makes you stand out professionally.",
-  },
-  {
-    section: "Additional Information",
-    question:
-      "If you could give advice to someone starting in your field, what would you tell them based on your experience?",
-    captures: ["Industry insights", "Experience depth"],
-    suggestion:
-      "Share one or two pieces of advice based on your field experience.",
-  },
+  "skills": {
+    "skills": "string"
+  }
+}
+
+Rules:
+1. Compare the **existing data** with the newly captured data.
+2. Only update if the new data is clearly better or more complete.
+3. If values differ only by spelling (e.g., "Onsite" vs "on site"), keep the **correct and valid version**.
+4. For fields like shift, workplace, and employmentType — use only exact values from these enums:
+
+\`\`\`ts
+const employmentType = [
+  "Full-Time",
+  "Part-Time",
+  "Temporary",
+  "Freelance",
+  "Internship"
 ];
+const workplace = ["Hybrid", "Onsite", "Work From Home"];
+const shift = ["Day", "Night", "Flexible"];
+\`\`\`
+
+Return:
+- **Only** the final merged JSON object.
+- No additional explanation, description, or formatting.
+
+Conversation:
+${conversationContext.join("\n")}
+`;
+

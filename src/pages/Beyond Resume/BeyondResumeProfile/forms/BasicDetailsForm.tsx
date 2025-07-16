@@ -29,10 +29,9 @@ dayjs.extend(timezone);
 const basicDetailsSchema = z.object({
   name: z.string().min(1, "Name is required"),
   email: z.string().email("Invalid email"),
-  phone: z.string().min(10, "Phone number must be at least 10 digits"),
+  phone: z.string().regex(/^\d{10}$/, "Phone number must be 10 digits"),
   dob: z.string(),
   gender: z.string().min(1, "Gender is required"),
-
   languages: z.string(),
   about: z.string().optional(),
   avatar: z.any().optional(),

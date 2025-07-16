@@ -322,6 +322,20 @@ export async function logout(path: string) {
   }
 }
 
+export async function SSOlogout() {
+  if (getUserId() !== 0) {
+    await client.patch(
+      `auth/signOut`,
+      { userId: getUserId(), loginMethod: getUserLoginMethod(), }
+    );
+    localStorage.clear();
+    window.location.reload();
+  }
+  else {
+    window.location.reload();
+  }
+}
+
 export async function logoutAnyNomous(path: string) {
   localStorage.clear();
   location.href = "/" + path;

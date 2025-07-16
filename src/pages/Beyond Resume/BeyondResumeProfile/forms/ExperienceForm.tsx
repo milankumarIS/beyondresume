@@ -28,10 +28,12 @@ export default function ExperienceForm({
   defaultValues,
   onSave,
   onCancel,
+  disableCurrentCheckbox = false,
 }: {
   defaultValues?: ExperienceData;
   onSave: (data: ExperienceData) => void;
   onCancel: () => void;
+  disableCurrentCheckbox?: boolean;
 }) {
   const {
     register,
@@ -117,6 +119,7 @@ export default function ExperienceForm({
             }}
             control={
               <Checkbox
+                disabled={disableCurrentCheckbox}
                 icon={<FontAwesomeIcon icon={faCircle} />}
                 checkedIcon={<FontAwesomeIcon icon={faCircleCheck} />}
                 sx={{
@@ -138,6 +141,7 @@ export default function ExperienceForm({
         </Box>
         {isCurrent && (
           <FormTextField
+            placeholder="Eg. 90 Days"
             valueProp="noticePeriod"
             errors={errors}
             register={register}

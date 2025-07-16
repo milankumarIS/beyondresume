@@ -45,7 +45,7 @@ const ResetPassword: React.FC = () => {
         });
     } else {
       openSnackBar("You are not allowed to view this page");
-      history.push("/login");
+      // history.push("/login");
     }
   };
 
