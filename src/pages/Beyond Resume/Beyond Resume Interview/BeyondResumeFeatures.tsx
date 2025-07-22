@@ -139,7 +139,6 @@ const BeyondResumeFeatures = forwardRef<HTMLDivElement>((props, ref) => {
         mx: "auto",
         textAlign: "left",
         overflow: "hidden",
-        color: "white",
       }}
     >
       <Typography
@@ -147,7 +146,6 @@ const BeyondResumeFeatures = forwardRef<HTMLDivElement>((props, ref) => {
         sx={{
           fontFamily: "Custom-Bold",
           maxWidth: "70%",
-          color: "black",
           width: "fit-content",
           p: 2,
           borderRadius: "12px",

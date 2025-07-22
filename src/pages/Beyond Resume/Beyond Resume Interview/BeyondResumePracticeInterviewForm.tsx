@@ -12,7 +12,7 @@ import { getUserId } from "../../../services/axiosClient";
 import {
   getProfile,
   insertDataInTable,
-  searchListDataFromTable
+  searchListDataFromTable,
 } from "../../../services/services";
 import BeyondResumeLoader from "../Beyond Resume Components/BeyondResumeLoader";
 
@@ -54,28 +54,28 @@ const BeyondResumePracticeInterviewForm = () => {
 
   // console.log(jobsData)
 
-    const [currentUser, setCurrentUser] = useState<any>();
-    useEffect(() => {
-      getProfile().then((result: any) => {
-        const data = result?.data?.data;
-        setCurrentUser(data);
-        if (data?.userPersonalInfo || data?.userContact) {
-          const fullName = [
-            data?.userPersonalInfo?.firstName,
-            data?.userPersonalInfo?.middleName,
-            data?.userPersonalInfo?.lastName,
-          ]
-            .filter(Boolean)
-            .join(" ");
-  
-          setName(fullName);
-          setEmail(data?.userContact?.userEmail || "");
-          setPhone(data?.userContact?.userPhoneNumber || "");
-  
-          setAbout(data?.userPersonalInfo?.about || "");
-        }
-      });
-    }, []);
+  const [currentUser, setCurrentUser] = useState<any>();
+  useEffect(() => {
+    getProfile().then((result: any) => {
+      const data = result?.data?.data;
+      setCurrentUser(data);
+      if (data?.userPersonalInfo || data?.userContact) {
+        const fullName = [
+          data?.userPersonalInfo?.firstName,
+          data?.userPersonalInfo?.middleName,
+          data?.userPersonalInfo?.lastName,
+        ]
+          .filter(Boolean)
+          .join(" ");
+
+        setName(fullName);
+        setEmail(data?.userContact?.userEmail || "");
+        setPhone(data?.userContact?.userPhoneNumber || "");
+
+        setAbout(data?.userPersonalInfo?.about || "");
+      }
+    });
+  }, []);
 
   useEffect(() => {
     searchListDataFromTable("brMockInterviews", {
@@ -123,35 +123,33 @@ const BeyondResumePracticeInterviewForm = () => {
   );
 
   return (
-    <Container sx={{ minHeight: "100vh" }}>
-      <BlobAnimation />
-
+    <Box sx={{ minHeight: "100vh" }}>
       <Form
-        sx={{ background: "white", position: "relative" }}
+        sx={{ background: "inherit", position: "relative" }}
         onSubmit={handleSubmit}
       >
         <Typography
-          variant="h5"
+          variant="h4"
           align="center"
           sx={{
             width: "fit-content",
             m: "auto",
             fontFamily: "Custom-Bold",
-            background: "linear-gradient(180deg, #50bcf6, #50bcf6)",
-            color: "white",
-            p: 2,
-            px: 4,
             borderRadius: "44px",
-            boxShadow: "0px 4px 10px rgba(90, 128, 253, 0.49)",
+            mb:-2,
           }}
         >
           Practice Interview Form
         </Typography>
-
-        <Box px={4} py={2}>
-          <Typography align="center" sx={{ mb: 2 }}>
-            Please fill out the following details
-          </Typography>
+        <Typography
+          align="center"
+          sx={{
+            fontFamily: "montserrat-regular",
+          }}
+        >
+          Please fill out the following details
+        </Typography>
+        <Box px={4} >
           <TextField
             fullWidth
             required
@@ -216,13 +214,13 @@ const BeyondResumePracticeInterviewForm = () => {
           variant="contained"
           color="secondary"
           disabled={isSubmitDisabled}
-          sx={{ mt: 2, py: 1.5, fontSize: "1rem" }}
+          sx={{ mx:4,mt:0, py: 1.5, fontSize: "1rem" }}
         >
           Submit
         </BeyondResumeButton>
       </Form>
       <BeyondResumeLoader open={open} progress={progress} />
-    </Container>
+    </Box>
   );
 };
 

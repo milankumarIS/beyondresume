@@ -5,13 +5,12 @@ import 'regenerator-runtime/runtime';
 import './theme/variables.css';
 
 import { ThemeProvider } from '@emotion/react';
+import '@google/model-viewer';
 import HeaderDesktop from './components/shared/Header/HeaderDesktop';
-import HeaderMob from './components/shared/Header/HeaderMob';
 import { ProtectedRoute } from './components/shared/ProtectedRoute';
 import { getUserRole } from './services/axiosClient';
 import './styles/global.css';
 import fontTheme from './theme/fontTheme';
-import '@google/model-viewer';
 
 import { NotificationProvider } from './components/util/NotificationContext';
 import './components/util/Service.css';
@@ -37,8 +36,12 @@ import BeyondResumeJobs from './pages/Beyond Resume/BeyondResumeJobs';
 import BeyondResumePayment from './pages/Beyond Resume/BeyondResumePayment';
 import BeyondResumePricing from './pages/Beyond Resume/BeyondResumePricing';
 import CandidateProfilePage from './pages/Beyond Resume/BeyondResumeProfile/CandidateProfilePage';
-import BeyondResumeQuestionBankForm from './pages/Beyond Resume/BeyondResumeQuestionBankForm';
 import JobFitmentPage from './pages/Beyond Resume/BeyondResumeProfile/JobFitmentAnalysis';
+import BeyondResumeQuestionBankForm from './pages/Beyond Resume/BeyondResumeQuestionBankForm';
+import LayoutContainer from './components/Layout/LayoutContainer';
+import { ThemeProviderCustom } from './components/util/ThemeContext';
+import BeyondResumePracticeJobs from './pages/Beyond Resume/BeyondResumePracticeJobs';
+import BeyondResumePartnerJobDetails from './pages/Beyond Resume/BeyondResumePartnerJobDetails';
 // import { AvatarProvider } from './pages/Daily Education/Components/AvatarContext';
 // import DailyEducationRegister from './pages/Daily Education/DailyEducationRegister';
 // import MyTeamPerformance from './pages/MyTeamPerformance';
@@ -70,11 +73,13 @@ const App: React.FC = () => {
             <UserModuleRoleProvider>
               <NotificationProvider>
               {/* <AvatarProvider> */}
+              <ThemeProviderCustom>
                 
-                <div style={{minWidth:'100%', minHeight:'100vh', background:'white'}}
-                className={getUserRole() !== 'undefined' ? 'router_class' : 'router_class1'}>
-                <HeaderDesktop />
-                <HeaderMob />
+                <div style={{minHeight:'100vh',overflowY:'hidden'}}
+            >
+                <LayoutContainer>
+                {/* <HeaderDesktop /> */}
+                {/* <HeaderMob /> */}
                 <Switch>
 
                 <Route
@@ -99,8 +104,9 @@ const App: React.FC = () => {
                   <ProtectedRoute path="/beyond-resume" component={BeyondResumeHome} />
                   <ProtectedRoute path="/beyond-resume-jobs" component={BeyondResumeJobs} />
                   <ProtectedRoute path="/beyond-resume-myjobs" component={BeyondResumeJobs} />
-                  <ProtectedRoute path="/beyond-resume-practicePools" component={BeyondResumeJobs} />
+                  <ProtectedRoute path="/beyond-resume-practicePools" component={BeyondResumePracticeJobs} />
                   <ProtectedRoute path="/beyond-resume-jobdetails/:brJobId" component={BeyondResumeJobDetails} />
+                  <ProtectedRoute path="/beyond-resume-jobedit/:brJobId" component={BeyondResumePartnerJobDetails} />
                   <ProtectedRoute path="/beyond-resume-interviews" component={BeyondResumeInterview} />
                   <ProtectedRoute path="/beyond-resume-interviewForm" component={BeyondResumeInterviewForm} />
                   <ProtectedRoute path="/beyond-resume-JobInterviewForm/:brJobId" component={BeyondResumeJobInterviewForm} />
@@ -125,9 +131,11 @@ const App: React.FC = () => {
               
 
                 </Switch>
-
+              </LayoutContainer>
                 </div>
-
+              </ThemeProviderCustom>
+                
+                
               {/* </AvatarProvider> */}
 
               </NotificationProvider>

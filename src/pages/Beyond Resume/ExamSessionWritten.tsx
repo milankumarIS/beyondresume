@@ -15,7 +15,10 @@ import {
 import React, { useEffect, useRef, useState } from "react";
 import { useHistory } from "react-router";
 import { useSnackbar } from "../../components/shared/SnackbarProvider";
-import { commonFormTextFieldSx, shuffleArray } from "../../components/util/CommonFunctions";
+import {
+  commonFormTextFieldSx,
+  shuffleArray,
+} from "../../components/util/CommonFunctions";
 import { BeyondResumeButton } from "../../components/util/CommonStyle";
 import ConfirmationPopup from "../../components/util/ConfirmationPopup";
 import {
@@ -23,6 +26,8 @@ import {
   updateByIdDataInTable,
 } from "../../services/services";
 import { evaluateInterviewResponses } from "./Beyond Resume Components/interviewEvaluator";
+import color from "../../theme/color";
+import { useTheme } from "../../components/util/ThemeContext";
 
 interface MCQOption {
   [key: string]: string;
@@ -76,6 +81,12 @@ const ExamSessionWritten: React.FC<SecureExamProps> = ({
   const [selectedOption, setSelectedOption] = useState("");
   const [loading, setLoading] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const [skippedQuestions, setSkippedQuestions] = useState<Set<string>>(
+    new Set()
+  );
+  const [visitedQuestions, setVisitedQuestions] = useState<Set<string>>(
+    new Set(["0-0"])
+  ); // start with first question visited
 
   const handleOptionClick = (value) => {
     setSelectedOption(value);
@@ -102,39 +113,32 @@ const ExamSessionWritten: React.FC<SecureExamProps> = ({
   useEffect(() => {
     const match = response.match(/<pre>\s*([\s\S]*?)\s*<\/pre>/);
     const jsonString = match ? match[1] : null;
-  
+
     try {
       if (jsonString) {
         const data: TextContent = JSON.parse(jsonString);
-  
+
         const shuffledCategories = data.categories.map((cat) => ({
           ...cat,
           questions: shuffleArray(cat.questions),
         }));
-  
+
         const finalData = {
           ...data,
           categories: shuffleArray(shuffledCategories),
         };
-  
+
         setParsedData(finalData);
         setUserResponses(
-          finalData.categories.map((cat) => Array(cat.questions.length).fill(""))
+          finalData.categories.map((cat) =>
+            Array(cat.questions.length).fill("")
+          )
         );
       }
     } catch (err) {
       console.error("Failed to parse JSON", err);
     }
   }, [response]);
-  
-
-  const formatTime = (seconds: number) => {
-    const m = Math.floor(seconds / 60)
-      .toString()
-      .padStart(2, "0");
-    const s = (seconds % 60).toString().padStart(2, "0");
-    return `${m}:${s}`;
-  };
 
   useEffect(() => {
     if (!parsedData || loading) return;
@@ -156,12 +160,46 @@ const ExamSessionWritten: React.FC<SecureExamProps> = ({
   }, [parsedData, loading]);
 
   const moveToNextQuestion = () => {
-    const updated = [...userResponses];
     const inputValue = inputRef.current?.value || "";
+
+    if (!inputValue.trim()) return; // don't allow move if empty
+
+    const updated = [...userResponses];
     updated[currentCategoryIndex][currentQuestionIndex] = inputValue.trim();
     setUserResponses(updated);
 
+    const key = `${currentCategoryIndex}-${currentQuestionIndex}`;
+    const newVisited = new Set(visitedQuestions);
+    newVisited.add(key);
+    setVisitedQuestions(newVisited);
+
+    const newSkipped = new Set(skippedQuestions);
+    newSkipped.delete(key); // in case user answered a skipped question
+    setSkippedQuestions(newSkipped);
+
+    goToNext();
+  };
+
+  const handleSkip = () => {
+    const updated = [...userResponses];
+    updated[currentCategoryIndex][currentQuestionIndex] = "";
+    setUserResponses(updated);
+
+    const key = `${currentCategoryIndex}-${currentQuestionIndex}`;
+    const newVisited = new Set(visitedQuestions);
+    const newSkipped = new Set(skippedQuestions);
+    newVisited.add(key);
+    newSkipped.add(key);
+
+    setVisitedQuestions(newVisited);
+    setSkippedQuestions(newSkipped);
+
+    goToNext();
+  };
+
+  const goToNext = () => {
     const category = parsedData!.categories[currentCategoryIndex];
+
     if (currentQuestionIndex < category.questions.length - 1) {
       setCurrentQuestionIndex((prev) => prev + 1);
     } else if (currentCategoryIndex < parsedData!.categories.length - 1) {
@@ -169,10 +207,33 @@ const ExamSessionWritten: React.FC<SecureExamProps> = ({
       setCurrentQuestionIndex(0);
     } else {
       handleSubmit();
-      return;
     }
 
-    if (inputRef.current) inputRef.current.value = "";
+    setTimeout(() => {
+      const nextKey = `${currentCategoryIndex}-${currentQuestionIndex}`;
+      if (!visitedQuestions.has(nextKey)) {
+        inputRef.current!.value = "";
+        setSelectedOption("");
+      }
+    }, 0);
+  };
+
+  const handleQuestionJump = (catIdx, qIdx) => {
+    const key = `${catIdx}-${qIdx}`;
+    if (!visitedQuestions.has(key)) return;
+
+    const updated = [...userResponses];
+    const currentInput = inputRef.current?.value || "";
+    updated[currentCategoryIndex][currentQuestionIndex] = currentInput.trim();
+    setUserResponses(updated);
+
+    setCurrentCategoryIndex(catIdx);
+    setCurrentQuestionIndex(qIdx);
+    inputRef.current!.value = userResponses[catIdx][qIdx] || "";
+
+    const newVisited = new Set(visitedQuestions);
+    newVisited.add(key);
+    setVisitedQuestions(newVisited);
   };
 
   const handleSubmit = () => {
@@ -251,29 +312,27 @@ const ExamSessionWritten: React.FC<SecureExamProps> = ({
     };
   }, []);
 
-  const handleQuestionJump = (catIdx, qIdx) => {
-    const updated = [...userResponses];
-    const currentInput = inputRef.current?.value || "";
-    updated[currentCategoryIndex][currentQuestionIndex] = currentInput.trim();
-    setUserResponses(updated);
-
-    setCurrentCategoryIndex(catIdx);
-    setCurrentQuestionIndex(qIdx);
-    inputRef.current!.value = userResponses[catIdx][qIdx] || "";
-  };
-
   const question =
     parsedData?.categories[currentCategoryIndex].questions[
       currentQuestionIndex
     ];
+  const totalQuestions =
+    parsedData?.categories.reduce(
+      (acc, cat) => acc + cat.questions.length,
+      0
+    ) || 0;
+  const isLastQuestion =
+    parsedData &&
+    currentCategoryIndex === parsedData.categories.length - 1 &&
+    currentQuestionIndex ===
+      parsedData.categories[currentCategoryIndex].questions.length - 1;
 
+  const { theme } = useTheme();
   return (
     <Box
       className="full-screen-div"
       p={4}
       sx={{
-        background: "linear-gradient(145deg, #0d0d0d, #2D3436)",
-        color: "white",
         minHeight: "100vh",
       }}
       onContextMenu={preventContextMenu}
@@ -284,18 +343,19 @@ const ExamSessionWritten: React.FC<SecureExamProps> = ({
         disabled={loading}
         sx={{
           background: "transparent",
-          borderColor: "white",
           position: "absolute",
           top: 30,
           right: 20,
           fontSize: "12px",
+          color: "inherit",
+          borderColor: "inherit !important",
         }}
       >
         Exit{" "}
         <FontAwesomeIcon icon={faChevronRight} style={{ marginLeft: "10px" }} />
       </BeyondResumeButton>
 
-      <BeyondResumeButton
+      {/* <BeyondResumeButton
         variant="outlined"
         sx={{
           background: "transparent",
@@ -311,19 +371,33 @@ const ExamSessionWritten: React.FC<SecureExamProps> = ({
           icon={faClock}
         ></FontAwesomeIcon>{" "}
         Time left: {formatTime(timeLeft)}s
-      </BeyondResumeButton>
+      </BeyondResumeButton> */}
 
       <Typography variant="h4" align="center" mt={6}>
-        Online Exam Session
+        Written Interview
+      </Typography>
+      <Typography variant="h6" align="center">
+        Category:{" "}
+        <span style={{ fontFamily: "montserrat-regular" }}>
+          {" "}
+          {parsedData?.categories[currentCategoryIndex].name}{" "}
+        </span>
       </Typography>
 
-      <Box sx={{ display: "flex", justifyContent:'space-between', gap: 2 }}>
-        <Box mt={6}>
-          <Typography variant="h6">
-            Category: {parsedData?.categories[currentCategoryIndex].name}
-          </Typography>
-          <Typography variant="h5" mt={2} mb={2}>
-            Q{currentQuestionIndex + 1}: {question?.question}
+      <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2 }}>
+        <Box mt={4}>
+          <Typography
+            variant="h5"
+            mt={2}
+            mb={2}
+            fontFamily={"montserrat-regular"}
+          >
+            <span
+              style={{ color: color.newFirstColor, fontFamily: "custom-bold" }}
+            >
+              Q{currentQuestionIndex + 1}:{" "}
+            </span>{" "}
+            {question?.question}
           </Typography>
 
           <Grid container spacing={2} mt={1}>
@@ -362,7 +436,7 @@ const ExamSessionWritten: React.FC<SecureExamProps> = ({
             sx={{
               ...commonFormTextFieldSx,
               mb: 2,
-              mt: 3,
+              mt: 1,
               borderRadius: "18px",
               "& .MuiInputBase-input": {
                 resize: "vertical",
@@ -375,7 +449,7 @@ const ExamSessionWritten: React.FC<SecureExamProps> = ({
             placeholder="Your Answer"
             variant="outlined"
             multiline
-            rows={4}
+            rows={5}
             fullWidth
             margin="normal"
             InputLabelProps={{ shrink: true }}
@@ -399,7 +473,7 @@ const ExamSessionWritten: React.FC<SecureExamProps> = ({
             Submit Exam
           </BeyondResumeButton> */}
 
-            {loading ? (
+            {/* {loading ? (
               <BeyondResumeButton variant="contained">
                 Submitting Interview...{" "}
                 <CircularProgress
@@ -417,33 +491,41 @@ const ExamSessionWritten: React.FC<SecureExamProps> = ({
               >
                 Submit Exam
               </BeyondResumeButton>
+            )} */}
+            {parsedData && (
+              <BeyondResumeButton
+                variant="contained"
+                color="success"
+                onClick={handleSkip}
+                sx={{
+                  background: "transparent",
+                  border: "solid 1px",
+                  color: "inherit",
+                  borderColor: "inherit !important",
+                }}
+              >
+                Skip
+              </BeyondResumeButton>
             )}
-
             {parsedData && (
               <BeyondResumeButton
                 variant="contained"
                 color="success"
                 onClick={moveToNextQuestion}
-                disabled={loading}
+                disabled={loading || !inputRef.current?.value?.trim()}
               >
-                {currentCategoryIndex === parsedData!.categories.length - 1 &&
-                currentQuestionIndex ===
-                  parsedData!.categories[currentCategoryIndex].questions
-                    .length -
-                    1
-                  ? "Submit"
-                  : "Next Question"}
-                <FontAwesomeIcon
-                  style={{ marginLeft: "4px" }}
-                  icon={faChevronRight}
-                ></FontAwesomeIcon>
+                {isLastQuestion
+                  ? loading
+                    ? "Submitting Interview..."
+                    : "Submit"
+                  : "Next"}
               </BeyondResumeButton>
             )}
           </Box>
         </Box>
 
         <Box
-          mt={4}
+          mt={-2}
           display="flex"
           flexWrap="wrap"
           justifyContent={"center"}
@@ -451,59 +533,76 @@ const ExamSessionWritten: React.FC<SecureExamProps> = ({
           height={"fit-content"}
           gap={1}
           sx={{
-            minWidth:'250px',
-            maxWidth:'250px',
-            background: "linear-gradient(145deg, #0d0d0d, #2D3436)",
-            p: 4,
+            minWidth: "250px",
+            maxWidth: "250px",
+            background: theme === "dark" ? "#121721" : color.jobCardBgLight,
+            p: 2,
             borderRadius: "12px",
           }}
         >
-          <Typography width={'100%'} mb={1} variant="h6" textAlign={'center'}>
-           Jump to Question:
+          <Typography
+            width={"100%"}
+            mb={0}
+            ml={1}
+            variant="h6"
+            textAlign={"left"}
+            fontFamily={"montserrat-regular"}
+          >
+            Questions
           </Typography>
           {parsedData?.categories.map((cat, catIdx) =>
-  cat.questions.map((_, qIdx) => {
-    const questionNumber =
-      parsedData.categories
-        .slice(0, catIdx)
-        .reduce((acc, c) => acc + c.questions.length, 0) +
-      qIdx +
-      1;
+            cat.questions.map((_, qIdx) => {
+              const questionNumber =
+                parsedData.categories
+                  .slice(0, catIdx)
+                  .reduce((acc, c) => acc + c.questions.length, 0) +
+                qIdx +
+                1;
 
-    const isActive =
-      catIdx === currentCategoryIndex &&
-      qIdx === currentQuestionIndex;
+              const isActive =
+                catIdx === currentCategoryIndex &&
+                qIdx === currentQuestionIndex;
 
-    const isAnswered =
-      (userResponses[catIdx]?.[qIdx] || "").trim() !== "";
+              const isAnswered =
+                (userResponses[catIdx]?.[qIdx] || "").trim() !== "";
 
-    return (
-      <Box
-        key={`${catIdx}-${qIdx}`}
-        onClick={() => handleQuestionJump(catIdx, qIdx)}
-        sx={{
-          width: 36,
-          height: 36,
-          borderRadius: "50%",
-          backgroundColor: isActive
-            ? "#5a81fd"
-            : isAnswered
-            ? "#90ee90" 
-            : "#ccc", 
-          color: isActive || isAnswered ? "white" : "black",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          cursor: "pointer",
-          fontWeight: "bold",
-        }}
-      >
-        {questionNumber}
-      </Box>
-    );
-  })
-)}
+              const isSkipped = skippedQuestions.has(`${catIdx}-${qIdx}`);
+              const isVisited = visitedQuestions.has(`${catIdx}-${qIdx}`);
 
+              return (
+                <Box
+                  key={`${catIdx}-${qIdx}`}
+                  onClick={() => handleQuestionJump(catIdx, qIdx)}
+                  sx={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: "50%",
+                    backgroundColor: isActive
+                      ? "transparent"
+                      : isSkipped
+                      ? "transparent"
+                      : isAnswered
+                      ? color.activeColor
+                      : "transparent",
+                    color: isAnswered ? "white" : "inherit",
+                    pointerEvents: isVisited ? "auto" : "none",
+                    opacity: isVisited ? 1 : 0.3,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer",
+                    fontWeight: "bold",
+                    fontFamily: "montserrat-regular",
+                    border: "solid 1.5px",
+                    borderColor:
+                      isActive || isAnswered ? color.activeColor : "#717680",
+                  }}
+                >
+                  {questionNumber}
+                </Box>
+              );
+            })
+          )}
         </Box>
       </Box>
 
@@ -511,21 +610,13 @@ const ExamSessionWritten: React.FC<SecureExamProps> = ({
         open={popupOpen}
         onClose={() => setPopupOpen(false)}
         onConfirm={() =>
-          (window.location.href = `/beyond-resume-interview-success?sessionType=${encodeURIComponent(
-            sessionType || ""
-          )}`)
+          handleSubmit()
         }
         color="#50bcf6"
-        message="Do you want to end your exam?"
-        warningMessage="This will not submit your responses and you cannot return to the exam."
-        icon={
-          <FontAwesomeIcon
-            color="#50bcf6"
-            fontSize="68px"
-            style={{ marginTop: "16px", marginBottom: "-8px" }}
-            icon={faInfoCircle}
-          />
-        }
+        message="Are you sure you want to leave?"
+        warningMessage="Exiting now will submit your answers. You won’t be able to return to this interview session."
+        yesText="Submit & Exit"
+        noText="Stay & Continue"
       />
       <ConfirmationPopup
         open={popupOpen1}

@@ -7,6 +7,7 @@ import {
   Typography,
 } from "@mui/material";
 import React from "react";
+import { BeyondResumeButton, BeyondResumeButton2 } from "./CommonStyle";
 
 interface ConfirmationPopupProps {
   open: boolean;
@@ -17,6 +18,8 @@ interface ConfirmationPopupProps {
   icon?: React.ReactNode;
   warningMessage?: string;
   message?: string;
+  yesText?: string;
+  noText?: string;
 }
 
 const ConfirmationPopup: React.FC<ConfirmationPopupProps> = ({
@@ -28,9 +31,21 @@ const ConfirmationPopup: React.FC<ConfirmationPopupProps> = ({
   icon: Icon,
   warningMessage = "This action can be undone.",
   message = `Are you sure you want to ${actionText} this item?`,
+  yesText = "Yes",
+  noText = "No",
 }) => {
   return (
-    <Dialog open={open} onClose={onClose}>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      sx={{
+        "& .MuiDialog-paper": {
+          p: 2,
+          px: 5,
+          borderRadius: "32px",
+        },
+      }}
+    >
       {Icon}
       <DialogTitle
         sx={{
@@ -40,13 +55,14 @@ const ConfirmationPopup: React.FC<ConfirmationPopupProps> = ({
           gap: 2,
           mt: 2,
           textAlign: "center",
+          fontFamily: "custom-bold",
         }}
       >
         {message}
       </DialogTitle>
       <DialogContent
         sx={{
-          maxWidth: "400px",
+          maxWidth: "450px",
         }}
       >
         <Typography variant="body2" textAlign="center">
@@ -57,34 +73,15 @@ const ConfirmationPopup: React.FC<ConfirmationPopupProps> = ({
         sx={{
           justifyContent: "center",
           mb: 3,
+          gap:2
         }}
       >
-        <Button
-          id="button"
-          onClick={onClose}
-          variant="contained"
-          style={{
-            background: "grey",
-            color: "white",
-            borderRadius: "999px",
-            textTransform: "none",
-          }}
-        >
-          No
-        </Button>
-        <Button
-          id="button"
-          onClick={onConfirm}
-          variant="contained"
-          style={{
-            backgroundColor: color || "#1976d2",
-            color: "#fff",
-            borderRadius: "999px",
-
-          }}
-        >
-          Yes
-        </Button>
+        <BeyondResumeButton2 onClick={onClose} variant="contained">
+          {noText}
+        </BeyondResumeButton2>
+        <BeyondResumeButton onClick={onConfirm} variant="contained">
+          {yesText}
+        </BeyondResumeButton>
       </DialogActions>
     </Dialog>
   );

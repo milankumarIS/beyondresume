@@ -9,7 +9,6 @@ import FormTextField from "../../components/form/FormTextField";
 import { RegisterInput, registerSchema } from "../../components/form/schema";
 import {
   calculateAge,
-  getCountryCode,
   getRandomNumber,
 } from "../../components/util/CommonFunctions";
 import {
@@ -63,8 +62,8 @@ const Signup: React.FC = () => {
 
   useEffect(() => {
     async function fetchCountryCode() {
-      const code = await getCountryCode();
-      setCountryCode(code);
+      // const code = await getCountryCode();
+      // setCountryCode(code);
     }
 
     fetchCountryCode();
@@ -77,7 +76,7 @@ const Signup: React.FC = () => {
     values.dob = dob;
     values.userStatus = "ACTIVE";
     values.contactSource = "SIGNUP";
-    values.userDailyLifeCode = `DL-${countryCode}-${getRandomNumber()}`;
+    values.userDailyLifeCode = `DL`;
     if (queryParams.get("myRefferalCode")) {
       values.supervisorCode = queryParams.get("myRefferalCode");
     }

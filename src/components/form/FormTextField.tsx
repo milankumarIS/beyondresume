@@ -91,7 +91,15 @@ export default function FormTextField({
             required={required}
             rows={multiline ? rows : 1}
             onBlur={handleBlur}
-            sx={sx}
+            sx={{
+              ...sx,
+              // "& .MuiInputLabel-root": {
+              //   color: "inherit",
+              // },
+              // "& .Mui-focused .MuiInputLabel-root": {
+              //   color: "darkblue",
+              // },
+            }}
             InputLabelProps={{
               shrink: watch ? !!watch(valueProp) : undefined,
             }}

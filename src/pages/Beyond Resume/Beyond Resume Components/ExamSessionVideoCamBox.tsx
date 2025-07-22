@@ -145,7 +145,6 @@ const ExamSessionVideoCamBox: React.FC<ExamSessionVideoCamBoxProps> = ({
         pb: { xs: "70px", sm: "16px" },
       }}
     >
-      {/* Left Video Box */}
       <Box sx={{ width: { xs: "100%", sm: "50%" } }}>
         <Box
           sx={{
@@ -192,7 +191,6 @@ const ExamSessionVideoCamBox: React.FC<ExamSessionVideoCamBoxProps> = ({
           )}
         </Box>
 
-        {/* Controls */}
         <Box
           display="flex"
           justifyContent="center"
@@ -241,7 +239,6 @@ const ExamSessionVideoCamBox: React.FC<ExamSessionVideoCamBoxProps> = ({
         )}
       </Box>
 
-      {/* Right AI Box */}
       <Box
         sx={{
           width: { xs: "100%", sm: "50%", md: webcamSize.width || "50%" },

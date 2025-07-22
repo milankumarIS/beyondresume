@@ -1,7 +1,8 @@
 import { Avatar, Box, Container, Stack, Typography } from "@mui/material";
 import AvatarGroup from "@mui/material/AvatarGroup";
-import {
+import GradientText, {
   BeyondResumeButton,
+  BeyondResumeButton2,
   BlobAnimation,
   BlobComponent,
 } from "../../../components/util/CommonStyle";
@@ -10,6 +11,7 @@ import { faRobot } from "@fortawesome/free-solid-svg-icons";
 import { useRef, useState, useEffect } from "react";
 import { useHistory } from "react-router";
 import { searchListDataFromTable } from "../../../services/services";
+import color from "../../../theme/color";
 
 export default function BeyondResumeHero({ onScrollClick }) {
   const blobPaths = [
@@ -59,8 +61,8 @@ export default function BeyondResumeHero({ onScrollClick }) {
     if (count < total) {
       const increment = total > 50 ? 5 : 1;
       const timer = setTimeout(() => {
-        setCount(prev => Math.min(prev + increment, total));
-      }, 30); 
+        setCount((prev) => Math.min(prev + increment, total));
+      }, 30);
 
       return () => clearTimeout(timer);
     }
@@ -72,18 +74,16 @@ export default function BeyondResumeHero({ onScrollClick }) {
       className={`slide-in ${isVisible ? "visible" : ""}`}
       sx={{
         py: 20,
-        pt: 10,
+        pt:15,
         mb: 4,
-        color: "white",
-        background: "linear-gradient(145deg, #0d0d0d, #2D3436)",
-        boxShadow: "0px 4px 30px rgba(0, 0, 0, 0.49)",
+        mt: -10,
         position: "relative",
         borderRadius: "0px 0px 680px 680px",
         // overflow: "hidden",
-        // background: "#50bcf6",
+        background: color.cardBg,
       }}
     >
-      <BlobComponent
+      {/* <BlobComponent
         right="-20px"
         bottom="-120px"
         width={300}
@@ -98,39 +98,51 @@ export default function BeyondResumeHero({ onScrollClick }) {
             style={{ color: "#fff", fontSize: 28 }}
           />
         }
-      />
-      <BlobAnimation />
+      /> */}
+      {/* <BlobAnimation /> */}
 
-      <Container
-        maxWidth="md"
-        sx={{ textAlign: "center", position: "relative" }}
-      >
-        <Typography
-          variant="h3"
-          gutterBottom
+      <Box sx={{ textAlign: "center", position: "relative" }}>
+        <Box
           sx={{
-            width: "fit-content",
-            m: "auto",
-            fontFamily: "Custom-Bold",
-            // background: "linear-gradient(180deg, #50bcf6, #5a81fd)",
-            color: "white",
-            p: 2,
-            borderRadius: "12px",
-            // boxShadow: "0px 4px 10px rgba(90, 128, 253, 0.49)",
-            zIndex: 2,
-            position: "relative",
+            display: "flex",
+            flexDirection: "column",
+            gap: 1,
+            alignItems: "center",
+            justifyContent: "center",
+            px: 6,
           }}
         >
-          Land your dream job faster with our mock interview practice tool.
-        </Typography>
+          {/* <Typography sx={{ fontFamily: "montserrat-regular" }} variant="h4">
+            Welcome To Your
+          </Typography>
+          <GradientText text={"Interview Hub"} variant="h4" /> */}
 
-        <Typography
-          variant="h6"
-          sx={{ mt: 2, fontFamily: "Montserrat-Regular" }}
-        >
-          Ace any job interview with unlimited mock interviews, tailored
-          feedback, and an interactive interview simulator.
-        </Typography>
+          <Typography
+            variant="h3"
+            gutterBottom
+            sx={{
+              width: "fit-content",
+              m: "auto",
+              fontFamily: "Custom-Bold",
+              // background: "linear-gradient(180deg, #50bcf6, #5a81fd)",
+              p: 2,
+              borderRadius: "12px",
+              // boxShadow: "0px 4px 10px rgba(90, 128, 253, 0.49)",
+              zIndex: 2,
+              position: "relative",
+            }}
+          >
+            Land your dream job faster with our mock interview practice tool.
+          </Typography>
+
+          <Typography
+            variant="h6"
+            sx={{ mt: 2, fontFamily: "Montserrat-Regular" }}
+          >
+            Ace any job interview with unlimited mock interviews, tailored
+            feedback, and an interactive interview simulator.
+          </Typography>
+        </Box>
 
         <Stack
           direction="row"
@@ -145,17 +157,15 @@ export default function BeyondResumeHero({ onScrollClick }) {
             Start Practicing Today
           </BeyondResumeButton>
 
-          <BeyondResumeButton
-          onClick={onScrollClick}
+          <BeyondResumeButton2
+            onClick={onScrollClick}
             sx={{
-              background: "transparent",
-              border: "solid 1px",
               p: 2,
               px: 4,
             }}
           >
             Learn More
-          </BeyondResumeButton>
+          </BeyondResumeButton2>
         </Stack>
 
         <Stack
@@ -187,7 +197,7 @@ export default function BeyondResumeHero({ onScrollClick }) {
             Trusted by {count}+ Candidates
           </Typography>
         </Stack>
-      </Container>
+      </Box>
     </Box>
   );
 }

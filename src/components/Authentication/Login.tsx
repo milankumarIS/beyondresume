@@ -14,7 +14,6 @@ import {
   login,
 } from "../../services/services";
 import { useSnackbar } from "../shared/SnackbarProvider";
-import { getDeviceIp } from "../util/CommonFunctions";
 import LoginPopupModal from "../util/LoginPopupModal";
 import RequiredStar from "../util/RequiredStar";
 import "./Signup.css";
@@ -49,7 +48,7 @@ const Login: React.FC = () => {
     values.userLoginDeviceName = info.model || "Unknown Device";
     values.loginMethod =
       info.platform === "ios" || info.platform === "android" ? "MOBILE" : "WEB";
-    values.userLoginDeviceIP = await getDeviceIp();
+    values.userLoginDeviceIP = 'ip';
     setLoginPayLoad(values);
     login(values)
       .then((result: any) => {

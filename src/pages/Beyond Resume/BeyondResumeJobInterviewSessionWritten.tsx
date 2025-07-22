@@ -34,8 +34,6 @@ const BeyondResumeJobInterviewSessionWritten = () => {
             justifyContent: "center",
             alignItems: "center",
             flexDirection: "column",
-            background: "linear-gradient(145deg, #0d0d0d, #2D3436)",
-            color: "white",
           }}
         >
           <div className="newtons-cradle">
@@ -44,7 +42,7 @@ const BeyondResumeJobInterviewSessionWritten = () => {
             <div className="newtons-cradle__dot"></div>
             <div className="newtons-cradle__dot"></div>
           </div>
-          <Typography variant="h6" sx={{ mb: 2, color: "white" }}>
+          <Typography variant="h6" sx={{ mb: 2, color: "inherit" }}>
             Loading
           </Typography>
         </Box>

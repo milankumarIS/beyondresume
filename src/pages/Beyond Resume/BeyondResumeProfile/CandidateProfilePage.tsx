@@ -38,7 +38,6 @@ export default function CandidateProfilePage() {
   return (
     <Box
       sx={{
-        background: "#eaebef",
         color: "white",
         p: 4,
         minHeight: "90vh",

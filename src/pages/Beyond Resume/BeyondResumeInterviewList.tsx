@@ -14,19 +14,16 @@ import {
   ToggleButtonGroup,
   Typography,
 } from "@mui/material";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useHistory } from "react-router";
+import PaginationControlled from "../../components/shared/Pagination";
 import {
-  BeyondResumeButton,
-  BlobAnimation,
+  BeyondResumeButton
 } from "../../components/util/CommonStyle";
 import { getUserId } from "../../services/axiosClient";
 import {
-  paginateDataFromTable,
-  searchListDataFromTable,
+  paginateDataFromTable
 } from "../../services/services";
-import PaginationControlled from "../../components/shared/Pagination";
-import React from "react";
 
 const BeyondResumeInterviewList = () => {
   const [interviewList, setInterviewList] = useState<any[]>([]);
@@ -113,15 +110,14 @@ const BeyondResumeInterviewList = () => {
   return (
     <Box
       sx={{
-        background: "linear-gradient(145deg, #0d0d0d, #2D3436)",
-        color: "white",
+        // background: "linear-gradient(145deg, #0d0d0d, #2D3436)",
         p: 4,
         minHeight: "90vh",
         overflow: "hidden",
         position: "relative",
       }}
     >
-      <BlobAnimation />
+      {/* <BlobAnimation /> */}
 
       <Box
         sx={{
@@ -131,6 +127,7 @@ const BeyondResumeInterviewList = () => {
           alignItems: "center",
           position: "relative",
           mb: 3,
+          color:'inherit'
         }}
       >
         <CustomToggleButtonGroup
@@ -173,9 +170,10 @@ const BeyondResumeInterviewList = () => {
             justifyContent: "center",
             alignItems: "center",
             flexDirection: "column",
+            color:'inherit'
           }}
         >
-          <Typography variant="h6" sx={{ color: "white" }}>
+          <Typography variant="h6" color="inherit">
             No Data Available
           </Typography>
         </Box>
@@ -511,7 +509,7 @@ function formatDateWithSuffix(dateString: string) {
 }
 
 const CustomToggleButtonGroup = styled(ToggleButtonGroup)(({ theme }) => ({
-  backgroundColor: "#f0f2f7",
+  backgroundColor: "rgba(94, 94, 94, 0.15)",
   borderRadius: "999px",
   padding: "8px",
 }));

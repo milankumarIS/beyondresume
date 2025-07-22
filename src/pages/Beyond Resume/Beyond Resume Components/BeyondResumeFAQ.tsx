@@ -59,7 +59,6 @@ const BeyondResumeFAQ = () => {
         variant="h3"
         sx={{
           fontFamily: "Custom-Bold",
-          color: "black",
           width: "fit-content",
           p: 2,
           borderRadius: "12px",
@@ -77,12 +76,12 @@ const BeyondResumeFAQ = () => {
             boxShadow: "none",
             background: "transparent",
             // background: "linear-gradient(145deg, #0d0d0d, #2D3436)",
-            border: `2px solid black`,
+            border: `2px solid`,
             borderRadius: "12px",
-            color: "white",
             padding: "4px",
             position: "relative",
             overflow: "hidden",
+            color:'inherit'
           }}
           sx={{
             "&.MuiAccordion-root::before": {
@@ -113,7 +112,7 @@ const BeyondResumeFAQ = () => {
               />
             }
           >
-            <Typography fontWeight="medium" color="black">
+            <Typography fontWeight="medium">
               {faq.question}
             </Typography>
           </AccordionSummary>
@@ -122,7 +121,7 @@ const BeyondResumeFAQ = () => {
               pt: 0,
             }}
           >
-            <Typography color="text.secondary">{faq.answer}</Typography>
+            <Typography >{faq.answer}</Typography>
           </AccordionDetails>
         </Accordion>
       ))}

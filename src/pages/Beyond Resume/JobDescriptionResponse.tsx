@@ -23,12 +23,13 @@ import { useSnackbar } from "../../components/shared/SnackbarProvider";
 import {
   normalizeHTMLToText,
   readExcelFileAsJson,
-  safeParseAiJson,
 } from "../../components/util/CommonFunctions";
 import {
   BeyondResumeButton,
+  BeyondResumeButton2,
   CustomToggleButton,
   CustomToggleButtonGroup,
+  StyledTypography,
 } from "../../components/util/CommonStyle";
 import QuillInputEditor from "../../components/util/QuilInputEditor";
 import { getUserId, getUserRole } from "../../services/axiosClient";
@@ -44,6 +45,7 @@ import BeyondResumeUpgradeRequiredModal from "./Beyond Resume Components/BeyondR
 import CustomEvaluationDriver from "./Beyond Resume Components/CustomEvaluationDriver";
 import FileUpload from "./Beyond Resume Components/FileUpload";
 import GeneratedAiQnaResponse from "./GeneratedAiQnaResponse";
+import color from "../../theme/color";
 
 interface JobDescriptionResponseProps {
   response: string;
@@ -59,7 +61,7 @@ const JobDescriptionResponse: React.FC<JobDescriptionResponseProps> = ({
   onJobUpdate,
 }) => {
   const location = useLocation();
-  const isJobPage = location.pathname.startsWith("/beyond-resume-jobdetails/");
+  const isJobPage = location.pathname.startsWith("/beyond-resume-jobs");
 
   const [generatedJd, setGeneratedJd] = useState(response);
   const [editorContent, setEditorContent] = useState("");
@@ -358,10 +360,6 @@ const JobDescriptionResponse: React.FC<JobDescriptionResponseProps> = ({
     }
   };
 
-  const handleApplyJob = () => {
-    history.push(`/beyond-resume-JobInterviewForm/${jobId}`);
-  };
-
   useEffect(() => {
     if (!jd) return;
 
@@ -406,7 +404,7 @@ const JobDescriptionResponse: React.FC<JobDescriptionResponseProps> = ({
   }, [jd]);
 
   return (
-    <Box m={4} id="responseSection">
+    <Box id="responseSection">
       <Box
         sx={{
           display: "flex",
@@ -415,7 +413,7 @@ const JobDescriptionResponse: React.FC<JobDescriptionResponseProps> = ({
           alignItems: "center",
         }}
       >
-        <Typography
+        {/* <Typography
           sx={{
             background: "linear-gradient(180deg, #50bcf6, #5a81fd)",
             width: "fit-content",
@@ -428,7 +426,7 @@ const JobDescriptionResponse: React.FC<JobDescriptionResponseProps> = ({
           variant="h6"
         >
           {isJobPage ? "Job Description:" : "Generated Job Description:"}
-        </Typography>
+        </Typography> */}
 
         {getUserRole() === "TALENT PARTNER" && isJobPage && (
           <Button
@@ -448,30 +446,6 @@ const JobDescriptionResponse: React.FC<JobDescriptionResponseProps> = ({
             }}
           >
             View Job Applicants{" "}
-            <FontAwesomeIcon
-              style={{ marginLeft: "6px" }}
-              icon={faChevronCircleRight}
-            ></FontAwesomeIcon>
-          </Button>
-        )}
-        {getUserRole() === "CAREER SEEKER" && isJobPage && (
-          <Button
-            onClick={() => {
-              history.push("/beyond-resume-fitment-analysis", { jobId });
-            }}
-            sx={{
-              width: "fit-content",
-              color: "black",
-              p: 1,
-              px: 2,
-              textTransform: "none",
-              mb: 4,
-              borderRadius: "999px",
-              border: "solid 1px",
-              height: "fit-content",
-            }}
-          >
-            Get Fitment Analysis
             <FontAwesomeIcon
               style={{ marginLeft: "6px" }}
               icon={faChevronCircleRight}
@@ -522,7 +496,6 @@ const JobDescriptionResponse: React.FC<JobDescriptionResponseProps> = ({
             justifyContent: "center",
             alignItems: "center",
             flexDirection: "column",
-            color: "black",
           }}
         >
           <div className="newtons-cradle">
@@ -539,13 +512,11 @@ const JobDescriptionResponse: React.FC<JobDescriptionResponseProps> = ({
       ) : (
         <Box
           id="jdSection"
-          p={3}
+          // p={3}
           pt={2}
           sx={{
-            backgroundColor: "#f5f5f5",
             borderRadius: "12px",
-            boxShadow: "0px 0px 20px rgba(0, 0, 0, 0.16)",
-            color: "black",
+            // boxShadow: "0px 0px 20px rgba(0, 0, 0, 0.16)",
             position: "relative",
           }}
         >
@@ -564,7 +535,7 @@ const JobDescriptionResponse: React.FC<JobDescriptionResponseProps> = ({
                 sx={{
                   color: "white",
                   textTransform: "none",
-                  background: "linear-gradient(180deg, #50bcf6, #5a81fd)",
+                  background: color.activeButtonBg,
                   borderRadius: "44px",
                 }}
                 onClick={handleCopy}
@@ -579,7 +550,7 @@ const JobDescriptionResponse: React.FC<JobDescriptionResponseProps> = ({
                 sx={{
                   color: "white",
                   textTransform: "none",
-                  background: "linear-gradient(180deg, #50bcf6, #5a81fd)",
+                  background: color.activeButtonBg,
                   borderRadius: "44px",
                 }}
               >
@@ -593,7 +564,7 @@ const JobDescriptionResponse: React.FC<JobDescriptionResponseProps> = ({
           )}
 
           {!isEditing ? (
-            <Typography
+            <StyledTypography
               sx={{ mt: { xs: 8, md: 0 } }}
               dangerouslySetInnerHTML={{
                 __html: displayContent,
@@ -613,40 +584,7 @@ const JobDescriptionResponse: React.FC<JobDescriptionResponseProps> = ({
       )}
 
       {isJobPage && jobStatus !== "INPROGRESS" ? (
-        <>
-          {getUserRole() === "CAREER SEEKER" && (
-            <Button
-              onClick={handleApplyJob}
-              variant="contained"
-              color="primary"
-              sx={{
-                borderRadius: "44px",
-                py: 1,
-                display: "flex",
-                alignItems: "center",
-                gap: 1,
-                background: "linear-gradient(180deg, #50bcf6, #5a81fd)",
-                transition: "all 0.3s",
-                textTransform: "none",
-                fontSize: "16px",
-                position: "fixed",
-                bottom: 20,
-                left: "50%",
-                transform: "translateX(-50%)",
-                width: "90%",
-                "&:hover": {
-                  transform: "translateX(-50%) scale(1.08)",
-                },
-              }}
-            >
-              Apply For The Job
-              <FontAwesomeIcon
-                style={{ marginLeft: "6px" }}
-                icon={faArrowCircleRight}
-              />
-            </Button>
-          )}
-        </>
+        <></>
       ) : (
         <>
           <Box
@@ -655,9 +593,10 @@ const JobDescriptionResponse: React.FC<JobDescriptionResponseProps> = ({
               flexDirection: "column",
               justifyContent: "center",
               alignItems: "center",
+              mt: 2,
             }}
           >
-            <Typography align="center" gutterBottom>
+            <Typography align="center" gutterBottom mb={2}>
               Select Simulator Mode
             </Typography>
             <CustomToggleButtonGroup
@@ -680,15 +619,15 @@ const JobDescriptionResponse: React.FC<JobDescriptionResponseProps> = ({
             </CustomToggleButtonGroup>
           </Box>
 
-          <Box px={4} py={2} mt={2}>
+          <Box px={4} py={2} mt={4}>
             <Typography
               gutterBottom
               align="center"
               fontWeight="bold"
-              color="black"
               mb={2}
+              fontFamily={"montserrat-regular"}
             >
-              Select Interview Duration
+              What is your preferred duration of the interview?
             </Typography>
 
             <Tabs
@@ -696,19 +635,32 @@ const JobDescriptionResponse: React.FC<JobDescriptionResponseProps> = ({
               onChange={handleTabChange}
               centered
               sx={{
+                m: "auto",
+                fontFamily: "montserrat-regular",
+                background: "white",
+                width: "fit-content",
+                borderRadius: "32px",
+                p: 1,
+                minHeight: "0px",
+
                 "& .MuiTab-root": {
-                  // border: "1px solid #ccc",
+                  color: "black",
+                  background: "transparent",
                   borderRadius: "999px",
-                  mx: 1,
-                  minWidth: 80,
-                  backgroundColor: "#f5f5f5",
-                  color: "#555",
-                  fontWeight: 500,
-                  px: 4,
+                  marginRight: "8px",
+                  paddingX: "16px",
+                  minHeight: "0px",
+                  textTransform: "none",
+                  border: "1px solid #ffffff44",
+                  fontFamily: "montserrat-regular",
                 },
                 "& .Mui-selected": {
-                  backgroundColor: "#50bcf6",
+                  background: color.newbg,
                   color: "white !important",
+                },
+                "& .MuiButtonBase-root": {
+                  p: 0,
+                  py: 1,
                 },
                 "& .MuiTabs-indicator": {
                   backgroundColor: "transparent",
@@ -768,43 +720,32 @@ const JobDescriptionResponse: React.FC<JobDescriptionResponseProps> = ({
             </Box>
           )}
 
-          <Button
+          <BeyondResumeButton
             onClick={handleClick}
             variant="contained"
             disabled={!isTotalValid}
             color="primary"
             sx={{
-              borderRadius: "44px",
-              px: 4,
-              py: 1,
-              display: "flex",
-              alignItems: "center",
-              gap: 1,
               m: "auto",
-              mt: 3,
-              background: "linear-gradient(180deg, #50bcf6, #5a81fd)",
-              transition: "all 0.3s",
-              textTransform: "none",
-              fontSize: "16px",
-              "&:hover": {
-                transform: "scale(1.08)",
-              },
+              display: "flex",
+              my:4,
+              alignItems:'center'
             }}
           >
             {loading ? (
               <>
-                Analyzing <CircularProgress color="inherit" size={18} />
+                Analyzing <CircularProgress color="inherit" size={18} style={{marginLeft:'4px'}} />
               </>
             ) : (
               <>
                 Generate Interview Questions
-                <FontAwesomeIcon
+                {/* <FontAwesomeIcon
                   style={{ marginLeft: "6px" }}
                   icon={faArrowCircleRight}
-                />
+                /> */}
               </>
             )}
-          </Button>
+          </BeyondResumeButton>
         </>
       )}
 

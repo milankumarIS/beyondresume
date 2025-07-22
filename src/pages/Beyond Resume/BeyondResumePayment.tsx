@@ -162,9 +162,7 @@ const BeyondResumePayment = () => {
   return (
     <Box
       sx={{
-        color: "white",
-        background:
-          "linear-gradient(180deg,rgb(255, 255, 255),rgb(220, 220, 220))",
+  
         position: "relative",
         padding: "16px",
         minHeight: "100vh",
@@ -174,7 +172,6 @@ const BeyondResumePayment = () => {
         variant="h3"
         sx={{
           fontFamily: "Custom-Bold",
-          color: "black",
           width: "fit-content",
           p: 4,
           pb: 2,
@@ -192,7 +189,6 @@ const BeyondResumePayment = () => {
         maxWidth={"60%"}
         mx={"auto"}
         fontFamily="Montserrat-Regular"
-        color="black"
         textAlign="center"
       >
         Complete your purchase securely with Stripe — a trusted platform for
@@ -201,13 +197,10 @@ const BeyondResumePayment = () => {
 
       <Box
         sx={{
-          boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.46)",
-          background: "linear-gradient(145deg, #0d0d0d, #2D3436)",
+          // boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.46)",
           width: "fit-content",
-          p: 2,
           mx: "auto",
           borderRadius: "12px",
-          px: 4,
           color: "black",
         }}
       >

@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from "react";
 import { Typography, Box, Grid2 } from "@mui/material";
+import color from "../../../theme/color";
 
 const sectionData = [
   {
@@ -52,12 +53,12 @@ const BeyondResumeSteps = () => {
         variant="h3"
         sx={{
           fontFamily: "Custom-Bold",
-          color: "black",
           width: "fit-content",
           p: 2,
           borderRadius: "12px",
           m: "auto",
           mb: 4,
+
         }}
         fontWeight="bold"
       >
@@ -82,14 +83,15 @@ const BeyondResumeSteps = () => {
               mb: 8,
               p: 2,
               maxWidth: "90vw",
-              background: "linear-gradient(145deg, #0d0d0d, #2D3436)",
+
+              background: color.cardBg,
               borderRadius: isImageLeft
                 ? "0px 200px 200px 0px"
                 : "200px 0px 0px 200px",
               opacity: isVisible ? 1 : 0,
-              transform: isVisible
-                ? "translateX(0)"
-                : `translateX(${isImageLeft ? "-100px" : "100px"})`,
+              // transform: isVisible
+              //   ? "translateX(0)"
+              //   : `translateX(${isImageLeft ? "-100px" : "100px"})`,
               transition: "all 0.8s ease-out",
               ...(isImageLeft ? {} : { marginLeft: "auto" }),
             }}

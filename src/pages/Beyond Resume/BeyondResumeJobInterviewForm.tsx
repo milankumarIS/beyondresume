@@ -73,6 +73,7 @@ const BeyondResumeJobInterviewForm = () => {
   const [loading, setLoading] = useState(false);
   const [showModeModal, setShowModeModal] = useState(false);
   const [applicantId, setApplicantId] = useState<string | null>(null);
+  const [jobs, setJobs] = useState<any[]>([]);
 
   const [currentUser, setCurrentUser] = useState<any>();
   useEffect(() => {
@@ -103,7 +104,7 @@ const BeyondResumeJobInterviewForm = () => {
 
       const result: any = await searchDataFromTable("brJobs", { brJobId });
       const rawJobData = result?.data?.data || {};
-
+      setJobs(rawJobData);
       const excludedFields = [
         "createdBy",
         "createdAt",
@@ -138,8 +139,8 @@ const BeyondResumeJobInterviewForm = () => {
       const insertResult: any = await syncByTwoUniqueKeyData(
         "brJobApplicant",
         payload,
-        'createdBy',
-        'brJobId'
+        "createdBy",
+        "brJobId"
       );
       const brJobApplicantId = insertResult?.data?.data?.brJobApplicantId;
       setApplicantId(brJobApplicantId);
@@ -162,26 +163,28 @@ const BeyondResumeJobInterviewForm = () => {
 
   return (
     <>
-      <Container sx={{ minHeight: "100vh" }}>
-        <BlobAnimation />
+      <Container
+        sx={{ minHeight: "100vh", background: "transparent", color: "inherit" }}
+      >
+        {/* <BlobAnimation /> */}
 
         <Form
           onSubmit={handleSubmit(onSubmitHandler)}
-          style={{ display: "flex", flexDirection: "column" }}
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            background: "transparent",
+            color: "inherit",
+          }}
         >
           <Typography
-            variant="h5"
+            variant="h4"
             align="center"
             sx={{
               width: "fit-content",
               m: "auto",
               fontFamily: "Custom-Bold",
-              background: "linear-gradient(180deg, #50bcf6, #50bcf6)",
-              color: "white",
-              p: 2,
-              px: 4,
-              borderRadius: "44px",
-              boxShadow: "0px 4px 10px rgba(90, 128, 253, 0.49)",
+              color: "inherit",
             }}
           >
             Interview Form
@@ -219,14 +222,14 @@ const BeyondResumeJobInterviewForm = () => {
             watch={watch}
             required
           />
-          <FormTextField
+          {/* <FormTextField
             label="Previous Employer / Company Name"
             valueProp="previousCompany"
             errors={errors}
             register={register}
             withValidationClass={false}
             sx={commonFormTextFieldSx}
-          />
+          /> */}
 
           <FormTextField
             label="Years of Experience"
@@ -238,20 +241,20 @@ const BeyondResumeJobInterviewForm = () => {
             sx={commonFormTextFieldSx}
           />
 
-          <FormTextField
+          {/* <FormTextField
             label="LinkedIn Profile"
             valueProp="linkedIn"
             errors={errors}
             register={register}
             withValidationClass={false}
             sx={commonFormTextFieldSx}
-          />
+          /> */}
 
           <BeyondResumeButton
             type="submit"
             variant="contained"
             color="secondary"
-            sx={{ mt: 2, py: 1.5, fontSize: "1rem" }}
+            sx={{ mt: 2, py: 1.5, fontSize: "1rem", mx: 2 }}
           >
             {loading ? (
               <>
@@ -276,6 +279,7 @@ const BeyondResumeJobInterviewForm = () => {
       </Container>
 
       <InterviewModeModal
+        rawJobData={jobs}
         open={showModeModal}
         onSelectMode={handleModeSelect}
       />

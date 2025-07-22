@@ -5,7 +5,6 @@ import {
   faCube,
   faTruckPickup,
 } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 const icons = {
   bike: faBicycle,
@@ -121,296 +120,7 @@ const jobTypeArray = [
 
 const durationPeriodArray = ["SHORT", "MEDIUM", "LONG", "ADHOC"];
 
-const stateArray = [
-  "Andhra Pradesh",
-  "Arunachal Pradesh",
-  "Assam",
-  "Bihar",
-  "Chhattisgarh",
-  "Goa",
-  "Gujarat",
-  "Haryana",
-  "Himachal Pradesh",
-  "Jammu and Kashmir",
-  "Jharkhand",
-  "Karnataka",
-  "Kerala",
-  "Madhya Pradesh",
-  "Maharashtra",
-  "Manipur",
-  "Meghalaya",
-  "Mizoram",
-  "Nagaland",
-  "Odisha",
-  "Punjab",
-  "Rajasthan",
-  "Sikkim",
-  "Tamil Nadu",
-  "Telangana",
-  "Tripura",
-  "Uttarakhand",
-  "Uttar Pradesh",
-  "West Bengal",
-  "Andaman and Nicobar Islands",
-  "Chandigarh",
-  "Dadra and Nagar Haveli",
-  "Daman and Diu",
-  "Delhi",
-  "Lakshadweep",
-  "Puducherry",
-];
 
-const countryList = [
-  "Afghanistan",
-  "Albania",
-  "Algeria",
-  "American Samoa",
-  "Andorra",
-  "Angola",
-  "Anguilla",
-  "Antarctica",
-  "Antigua and Barbuda",
-  "Argentina",
-  "Armenia",
-  "Aruba",
-  "Australia",
-  "Austria",
-  "Azerbaijan",
-  "Bahamas (the)",
-  "Bahrain",
-  "Bangladesh",
-  "Barbados",
-  "Belarus",
-  "Belgium",
-  "Belize",
-  "Benin",
-  "Bermuda",
-  "Bhutan",
-  "Bolivia (Plurinational State of)",
-  "Bonaire, Sint Eustatius and Saba",
-  "Bosnia and Herzegovina",
-  "Botswana",
-  "Bouvet Island",
-  "Brazil",
-  "British Indian Ocean Territory (the)",
-  "Brunei Darussalam",
-  "Bulgaria",
-  "Burkina Faso",
-  "Burundi",
-  "Cabo Verde",
-  "Cambodia",
-  "Cameroon",
-  "Canada",
-  "Cayman Islands (the)",
-  "Central African Republic (the)",
-  "Chad",
-  "Chile",
-  "China",
-  "Christmas Island",
-  "Cocos (Keeling) Islands (the)",
-  "Colombia",
-  "Comoros (the)",
-  "Congo (the Democratic Republic of the)",
-  "Congo (the)",
-  "Cook Islands (the)",
-  "Costa Rica",
-  "Croatia",
-  "Cuba",
-  "Curaçao",
-  "Cyprus",
-  "Czechia",
-  "Côte d'Ivoire",
-  "Denmark",
-  "Djibouti",
-  "Dominica",
-  "Dominican Republic (the)",
-  "Ecuador",
-  "Egypt",
-  "El Salvador",
-  "Equatorial Guinea",
-  "Eritrea",
-  "Estonia",
-  "Eswatini",
-  "Ethiopia",
-  "Falkland Islands (the) [Malvinas]",
-  "Faroe Islands (the)",
-  "Fiji",
-  "Finland",
-  "France",
-  "French Guiana",
-  "French Polynesia",
-  "French Southern Territories (the)",
-  "Gabon",
-  "Gambia (the)",
-  "Georgia",
-  "Germany",
-  "Ghana",
-  "Gibraltar",
-  "Greece",
-  "Greenland",
-  "Grenada",
-  "Guadeloupe",
-  "Guam",
-  "Guatemala",
-  "Guernsey",
-  "Guinea",
-  "Guinea-Bissau",
-  "Guyana",
-  "Haiti",
-  "Heard Island and McDonald Islands",
-  "Holy See (the)",
-  "Honduras",
-  "Hong Kong",
-  "Hungary",
-  "Iceland",
-  "India",
-  "Indonesia",
-  "Iran (Islamic Republic of)",
-  "Iraq",
-  "Ireland",
-  "Isle of Man",
-  "Israel",
-  "Italy",
-  "Jamaica",
-  "Japan",
-  "Jersey",
-  "Jordan",
-  "Kazakhstan",
-  "Kenya",
-  "Kiribati",
-  "Korea (the Democratic People's Republic of)",
-  "Korea (the Republic of)",
-  "Kuwait",
-  "Kyrgyzstan",
-  "Lao People's Democratic Republic (the)",
-  "Latvia",
-  "Lebanon",
-  "Lesotho",
-  "Liberia",
-  "Libya",
-  "Liechtenstein",
-  "Lithuania",
-  "Luxembourg",
-  "Macao",
-  "Madagascar",
-  "Malawi",
-  "Malaysia",
-  "Maldives",
-  "Mali",
-  "Malta",
-  "Marshall Islands (the)",
-  "Martinique",
-  "Mauritania",
-  "Mauritius",
-  "Mayotte",
-  "Mexico",
-  "Micronesia (Federated States of)",
-  "Moldova (the Republic of)",
-  "Monaco",
-  "Mongolia",
-  "Montenegro",
-  "Montserrat",
-  "Morocco",
-  "Mozambique",
-  "Myanmar",
-  "Namibia",
-  "Nauru",
-  "Nepal",
-  "Netherlands (the)",
-  "New Caledonia",
-  "New Zealand",
-  "Nicaragua",
-  "Niger (the)",
-  "Nigeria",
-  "Niue",
-  "Norfolk Island",
-  "Northern Mariana Islands (the)",
-  "Norway",
-  "Oman",
-  "Pakistan",
-  "Palau",
-  "Palestine, State of",
-  "Panama",
-  "Papua New Guinea",
-  "Paraguay",
-  "Peru",
-  "Philippines (the)",
-  "Pitcairn",
-  "Poland",
-  "Portugal",
-  "Puerto Rico",
-  "Qatar",
-  "Republic of North Macedonia",
-  "Romania",
-  "Russian Federation (the)",
-  "Rwanda",
-  "Réunion",
-  "Saint Barthélemy",
-  "Saint Helena, Ascension and Tristan da Cunha",
-  "Saint Kitts and Nevis",
-  "Saint Lucia",
-  "Saint Martin (French part)",
-  "Saint Pierre and Miquelon",
-  "Saint Vincent and the Grenadines",
-  "Samoa",
-  "San Marino",
-  "Sao Tome and Principe",
-  "Saudi Arabia",
-  "Senegal",
-  "Serbia",
-  "Seychelles",
-  "Sierra Leone",
-  "Singapore",
-  "Sint Maarten (Dutch part)",
-  "Slovakia",
-  "Slovenia",
-  "Solomon Islands",
-  "Somalia",
-  "South Africa",
-  "South Georgia and the South Sandwich Islands",
-  "South Sudan",
-  "Spain",
-  "Sri Lanka",
-  "Sudan (the)",
-  "Suriname",
-  "Svalbard and Jan Mayen",
-  "Sweden",
-  "Switzerland",
-  "Syrian Arab Republic",
-  "Taiwan",
-  "Tajikistan",
-  "Tanzania, United Republic of",
-  "Thailand",
-  "Timor-Leste",
-  "Togo",
-  "Tokelau",
-  "Tonga",
-  "Trinidad and Tobago",
-  "Tunisia",
-  "Turkey",
-  "Turkmenistan",
-  "Turks and Caicos Islands (the)",
-  "Tuvalu",
-  "Uganda",
-  "Ukraine",
-  "United Arab Emirates (the)",
-  "United Kingdom of Great Britain and Northern Ireland (the)",
-  "United States Minor Outlying Islands (the)",
-  "United States of America (the)",
-  "Uruguay",
-  "Uzbekistan",
-  "Vanuatu",
-  "Venezuela (Bolivarian Republic of)",
-  "Viet Nam",
-  "Virgin Islands (British)",
-  "Virgin Islands (U.S.)",
-  "Wallis and Futuna",
-  "Western Sahara",
-  "Yemen",
-  "Zambia",
-  "Zimbabwe",
-  "Åland Islands",
-];
 
 const jobType = [
   "Full-Time",
@@ -425,40 +135,7 @@ const jobShift = ["Day", "Night", "Flexible"];
 
 const payroll = ["Company Payroll", "3rd Party Payroll", "No Payroll"];
 
-const experienceRequired = [
-  "0",
-  "1",
-  "2",
-  "3",
-  "4",
-  "5",
-  "6",
-  "7",
-  "8",
-  "9",
-  "10",
-  "11",
-  "12",
-  "13",
-  "14",
-  "15",
-  "16",
-  "17",
-  "18",
-  "19",
-  "20",
-  "21",
-  "22",
-  "23",
-  "24",
-  "25",
-  "26",
-  "27",
-  "28",
-  "29",
-  "30",
-  "30+",
-];
+
 
 const addressType = ["Permanent", "Temporary"];
 
@@ -545,58 +222,7 @@ const purposeofUse = ["Passenger Transport", "Goods Transport"];
 
 const puc = ["Yes", "No"];
 
-const vehicleOptions = [
-  {
-    code: "MCWOG",
-    class: "Motorcycle Without Gear",
-    icon: <FontAwesomeIcon icon={icons.bike} />,
-  },
-  {
-    code: "MCWG",
-    class: "Motorcycle With Gear",
-    icon: <FontAwesomeIcon icon={icons.bike} />,
-  },
-  {
-    code: "LMV-NT",
-    class: "Light Motor Vehicle (Non-Transport)",
-    icon: <FontAwesomeIcon icon={icons.car} />,
-  },
-  {
-    code: "LMV-TR",
-    class: "Light Motor Vehicle (Transport)",
-    icon: <FontAwesomeIcon icon={icons.car} />,
-  },
-  {
-    code: "HMV",
-    class: "Heavy Motor Vehicle",
-    icon: <FontAwesomeIcon icon={icons.shipping} />,
-  },
-  {
-    code: "HPMV",
-    class: "Heavy Passenger Motor Vehicle",
-    icon: <FontAwesomeIcon icon={icons.bus} />,
-  },
-  {
-    code: "HTV",
-    class: "Heavy Transport Vehicle",
-    icon: <FontAwesomeIcon icon={icons.shipping} />,
-  },
-  {
-    code: "MGV",
-    class: "Medium Goods Vehicle",
-    icon: <FontAwesomeIcon icon={icons.shipping} />,
-  },
-  {
-    code: "MPV",
-    class: "Medium Passenger Vehicle",
-    icon: <FontAwesomeIcon icon={icons.bus} />,
-  },
-  {
-    code: "ERickshaw",
-    class: "Electric Rickshaw",
-    icon: <FontAwesomeIcon icon={icons.rickshaw} />,
-  },
-];
+
 
 const buttons = [
   { label: "Driving Licence", url: "/mylicense" },
@@ -619,332 +245,9 @@ const buttons3 = [
   { label: "Lab Reports", url: "/labReports" },
 ];
 
-const doctorSpecialities = [
-  { value: "dentist", label: "Dentist", icon: "tooth-solid" },
-  { value: "neurologist", label: "Neurologist", icon: "brain-solid" },
-  { value: "orthopedic", label: "Orthopedic", icon: "bone-solid" },
-  { value: "surgeon", label: "Surgeon", icon: "user-doctor-solid" },
-  { value: "cardiologist", label: "Cardiologist", icon: "heart-pulse-solid" },
-  { value: "pulmonologist", label: "Pulmonologist", icon: "lungs-solid" },
-  { value: "pharmacist", label: "Pharmacist", icon: "capsules-solid" },
-  {
-    value: "general-physician",
-    label: "General Physician",
-    icon: "stethoscope-solid",
-  },
-  { value: "radiologist", label: "Radiologist", icon: "x-ray-solid" },
-  { value: "dermatologist", label: "Dermatologist", icon: "bandage-solid" },
-  {
-    value: "ophthalmologist",
-    label: "Ophthalmologist (Eye Doctor)",
-    icon: "eye-solid",
-  },
-  {
-    value: "ent-specialist",
-    label: "ENT Specialist",
-    icon: "head-side-cough-solid",
-  },
-  { value: "pediatrician", label: "Pediatrician", icon: "baby-solid" },
-  { value: "oncologist", label: "Oncologist", icon: "ribbon-solid" },
-  {
-    value: "gastroenterologist",
-    label: "Gastroenterologist",
-    icon: "bacterium-solid",
-  },
-  { value: "endocrinologist", label: "Endocrinologist", icon: "vial-solid" },
-  { value: "psychiatrist", label: "Psychiatrist", icon: "user-injured-solid" },
-  { value: "gynecologist", label: "Gynecologist", icon: "person-dress-solid" },
-  {
-    value: "nephrologist",
-    label: "Nephrologist (Kidney Specialist)",
-    icon: "droplet-solid",
-  },
-  { value: "hematologist", label: "Hematologist", icon: "microscope-solid" },
-  { value: "urologist", label: "Urologist", icon: "person-solid" },
-  {
-    value: "rheumatologist",
-    label: "Rheumatologist",
-    icon: "hand-holding-medical-solid",
-  },
-  {
-    value: "allergist-immunologist",
-    label: "Allergist/ Immunologist",
-    icon: "hand-dots-solid",
-  },
-  {
-    value: "emergency-medicine",
-    label: "Emergency Medicine",
-    icon: "truck-medical-solid",
-  },
-  {
-    value: "infectious-disease-specialist",
-    label: "Infectious Disease Specialist",
-    icon: "viruses-solid",
-  },
-  {
-    value: "anesthesiologist",
-    label: "Anesthesiologist",
-    icon: "bed-pulse-solid",
-  },
-  { value: "pathologist", label: "Pathologist", icon: "dna-solid" },
-  {
-    value: "chiropractor",
-    label: "Chiropractor",
-    icon: "handshake-angle-solid",
-  },
-  {
-    value: "dietitian-nutritionist",
-    label: "Dietitian/ Nutritionist",
-    icon: "apple-whole-solid",
-  },
-  {
-    value: "occupational-therapist",
-    label: "Occupational Therapist",
-    icon: "people-arrows-solid",
-  },
-  { value: "podiatrist", label: "Podiatrist", icon: "shoe-prints-solid" },
-  {
-    value: "speech-therapist",
-    label: "Speech Therapist",
-    icon: "comments-solid",
-  },
-  {
-    value: "physical-therapist",
-    label: "Physical Therapist",
-    icon: "person-running-solid",
-  },
-  {
-    value: "plastic-surgeon",
-    label: "Plastic Surgeon",
-    icon: "paintbrush-solid",
-  },
-  {
-    value: "neonatologist",
-    label: "Neonatologist",
-    icon: "baby-carriage-solid",
-  },
-];
 
-const nurseSpecialties = [
-  {
-    value: "geriatric-nurse",
-    label: "Geriatric Nurse",
-    icon: "person-walking-with-cane-solid",
-  },
-  {
-    value: "hospice-palliative-care-nurse",
-    label: "Hospice/Palliative Care Nurse",
-    icon: "hands-praying-solid",
-  },
-  {
-    value: "home-health-nurse",
-    label: "Home Health Nurse",
-    icon: "house-medical-solid",
-  },
-  {
-    value: "community-health-nurse",
-    label: "Community Health Nurse",
-    icon: "users-solid",
-  },
-  { value: "cardiac-nurse", label: "Cardiac Nurse", icon: "heart-pulse-solid" },
-  { value: "dialysis-nurse", label: "Dialysis Nurse", icon: "droplet-solid" },
-  {
-    value: "rehabilitation-nurse",
-    label: "Rehabilitation Nurse",
-    icon: "person-running-solid",
-  },
-  { value: "oncology-nurse", label: "Oncology Nurse", icon: "ribbon-solid" },
-  {
-    value: "psychiatric-nurse",
-    label: "Psychiatric Nurse",
-    icon: "brain-solid",
-  },
-  {
-    value: "public-health-nurse",
-    label: "Public Health Nurse",
-    icon: "globe-solid",
-  },
-  { value: "iv-therapy-nurse", label: "IV Therapy Nurse", icon: "vial-solid" },
-  {
-    value: "wound-care-nurse",
-    label: "Wound Care Nurse",
-    icon: "bandage-solid",
-  },
-  {
-    value: "occupational-health-nurse",
-    label: "Occupational Health Nurse",
-    icon: "briefcase-medical-solid",
-  },
-  {
-    value: "pain-management-nurse",
-    label: "Pain Management Nurse",
-    icon: "syringe-solid",
-  },
-  {
-    value: "telehealth-nurse",
-    label: "Telehealth Nurse",
-    icon: "phone-flip-solid",
-  },
-  {
-    value: "neonatal-nurse",
-    label: "Neonatal Nurse",
-    icon: "baby-carriage-solid",
-  },
-];
 
-const dietitianSpecialties = [
-  {
-    value: "clinical-dietitian",
-    label: "Clinical Dietitian",
-    icon: "hospital-solid",
-  },
-  {
-    value: "pediatric-dietitian",
-    label: "Pediatric Dietitian",
-    icon: "child-solid",
-  },
-  {
-    value: "sports-dietitian",
-    label: "Sports Dietitian",
-    icon: "dumbbell-solid",
-  },
-  {
-    value: "renal-dietitian",
-    label: "Renal Dietitian",
-    icon: "clover-solid",
-  },
-  {
-    value: "oncology-dietitian",
-    label: "Oncology Dietitian",
-    icon: "ribbon-solid",
-  },
-  {
-    value: "geriatric-dietitian",
-    label: "Geriatric Dietitian",
-    icon: "person-walking-with-cane-solid",
-  },
-  {
-    value: "community-dietitian",
-    label: "Community Dietitian",
-    icon: "users-solid",
-  },
-  {
-    value: "public-health-dietitian",
-    label: "Public Health Dietitian",
-    icon: "globe-solid",
-  },
-  {
-    value: "weight-management-dietitian",
-    label: "Weight Management Dietitian",
-    icon: "scale-balanced-solid",
-  },
-  {
-    value: "diabetes-educator-dietitian",
-    label: "Diabetes Educator Dietitian",
-    icon: "droplet-solid",
-  },
-  {
-    value: "food-service-dietitian",
-    label: "Food Service Dietitian",
-    icon: "utensils-solid",
-  },
-  {
-    value: "integrative-and-functional-dietitian",
-    label: "Integrative and Functional Dietitian",
-    icon: "leaf-solid",
-  },
-  {
-    value: "research-dietitian",
-    label: "Research Dietitian",
-    icon: "flask-solid",
-  },
-  {
-    value: "cardiovascular-dietitian",
-    label: "Cardiovascular Dietitian",
-    icon: "heart-pulse-solid",
-  },
-  {
-    value: "telehealth-dietitian",
-    label: "Telehealth Dietitian",
-    icon: "phone-flip-solid",
-  },
-];
 
-const labTestData = [
-  {
-    value: "complete-blood-count-cbc",
-    label: "Complete Blood Count (CBC)",
-    icon: "vials-solid",
-  },
-  { value: "lipid-panel", label: "Lipid Panel", icon: "heart-pulse-solid" },
-  {
-    value: "basic-metabolic-panel-bmp",
-    label: "Basic Metabolic Panel (BMP)",
-    icon: "calculator-solid",
-  },
-  {
-    value: "liver-function-test-lft",
-    label: "Liver Function Test (LFT)",
-    icon: "liver",
-  },
-  {
-    value: "thyroid-function-test",
-    label: "Thyroid Function Test",
-    icon: "shield-solid",
-  },
-  { value: "urinalysis", label: "Urinalysis", icon: "flask-solid" },
-  {
-    value: "coagulation-panel",
-    label: "Coagulation Panel",
-    icon: "droplet-solid",
-  },
-  { value: "covid-19-test", label: "COVID-19 Test", icon: "viruses-solid" },
-  { value: "allergy-test", label: "Allergy Test", icon: "bandage-solid" },
-  {
-    value: "blood-glucose-test",
-    label: "Blood Glucose Test",
-    icon: "syringe-solid",
-  },
-  {
-    value: "electrolyte-panel",
-    label: "Electrolyte Panel",
-    icon: "bolt-solid",
-  },
-  { value: "hiv-test", label: "HIV Test", icon: "ribbon-solid" },
-  { value: "pregnancy-test", label: "Pregnancy Test", icon: "baby-solid" },
-  { value: "vitamin-d-test", label: "Vitamin D Test", icon: "sun-solid" },
-  { value: "cholesterol-test", label: "Cholesterol Test", icon: "egg-solid" },
-  {
-    value: "hemoglobin-a1c-test",
-    label: "Hemoglobin A1C Test",
-    icon: "chart-bar-solid",
-  },
-];
-
-const pharmacistSpecialtyData = [
-  {
-    value: "medication-therapy-management",
-    label: "Medication Therapy Management (MTM)",
-  },
-  { value: "immunization-services", label: "Immunization Services" },
-  { value: "pharmacokinetics", label: "Pharmacokinetics" },
-  { value: "compounding-pharmacy", label: "Compounding Pharmacy" },
-  { value: "clinical-trial-management", label: "Clinical Trial Management" },
-  { value: "drug-interaction-screening", label: "Drug Interaction Screening" },
-  { value: "patient-counseling", label: "Patient Counseling" },
-  { value: "pain-management", label: "Pain Management" },
-  { value: "oncology-pharmacy", label: "Oncology Pharmacy" },
-  {
-    value: "infectious-disease-pharmacy",
-    label: "Infectious Disease Pharmacy",
-  },
-  { value: "psychiatric-pharmacy", label: "Psychiatric Pharmacy" },
-  { value: "cardiovascular-pharmacy", label: "Cardiovascular Pharmacy" },
-  { value: "pediatric-pharmacy", label: "Pediatric Pharmacy" },
-  { value: "geriatric-pharmacy", label: "Geriatric Pharmacy" },
-  { value: "diabetes-management", label: "Diabetes Management" },
-  { value: "anticoagulation-management", label: "Anticoagulation Management" },
-];
 
 const units = ["Piece", "Plate", "Kg", "Gram", "Litre", "Ml", "Dozen"];
 const productDisplayType = ["VEG", "NON-VEG"];
@@ -988,40 +291,6 @@ const vehicleBodies = [
 ];
 
 
-const returnReason = [
-  "Item damaged during delivery",
-  "Received wrong product",
-  "Product not as described",
-  "Defective or malfunctioning item",
-  "Missing parts or accessories",
-  "Change of mind",
-  "Better price found elsewhere",
-  "Size or fit issue",
-  "Late delivery",
-  "Duplicate order",
-  "Received an empty package",
-  "Product quality not satisfactory",
-  "Unwanted gift",
-  "Incorrect item quantity",
-];
-
-const cancellationReasons = [
-  "Found a better deal elsewhere",
-  "Delay in delivery time",
-  "No longer needed the product",
-  "Ordered by mistake",
-  "Changed mind about the purchase",
-  "Issues with payment or transaction",
-  "Incorrect shipping address provided",
-  "Product added to the wrong order",
-  "Duplicate order placed",
-  "Item out of stock after ordering",
-  "Requested customization not available",
-  "Customer service experience was unsatisfactory",
-  "Decided to buy from a local store",
-  "Technical issues with the website during order",
-  "Concern about product quality after ordering",
-];
 
 const orderFilter = [
   {
@@ -1079,176 +348,7 @@ const appointmentTypes = [
   "By Doctor",
 ];
 
-const contactConnectType = ["FAMILY", "SOCIETY"];
-const familyRelationships = [
-  "Father",
-  "Mother",
-  "Brother",
-  "Sister",
-  "Son",
-  "Daughter",
-  "Grandfather",
-  "Grandmother",
-  "Uncle",
-  "Aunty",
-  "Cousin",
-  "Nephew",
-  "Niece",
-  "Husband",
-  "Wife",
-  "Friend",
-  "Partner",
-  "Colleague",
-  "Neighbor",
-  "Guardian",
-  "Mentor",
-  "Teacher",
-  "Student",
-  "Sibling",
-];
 
-const societyRole = [
-  "Secretary",
-  "Treasurer",
-  "Resident",
-  "Owner",
-  "Caretaker",
-  "Watchman",
-  "Gardener",
-  "Electrician",
-  "Plumber",
-  "Housekeeper",
-  "Maintenance Staff",
-  "Security Guard",
-  "Visitor",
-  "Vendor",
-  "Delivery Personnel",
-  "Driver",
-  "Cleaner",
-  "Janitor",
-  "Committee Member",
-  "Manager",
-  "Supervisor",
-];
-
-const roles = ["STUDENT", "TEACHER", "PARENT", "INSTRUCTOR", "ADMIN"];
-
-const difficultyLevel = ["Easy", "Medium", "Hard"];
-const noOfQos = ["1", " 2", " 5", " 10", " 20", " 30", " 50"];
-
-const time = [
-  "Daily 1-2 hrs",
-  "0-2 hrs / week",
-  "3-5 hrs / week",
-  "5+ hrs / week",
-  "I haven't decided yet",
-];
-
-const courseCategory = [
-  "Web Development",
-  "Data Science",
-  "Graphic Design",
-  "Digital Marketing",
-  "AI and Machine Learning",
-];
-
-const languages = [
-  { value: "English", label: "English" },
-  { value: "Spanish", label: "Spanish" },
-  { value: "French", label: "French" },
-];
-
-const DEcategories = [
-  { value: "IT & Software", label: "IT & Software" },
-  { value: "Finance", label: "Finance" },
-  { value: "Design", label: "Design" },
-  { value: "Development", label: "Development" },
-  { value: "Business", label: "Business" },
-  { value: "Marketing", label: "Marketing" },
-  { value: "Personal Development", label: "Personal Development" },
-  { value: "Teaching & Academics", label: "Teaching & Academics" },
-];
-
-const skillLevels = [
-  { value: "beginner", label: "Beginner" },
-  { value: "intermediate", label: "Intermediate" },
-  { value: "advanced", label: "Advanced" },
-];
-
-const amounts = [
-  { value: "1000", label: "1000" },
-  { value: "2000", label: "2000" },
-  { value: "3000", label: "3000" },
-];
-
-const currencies = [
-  { value: "INR", label: "INR" },
-  { value: "USD", label: "USD" },
-  { value: "AUD", label: "AUD" },
-];
-
-const courseRatings = [
-  { value: "All Ratings", label: "All Ratings" },
-  { value: "5 Stars", label: "Five Stars" },
-  { value: "4 Stars", label: "Four Stars" },
-  { value: "3 Stars", label: "Three Stars" },
-  { value: "2 Stars", label: "Two Stars" },
-  { value: "1 Star", label: "One Star" },
-];
-
-const QnsSortBy = ["Sort by most recent", "Sort by recommended"];
-
-const QnsTypeSortBy = [
-  "MCQ",
-  "Yes/No",
-  "Short Questions",
-  "Fill in the blanks",
-];
-
-const courses = ["Python", "Java", "SQL"];
-
-const QnsFilterBy = ["Current Lecture", "All Lectures"];
-
-const cameraType = [
-  "Webcam",
-  "Smartphone Camera",
-  "Action Camera",
-  "Mirrorless",
-  "DSLR",
-  "I don't know",
-];
-
-const microphoneType = [
-  "In-build Microphone",
-  "Dynamic Microphone",
-  "USB Microphone",
-  "Shotgun Microphone",
-  "I don't know",
-];
-
-const operatingSystem = [
-  "Windows",
-  "macOS",
-  "Linux",
-  "Android",
-  "iOS",
-  "I don't know",
-];
-
-const filmingOptions = [
-  {
-    label: "I'm filming my computer/laptop screen",
-    value: "laptopScreen",
-  },
-  {
-    label: "I'm filming myself or another person",
-    value: "myself",
-  },
-  {
-    label: "I'm filming an activity (e.g. chemistry practical)",
-    value: "activity",
-  },
-];
 
 const levels = [
   "Novice Explorer",
@@ -1699,77 +799,79 @@ const experienceLevels = ["Fresher", "Junior", "Mid-Level", "Lead", "Director"];
     "Leadership & Initiative",
     "Cultural Fit & Integrity",
   ];
+
+  
+  const JobSeekerScriptLines = [
+    "Hey future superstar! I’m your Career Coach from Beyond Resume. Forget LinkedIn’s resume spam—we help you land roles by showing your skills, not just stating them. Ready for a job hunt that actually works? Let’s go!",
+    "Say, ‘Find me remote marketing jobs,’ and boom! Our AI scans thousands of openings instantly. No more typing filters. See a match? Click ‘Apply’—and here’s where magic happens",
+    "Option 1: Traditional written assessment.",
+    "Option 2 (our favorite!): An AI-powered voice interview. Chat naturally for an hour—no cameras, no nerves. Our AI adapts to your answers, making it feel like practice with a mentor!",
+    "Post-interview, get instant feedback: ‘Your Python skills shined, but practice cloud concepts—here’s a free module!’ Plus, use our ‘Fitment Analyzer’ to test your match for any job. Low fit? We’ll suggest skills to learn",
+    "Try preloaded tests for top companies (yes, Google’s included!). Or build custom practice drills—like ‘5 data questions + 2 leadership scenarios.’ Nail weaknesses before the real deal!",
+    "No more ‘apply and pray.’ We turn interviews into growth moments. Ready to stand out? Click ‘Find Jobs’ and use your voice—or test your fitment for that dream role right now. Your next career leap starts today!",
+  ];
+
+
+  
+  const TalentPartnerScriptLines = [
+    "Welcome, visionary! I’m your AI Talent Guide from Beyond Resume. Tired of sifting through endless resumes on LinkedIn or Naukri? Let me show you how we revolutionize hiring—saving you time while finding perfect-fit candidates.",
+    "Imagine describing a role in plain English—say, ‘Need a data scientist with Python and leadership skills’—and poof! Our AI crafts a full job description and tailored interview questions. Or upload your own. Either way, your job goes live in 30 seconds. No more template headaches!",
+    "Here’s the game-changer: Candidates choose how they’re assessed. Traditional hour-long written tests? Or an interactive AI voice interview that feels like a live chat? You get the same rich insights either way. Watch as candidates solve real problems—not just polish resumes.",
+    "See every applicant at a glance. Filter by ‘shortlisted,’ ‘rejected,’ or ‘needs review.’ Love a candidate? Shortlist them instantly. Best part? Grab a cumulative report—one PDF with every applicant’s skills, scores, and interview highlights. No more juggling spreadsheets!",
+    "Picture this: 70% less screening time, 50% deeper candidate insights, and zero ‘resume fluff.’ Our AI even flags hidden gems you might miss. Ready to hire smarter, not harder? Click ‘Post a Job’ now—or explore your dashboard. Let’s build your dream team together!",
+  ];
 export {
   addressType,
-  amounts,
+
   appointmentTypes,
   BrandsList,
   buttons,
   buttons1,
   buttons2,
   buttons3,
-  cameraType,
-  cancellationReasons,
+
   categories,
   categoryArray,
   compCategory,
   compSubject,
-  contactConnectType,
+
   contactStatusType,
-  countryList,
-  courseCategory,
-  courseRatings,
-  courses,
+
   criticalityArray,
-  currencies,
-  DEcategories,
-  dietitianSpecialties,
-  difficultyLevel,
-  doctorSpecialities,
-  durationPeriodArray, evaluationCategories, experienceLevels, experienceRequired,
-  familyRelationships,
-  filmingOptions,
+
+  durationPeriodArray, evaluationCategories, experienceLevels,
+
   foodType,
   fuels,
   genderArray, genderArray1, healthEntityType, jobFunctions,
   jobMode, jobShift, jobType,
   jobTypeArray,
-  labTestData,
-  languages,
+
   levels,
-  microphoneType,
-  noOfQos,
-  nurseSpecialties,
-  operatingSystem,
+
   orderFilter, payroll, permitType,
-  pharmacistSpecialtyData,
   platformFee, pricingPlans, priorityArray,
   productDisplayType,
   puc,
   purposeofUse,
-  QnsFilterBy,
-  QnsSortBy,
-  QnsTypeSortBy,
+
   relations,
-  returnReason,
-  roles,
   shippingFee,
-  skillLevels,
-  societyRole,
-  stateArray,
+
   storeType,
   strokes,
   subCategoryArray,
-  time,
   units,
   userDeleteType,
   userSecurityType,
   userTypeArray,
   vehicleBodies,
   vehicleCategories,
-  vehicleOptions,
   vehicleType,
   weekDays,
-  workTypeArray
+  workTypeArray,
+
+  JobSeekerScriptLines,
+  TalentPartnerScriptLines
 };
 

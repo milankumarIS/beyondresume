@@ -9,6 +9,8 @@ import React, { useState } from "react";
 import { useHistory, useLocation } from "react-router";
 import { useSnackbar } from "../../components/shared/SnackbarProvider";
 import { updateByIdDataInTable } from "../../services/services";
+import color from "../../theme/color";
+import { BeyondResumeButton } from "../../components/util/CommonStyle";
 
 interface GeneratedAiQnaResponseProps {
   response: string;
@@ -24,8 +26,7 @@ const GeneratedAiQnaResponse: React.FC<GeneratedAiQnaResponseProps> = ({
   const location = useLocation();
   const [hasParseError, setHasParseError] = useState(false);
 
-  const isJobPage = location.pathname.startsWith("/beyond-resume-jobdetails/");
-  // console.log(status);
+  const isJobPage = location.pathname.startsWith("/beyond-resume-myjobs");
 
   const processedResponse = response
     .replace(/\*\*(.*?)\*\*/g, "")
@@ -79,53 +80,36 @@ const GeneratedAiQnaResponse: React.FC<GeneratedAiQnaResponseProps> = ({
     }
   };
 
-  const handleClick = async () => {
-    try {
-      updateByIdDataInTable(
-        "brJobs",
-        jobId,
-        {
-          brJobStatus: "ACTIVE",
-        },
-        "brJobId"
-      )
-        .then((result: any) => {
-          openSnackBar(result?.data)?.msg;
-        })
-        .catch((error) => {
-          openSnackBar(error?.response?.data?.msg);
-        });
-    } catch (error) {
-      console.error("Error generating interview questions:", error);
-    } finally {
-      window.location.href = "/beyond-resume-myjobs";
-    }
-  };
+const handleClick = async () => {
+  try {
+    const result = await updateByIdDataInTable(
+      "brJobs",
+      jobId,
+      { brJobStatus: "ACTIVE" },
+      "brJobId"
+    );
+    console.log(jobId);
+    console.log(result);
+    
+    // Only redirect after success
+    window.location.href = "/beyond-resume-myjobs";
+  } catch (error: any) {
+    console.error("Error updating job status:", error);
+    openSnackBar(error?.response?.data?.msg || "An error occurred");
+  }
+};
+
   return (
     <Box m={4} id="questionSection">
-      <Typography
-        sx={{
-          background: "linear-gradient(180deg, #50bcf6, #5a81fd)",
-          width: "fit-content",
-          color: "white",
-          p: 2,
-          mb: 4,
-          borderRadius: "12px",
-          boxShadow: "0px 4px 10px rgba(90, 128, 253, 0.49)",
-        }}
-        variant="h6"
-      >
-        Generated AI Question Answer:
+      <Typography mb={2} variant="h5">
+        AI Generated Interview Questions:
       </Typography>
 
       <Box
-        p={3}
         pt={2}
         sx={{
-          backgroundColor: "#f5f5f5",
           borderRadius: "12px",
-          boxShadow: "0px 0px 20px rgba(0, 0, 0, 0.16)",
-          color: "black",
+          // boxShadow: "0px 0px 20px rgba(0, 0, 0, 0.16)",
           position: "relative",
         }}
       >
@@ -145,7 +129,7 @@ const GeneratedAiQnaResponse: React.FC<GeneratedAiQnaResponseProps> = ({
               sx={{
                 color: "white",
                 textTransform: "none",
-                background: "linear-gradient(180deg, #50bcf6, #5a81fd)",
+                background: color.activeButtonBg,
                 borderRadius: "44px",
               }}
             >
@@ -185,35 +169,18 @@ const GeneratedAiQnaResponse: React.FC<GeneratedAiQnaResponseProps> = ({
 
       {(!isJobPage || (isJobPage && status === "INPROGRESS")) &&
         !hasParseError && (
-          <Button
+          <BeyondResumeButton
             onClick={handleClick}
             variant="contained"
             color="primary"
-            sx={{
-              borderRadius: "44px",
-              px: 4,
-              py: 1,
-              mt: 3,
-              mx: 2,
-              display: "flex",
-              alignItems: "center",
-              gap: 1,
-              ml: "auto",
-              background: "linear-gradient(180deg, #50bcf6, #5a81fd)",
-              transition: "all 0.3s",
-              textTransform: "none",
-              fontSize: "16px",
-              "&:hover": {
-                transform: "scale(1.08)",
-              },
-            }}
+            sx={{ display: "block", m: "auto" }}
           >
             Post Job
-            <FontAwesomeIcon
+            {/* <FontAwesomeIcon
               style={{ marginLeft: "6px" }}
               icon={faArrowCircleRight}
-            />
-          </Button>
+            /> */}
+          </BeyondResumeButton>
         )}
     </Box>
   );
@@ -258,18 +225,18 @@ const HtmlParserExample = ({
 
     if (jsonString) {
       parsedData = JSON.parse(jsonString);
-      setErrorStatus(false); 
+      setErrorStatus(false);
     } else {
       setErrorStatus(true);
     }
   } catch (err) {
     console.error("Failed to parse JSON", err);
-    setErrorStatus(true); 
+    setErrorStatus(true);
   }
 
   return (
     <div>
-      <Typography my={1}>Interview Questions:</Typography>
+      {/* <Typography my={1}>Interview Questions:</Typography> */}
       {parsedData ? (
         parsedData.categories.map((category, i) => (
           <div key={i}>

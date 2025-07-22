@@ -14,11 +14,7 @@ import {
   syncDataInTable,
 } from "../../services/services";
 import color from "../../theme/color";
-import {
-  getCountryCode,
-  getDeviceIp,
-  getRandomNumber,
-} from "../util/CommonFunctions";
+
 
 const SSORedirectHandler = () => {
   const location = useLocation();
@@ -26,14 +22,16 @@ const SSORedirectHandler = () => {
 
   const [loading, setLoading] = useState(true);
   const [info, setInfo] = useState<any | null>(null);
-  const [ip, setIp] = useState<any | null>(null);
+  const [ip, 
+    setIp] = useState<any | null>(null);
   const [countryCode, setCountryCode] = useState<string | null>(null);
   const queryParams = new URLSearchParams(location.search);
-  // const token = queryParams.get("token") || "";
-  const token =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyTmFtZSI6IkNBTjE4QTAwMTE1IiwidXNlckVtYWlsIjoiaml0aGluLmtrQGhvdG1haWwuY29tIiwicGFzc3dvcmQiOiJUaGVlcmFtQDM2MCIsIkZpcnN0TmFtZSI6IkppdGhpbiIsIk1pZGRsZU5hbWUiOiIiLCJMYXN0TmFtZSI6IktLIiwidXNlclR5cGUiOiJJbmRpdmlkdWFsIiwiaXNQcm9maWxlQ3JlYXRlZCI6ZmFsc2UsImV4cCI6MTcyNTQ3ODYwMCwiaWF0IjoxNzUxODY3Mjc1fQ.FcqiKMCdyEyZUJDur4haE9ADyWljR7jeBDvx4AuF9f8";
+  const token = queryParams.get("token") || "";
+  // const token =
+  //   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyTmFtZSI6IkNBTjE4QTAwMTE1IiwidXNlckVtYWlsIjoiaml0aGluLmtrQGhvdG1haWwuY29tIiwicGFzc3dvcmQiOiJUaGVlcmFtQDM2MCIsIkZpcnN0TmFtZSI6IkppdGhpbiIsIk1pZGRsZU5hbWUiOiIiLCJMYXN0TmFtZSI6IktLIiwidXNlclR5cGUiOiJJbmRpdmlkdWFsIiwiaXNQcm9maWxlQ3JlYXRlZCI6ZmFsc2UsImV4cCI6MTcyNTQ3ODYwMCwiaWF0IjoxNzUxODY3Mjc1fQ.FcqiKMCdyEyZUJDur4haE9ADyWljR7jeBDvx4AuF9f8";
   // const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyTmFtZSI6IklORFUyM0EwMDA3MiIsInVzZXJFbWFpbCI6ImJoYWd5YS5zYXRoeWExOTk1QGdtYWlsLmNvbSIsInBhc3N3b3JkIjoicGFzc3dvcmRAU1NPMTIzIiwiRmlyc3ROYW1lIjoiYmhhZ3lhIiwiTWlkZGxlTmFtZSI6IiIsIkxhc3ROYW1lIjoiIiwidXNlclR5cGUiOiJJbmR1c3RyeSIsImlzUHJvZmlsZUNyZWF0ZWQiOmZhbHNlLCJleHAiOjE3MjU0Nzg2MDAsImlhdCI6MTc1MTg3NDM1MX0.7IgPdxcX6IPUXjTa1oj9t5CtqjiyP--S2wBjbwfGUss'
 
+  // const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyTmFtZSI6IkNBTjIwQTAwMjc2IiwidXNlckVtYWlsIjoib2ZmaWNpYWxyb2hpdDI3QGdtYWlsLmNvbSIsInBhc3N3b3JkIjoiU2tpbGxhYmxlcnNAMTIzJCIsIkZpcnN0TmFtZSI6IlJvaGl0ICIsIk1pZGRsZU5hbWUiOiIiLCJMYXN0TmFtZSI6Ikt1bWFyIiwidXNlclR5cGUiOiJJbmRpdmlkdWFsIiwiaXNQcm9maWxlQ3JlYXRlZCI6dHJ1ZSwiZXhwIjoxNzI1NDc4NjAwLCJpYXQiOjE3NTMxNjAxNTZ9.w6HTfS8hhYBi_kIFqjMkGNdffvGWe8GdVNp-6OSmW4A'
   const [decoded, setDecoded] = useState<any | null>(null);
 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -77,8 +75,8 @@ const SSORedirectHandler = () => {
 
   useEffect(() => {
     async function fetchCountryCode() {
-      const code = await getCountryCode();
-      setCountryCode(code);
+      // const code = await getCountryCode();
+      // setCountryCode(code);
     }
 
     fetchCountryCode();
@@ -87,7 +85,7 @@ const SSORedirectHandler = () => {
   useEffect(() => {
     async function fetchInfo() {
       const info = await Device.getInfo();
-      const ip = await getDeviceIp();
+      const ip = 'ip';
       setIp(ip);
       setInfo(info);
     }
@@ -96,7 +94,7 @@ const SSORedirectHandler = () => {
   }, []);
 
   useEffect(() => {
-    if (!info || !countryCode) return;
+    // if (!info || !countryCode) return;
 
     if (!token) {
       // showSnackbar("Token missing in SSO request", "error");
@@ -117,19 +115,16 @@ const SSORedirectHandler = () => {
         userEmail,
         password,
         userStatus: "ACTIVE",
-        contactSource: "SSO",
-        userDailyLifeCode: `DL-${countryCode}-${getRandomNumber()}`,
+        contactSource: "SIGNUP",
+        userDailyLifeCode: 'DL-IND-123456789123',
       };
 
       const loginPayload = {
         userName,
         password,
-        userLoginDeviceName: info.model,
-        loginMethod:
-          info.platform === "ios" || info.platform === "android"
-            ? "MOBILE"
-            : "WEB",
-        userLoginDeviceIP: ip,
+        userLoginDeviceName: 'device name',
+        loginMethod:"WEB",
+        userLoginDeviceIP: 'ip',
       };
 
       registerMobileProfile(payload)
@@ -145,7 +140,7 @@ const SSORedirectHandler = () => {
       console.error("SSO Decode failed", e);
       // showSnackbar("Invalid token format", "error");
     }
-  }, [info, countryCode, location, decoded]);
+  }, [info, location, decoded]);
 
   const moduleSetter = async (payload: any) => {
     await syncByTwoUniqueKeyData(
@@ -161,7 +156,7 @@ const SSORedirectHandler = () => {
       const result = await login(payload);
       showSnackbar("Login Successful", "success");
 
-      console.log(result);
+      // console.log(result);
       if (result?.data?.data?.userLoginSessionToken) {
         setCurrentAccessToken(result.data.data.userLoginSessionToken);
 
@@ -175,7 +170,7 @@ const SSORedirectHandler = () => {
           lastName: LastName,
         };
 
-        console.log(personalPayload);
+        // console.log(personalPayload);
 
         syncDataInTable("userPersonalInfo", personalPayload, "userId").catch(
           (error) => {
@@ -235,7 +230,7 @@ const SSORedirectHandler = () => {
       alignItems="center"
       justifyContent="center"
       minHeight="100vh"
-      sx={{ background: color.background2 }}
+      // sx={{ background: color.background2 }}
     >
       <Box
         sx={{

@@ -3,29 +3,29 @@ import { styled } from "@mui/material/styles";
 import { removeUserRole } from "../../services/axiosClient";
 import { logout } from "../../services/services";
 import * as XLSX from "xlsx";
-export async function getCountryCode() {
-  try {
-    const response = await fetch("https://ipapi.co/json/");
-    const data = await response.json();
+// export async function getCountryCode() {
+//   try {
+//     const response = await fetch("https://ipapi.co/json/");
+//     const data = await response.json();
 
-    const countryCode3 = data.country_code_iso3;
-    return countryCode3;
-  } catch (error) {
-    console.error("Error getting 3-letter country code from IP:", error);
-    return null;
-  }
-}
+//     const countryCode3 = data.country_code_iso3;
+//     return countryCode3;
+//   } catch (error) {
+//     console.error("Error getting 3-letter country code from IP:", error);
+//     return null;
+//   }
+// }
 
-export async function getDeviceIp() {
-  try {
-    const response = await fetch("https://api.ipify.org?format=json");
-    const data = await response.json();
-    return data.ip;
-  } catch (error) {
-    console.error("Error getting 3-letter country code from IP:", error);
-    return null;
-  }
-}
+// export async function getDeviceIp() {
+//   try {
+//     const response = await fetch("https://api.ipify.org?format=json");
+//     const data = await response.json();
+//     return data.ip;
+//   } catch (error) {
+//     console.error("Error getting 3-letter country code from IP:", error);
+//     return null;
+//   }
+// }
 
 export function formatDate(userDate: any) {
   return new Date(userDate)
@@ -406,12 +406,17 @@ export const toRoman = (num: number): string => {
 };
 
 export const commonFormTextFieldSx = {
-  boxShadow: "0px 4px 10px rgba(90, 128, 253, 0.49)",
+  // boxShadow: "0px 0px 20px rgba(255, 255, 255, 1)",
+
+  boxShadow: "0px 0px 10px rgba(90, 128, 253, 0.49)",
   background: "white",
+  color: "black",
   borderRadius: "44px",
   border: "0px",
   "& .MuiOutlinedInput-root": {
-    backgroundColor: "white",
+  background: "white",
+  color: "black",
+
     border: "0px",
     borderRadius: "44px",
     "& fieldset": {
@@ -428,6 +433,13 @@ export const commonFormTextFieldSx = {
     borderRadius: "44px",
     backgroundColor: "white",
   },
+  "& .Muiselect-select-MuiInputBase-input-Muioutlinedlnput-input": {
+    border: "none",
+    borderRadius: "44px !important",
+    backgroundColor: "white",
+  },
+
+  
   "& .MuiOutlinedInput-notchedOutline": {
     border: "none",
     borderRadius: "44px",
@@ -704,3 +716,4 @@ export function extractCleanFileName(url: string): string {
   const hyphenIndex = decoded.indexOf("-");
   return hyphenIndex !== -1 ? decoded.substring(hyphenIndex + 1) : decoded;
 }
+

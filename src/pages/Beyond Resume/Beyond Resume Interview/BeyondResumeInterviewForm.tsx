@@ -401,38 +401,36 @@ const BeyondResumeInterviewForm = () => {
     : !isResumeDetailsValid || (addJobDescription && !jobDescription.trim());
 
   return (
-    <Container sx={{ minHeight: "100vh" }}>
-      <BlobAnimation />
-
+    <Box sx={{ minHeight: "100vh" }}>
       <Form
-        sx={{ background: "white", position: "relative" }}
+        sx={{ background: "inherit", position: "relative" }}
         onSubmit={handleSubmit}
       >
         <Typography
-          variant="h5"
+          variant="h4"
           align="center"
           sx={{
             width: "fit-content",
             m: "auto",
             fontFamily: "Custom-Bold",
-            background: "linear-gradient(180deg, #50bcf6, #50bcf6)",
-            color: "white",
-            p: 2,
-            px: 4,
             borderRadius: "44px",
-            boxShadow: "0px 4px 10px rgba(90, 128, 253, 0.49)",
+            mb: -2,
           }}
         >
-          Interview Settings
+          Create Practice Interview
         </Typography>
-        {/* <Typography variant="body1" align="center" gutterBottom>
-        Select from these options and get your pre-made Job description and practice your quick interview. Or Just click "Custom Interview"
-        </Typography> */}
+
+        <Typography
+          align="center"
+          sx={{
+            fontFamily: "montserrat-regular",
+          }}
+        >
+          Choose your preferences for the practice interview
+        </Typography>
 
         <Box>
-          <Typography gutterBottom align="center">
-            What experience level are you interviewing for?
-          </Typography>
+          <Typography gutterBottom>Experience Level</Typography>
           <ToggleButtonGroup
             value={experience}
             exclusive
@@ -444,7 +442,6 @@ const BeyondResumeInterviewForm = () => {
               display: "flex",
               flexWrap: "wrap",
               gap: 1,
-              justifyContent: "center",
               mt: 2,
             }}
           >
@@ -454,8 +451,8 @@ const BeyondResumeInterviewForm = () => {
                 value={level}
                 style={{
                   backgroundColor:
-                    experience === level ? "#50bcf6" : "#ffffff22",
-                  color: experience === level ? "white" : "grey",
+                    experience === level ? "white" : "#ffffff22",
+                  color: experience === level ? "black" : "white",
                   borderRadius: "999px",
                   border: "1px solid #ccc",
                 }}
@@ -480,9 +477,9 @@ const BeyondResumeInterviewForm = () => {
           </ToggleButtonGroup>
         </Box>
 
-        <Box px={4}>
-          <Typography gutterBottom align="center">
-            What duration would you prefer for the interview?
+        <Box >
+          <Typography gutterBottom>
+           Interview Duration
           </Typography>
           <Slider
             value={duration}
@@ -776,19 +773,16 @@ const BeyondResumeInterviewForm = () => {
               />
             </>
           ) : (
-            <BeyondResumeButton>
+            <>
               Submit{" "}
-              <FontAwesomeIcon
-                style={{ marginLeft: "6px" }}
-                icon={faArrowCircleRight}
-              />
-            </BeyondResumeButton>
+            </>
+
           )}
         </BeyondResumeButton>
       </Form>
       <BeyondResumeLoader open={open} progress={progress} />
       <BeyondResumeUpgradeRequiredModal open={showModal} />
-    </Container>
+    </Box>
   );
 };
 

@@ -1,6 +1,12 @@
 import { faPaperPlane } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Box, Paper, TextField, Typography } from "@mui/material";
+import {
+  Box,
+  CircularProgress,
+  Paper,
+  TextField,
+  Typography,
+} from "@mui/material";
 import dayjs from "dayjs";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
@@ -31,6 +37,7 @@ const AIProfileInterview = ({ open, onConversationComplete }) => {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
   const recognitionRef = useRef<any>(null);
   const [finalUserData, setFinalUserData] = useState<Record<string, string>>(
     {}
@@ -220,6 +227,7 @@ const AIProfileInterview = ({ open, onConversationComplete }) => {
         aiText.toLowerCase().includes("let’s go crush")
       ) {
         try {
+          setAiLoading(true);
           const res = await getUserAnswerFromAi({
             question: finalJsonPrompt,
           });
@@ -255,7 +263,7 @@ const AIProfileInterview = ({ open, onConversationComplete }) => {
               userId,
               dob: dobInIST,
               languagesKnown: languagesArray,
-              about: parsedJson.basicDetails.about?.trim() || "",
+              about: parsedJson.basicDetails.about || "",
             };
 
             console.log("userPersonalInfo payload:", payload);
@@ -265,11 +273,10 @@ const AIProfileInterview = ({ open, onConversationComplete }) => {
           if (parsedJson.preference) {
             const payload = {
               userId,
-              preferedLocation: parsedJson.preference.location?.trim() || "",
-              preferedShipt: parsedJson.preference.shift?.trim() || "",
-              workplace: parsedJson.preference.workplace?.trim() || "",
-              employmentType:
-                parsedJson.preference.employmentType?.trim() || "",
+              preferedLocation: parsedJson.preference.location || "",
+              preferedShipt: parsedJson.preference.shift || "",
+              workplace: parsedJson.preference.workplace || "",
+              employmentType: parsedJson.preference.employmentType || "",
             };
 
             console.log("userJobPreference payload:", payload);
@@ -287,11 +294,11 @@ const AIProfileInterview = ({ open, onConversationComplete }) => {
 
             const payload = {
               userId,
-              academyName: academy.trim(),
-              degreeName: degree.trim(),
-              specialization: specialization?.trim() || "",
-              startDate: startMonthYear || null,
-              endDate: endMonthYear || null,
+              academyName: academy,
+              degreeName: degree,
+              specialization: specialization || "",
+              startDate: startMonthYear || dayjs(),
+              endDate: endMonthYear || dayjs(),
             };
 
             console.log("userEducation payload:", payload);
@@ -312,12 +319,12 @@ const AIProfileInterview = ({ open, onConversationComplete }) => {
 
             const payload = {
               userId,
-              jobTitle: jobTitle.trim(),
-              jobProviderName: company.trim(),
+              jobTitle: jobTitle,
+              jobProviderName: company,
               duration: years || "",
-              employmentType: employmentType?.trim() || "",
+              employmentType: employmentType || "",
               isCurrentlyWorking: current ?? false,
-              noticePeriod: noticePeriod?.trim() || "",
+              noticePeriod: noticePeriod || "",
 
               aStartDate: "Tue, 08 Jul 2025 07:22:30 GMT",
               aEndDate: "Tue, 08 Jul 2025 07:22:30 GMT",
@@ -335,7 +342,7 @@ const AIProfileInterview = ({ open, onConversationComplete }) => {
           if (parsedJson.skills?.skills) {
             const skillsArray = parsedJson.skills.skills
               .split(",")
-              .map((s: string) => s.trim())
+              .map((s: string) => s)
               .filter(Boolean);
 
             if (skillsArray.length > 0) {
@@ -351,6 +358,7 @@ const AIProfileInterview = ({ open, onConversationComplete }) => {
 
           onConversationComplete?.();
         } catch (err) {
+          onConversationComplete?.();
           console.error("Failed to fetch or parse final AI data:", err);
         }
       }
@@ -368,6 +376,25 @@ const AIProfileInterview = ({ open, onConversationComplete }) => {
       speakText(intro);
     }
   }, [step]);
+
+  const [showDelayMessage, setShowDelayMessage] = useState(false);
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout | undefined;
+
+    if (aiLoading) {
+      timer = setTimeout(() => {
+        setShowDelayMessage(true);
+      }, 5000);
+    } else {
+      setShowDelayMessage(false);
+      if (timer) clearTimeout(timer);
+    }
+
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [aiLoading]);
 
   return (
     <Box
@@ -468,19 +495,50 @@ const AIProfileInterview = ({ open, onConversationComplete }) => {
                     </motion.div>
                   </AnimatePresence>
                 )}
-                <Box display="flex" justifyContent="flex-end" mt={3}>
-                  <BeyondResumeButton
-                    variant="contained"
-                    onClick={handleUserSubmit}
-                    disabled={!userInput.trim() || loading}
-                  >
-                    Send{" "}
-                    <FontAwesomeIcon
-                      style={{ marginLeft: "4px" }}
-                      icon={faPaperPlane}
-                    />
-                  </BeyondResumeButton>
+                <Box
+                  display="flex"
+                  justifyContent="flex-end"
+                  mt={3}
+                  flexDirection="column"
+                  alignItems="flex-end"
+                >
+                  {!aiLoading ? (
+                    <BeyondResumeButton
+                      variant="contained"
+                      onClick={handleUserSubmit}
+                      disabled={!userInput.trim() || loading}
+                    >
+                      Send{" "}
+                      <FontAwesomeIcon
+                        style={{ marginLeft: "4px" }}
+                        icon={faPaperPlane}
+                      />
+                    </BeyondResumeButton>
+                  ) : (
+                    <>
+                      <BeyondResumeButton variant="contained">
+                        Analyzing...{" "}
+                        <CircularProgress
+                          color="inherit"
+                          style={{ marginLeft: "4px" }}
+                          size={18}
+                        />
+                      </BeyondResumeButton>
+                    </>
+                  )}
                 </Box>
+
+                {showDelayMessage && (
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    textAlign={"center"}
+                    mt={1}
+                  >
+                    Hang on while we analyze your data. This may take a while or
+                    be delayed due to slow network.
+                  </Typography>
+                )}
               </Box>
             )}
           </Paper>
@@ -608,8 +666,10 @@ Tone & Style:
 
 Wrap-Up:
 When only you've touched all the above mentioned fields and the conversation feels complete:
-- End with a **motivational, friendly line** and It must clearly include: **“you’re all set to do great”** or a similar phrase.
-- Do NOT add another question after ending. and the phrase 'you’re all set to do great' should not be used before this.
+- End with a motivational, friendly line that clearly and naturally wraps up the exchange.
+- This closing line must end with the exact phrase: “you’re all set to do great” (maintaining this exact fontcase)..
+- Do not use the phrase “you’re all set to do great” anywhere before the final line.
+- Do not include any questions in the final line or after it. The wrap-up should feel complete and confident.
 
 Important:
 - Never ask for info using labels like “What is your date of birth?” instaed ask the same question more humanly.
@@ -652,8 +712,8 @@ Expected JSON format:
       "academy": "string",
       "degree": "string",
       "specialization": "string",
-      "startMonthYear": "string",
-      "endMonthYear": "string"
+      "startMonthYear": date (example: Thu, 10 Jul 2025 06:59:39 GMT),
+      "endMonthYear": "date (example: Thu, 10 Jul 2025 06:59:39 GMT),
     }
   ],
   "experience": [
@@ -702,4 +762,3 @@ Return:
 Conversation:
 ${conversationContext.join("\n")}
 `;
-

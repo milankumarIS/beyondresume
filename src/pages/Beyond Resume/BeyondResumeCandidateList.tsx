@@ -4,7 +4,7 @@ import {
   faFileExcel,
   faInfoCircle,
   faPhone,
-  faUser
+  faUser,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -20,12 +20,12 @@ import {
 import React, { JSX, useEffect, useState } from "react";
 import { useHistory, useLocation } from "react-router";
 import PaginationControlled from "../../components/shared/Pagination";
+import { generateInterviewReportExcel } from "../../components/util/CommonFunctions";
 import {
-  BeyondResumeButton,
-  BlobAnimation,
+  BeyondResumeButton
 } from "../../components/util/CommonStyle";
 import { paginateDataFromTable } from "../../services/services";
-import { generateInterviewReportExcel } from "../../components/util/CommonFunctions";
+import color from "../../theme/color";
 type LocationState = {
   jobId: string;
 };
@@ -186,16 +186,12 @@ const BeyondResumeCandidateList = () => {
   return (
     <Box
       sx={{
-        background: "linear-gradient(145deg, #0d0d0d, #2D3436)",
-        color: "white",
         p: 4,
         minHeight: "90vh",
         overflow: "hidden",
         position: "relative",
       }}
     >
-      <BlobAnimation />
-
       <Box
         sx={{
           display: "flex",
@@ -210,7 +206,7 @@ const BeyondResumeCandidateList = () => {
           <CustomToggleButton
             value="yes"
             sx={{
-              background: "linear-gradient(180deg, #50bcf6, #5a81fd)",
+              background: color.activeButtonBg,
               color: "#fff",
               boxShadow: "0px 4px 10px rgba(90, 128, 253, 0.49)",
             }}
@@ -256,13 +252,13 @@ const BeyondResumeCandidateList = () => {
             <div className="newtons-cradle__dot"></div>
           </div>
           <Typography variant="h6" sx={{ mb: 2 }}>
-            Processing your Result
+            Processing Data
           </Typography>
         </Box>
       ) : totalCount === 0 ? (
         <Box
           sx={{
-            minHeight: "70vh",
+            minHeight: "60vh",
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
@@ -270,7 +266,7 @@ const BeyondResumeCandidateList = () => {
           }}
         >
           <Typography variant="h6" sx={{ color: "white" }}>
-            No Data Available
+            No Applicants Yet
           </Typography>
         </Box>
       ) : (
@@ -321,7 +317,7 @@ const BeyondResumeCandidateList = () => {
                         borderRadius: "999px !important",
                         padding: "6px 16px",
                         fontWeight: 600,
-                        background: "linear-gradient(180deg, #50bcf6, #5a81fd)",
+                        background: color.activeButtonBg,
                         color: "#fff",
                         boxShadow: "0px 4px 10px rgba(90, 128, 253, 0.49)",
                         width: "fit-content",
@@ -350,10 +346,9 @@ const BeyondResumeCandidateList = () => {
                       >
                         <Card
                           sx={{
-                            background:
-                              "linear-gradient(145deg, #0d0d0d, #2D3436)",
+                            background: color.cardBg,
 
-                            color: "white",
+                            color: "inherit",
                             borderRadius: 3,
                             textAlign: "center",
                             p: 2,
@@ -379,8 +374,7 @@ const BeyondResumeCandidateList = () => {
                               style={{
                                 height: "32px",
                                 width: "32px",
-                                background:
-                                  "linear-gradient(145deg, #0d0d0d, #2D3436)",
+                                background: color.cardBg,
                                 padding: "8px",
                                 borderRadius: "999px",
                               }}
@@ -409,7 +403,11 @@ const BeyondResumeCandidateList = () => {
                                 {interview?.fullName}
                               </Typography>
 
-                              <Typography variant="caption" display="block">
+                              <Typography
+                                variant="caption"
+                                display="block"
+                                textAlign={"left"}
+                              >
                                 {formatDateWithSuffix(interview.updatedAt)},{" "}
                                 {""}
                                 {new Date(
@@ -491,8 +489,7 @@ const BeyondResumeCandidateList = () => {
                               width: "100%",
                               p: 0.5,
                               px: 1.5,
-                              background:
-                                "linear-gradient(180deg, #50bcf6, #5a81fd)",
+                              background: color.activeButtonBg,
                               ml: "auto",
                               display: "block",
                             }}

@@ -29,10 +29,9 @@ export default function BeyondResumeInterview() {
   return (
     <Box
       sx={{
-        color: "white",
-        background:
-          "linear-gradient(180deg,rgb(255, 255, 255),rgb(220, 220, 220))",
+
         position: "relative",
+        maxWidth:'100vw'
       }}
     >
       {/* <BlobAnimation /> */}
@@ -43,7 +42,6 @@ export default function BeyondResumeInterview() {
       <Typography
         variant="h3"
         fontFamily="Custom-Bold"
-        color="black"
         textAlign="center"
       >
         Subscription Plans
@@ -52,7 +50,6 @@ export default function BeyondResumeInterview() {
         variant="h6"
         mb={4}
         fontFamily="Montserrat-Regular"
-        color="black"
         textAlign="center"
       >
         Try our mock interview tool for free today. Start practicing and
@@ -62,11 +59,10 @@ export default function BeyondResumeInterview() {
 
       <BeyondResumeFAQ />
 
-      <BeyondResumeTestimony />
+      {/* <BeyondResumeTestimony /> */}
 
       <Box
         sx={{
-          color: "black",
           textAlign: "center",
           pb: 8,
         }}

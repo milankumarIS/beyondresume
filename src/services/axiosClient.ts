@@ -173,6 +173,17 @@ export function getUserContact(): string {
 }
 
 
+export function getUserFirstName(): string {
+    let token: any = localStorage.getItem('accessToken');
+    if (token) {
+        let decoded: any = jwtDecode(token);
+        return decoded?.userPersonalInfo?.firstName || '';
+    }
+    else {
+        return '';
+    }
+}
+
 export function getUserCode(): string {
     let token: any = localStorage.getItem('accessToken');
     if (token) {

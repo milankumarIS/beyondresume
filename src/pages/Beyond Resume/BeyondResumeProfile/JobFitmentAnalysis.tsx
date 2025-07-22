@@ -9,43 +9,30 @@ import {
   UploadAuthFile,
 } from "../../../services/services";
 
-import {
-  faChevronCircleDown,
-  faChevronCircleUp,
-} from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useLocation } from "react-router";
-import {
-  BeyondResumeButton,
-  BlobAnimation,
-} from "../../../components/util/CommonStyle";
-import color from "../../../theme/color";
 import {
   extractCleanFileName,
   safeParseAiJson,
 } from "../../../components/util/CommonFunctions";
+import { BeyondResumeButton } from "../../../components/util/CommonStyle";
+import color from "../../../theme/color";
+import FileUpload from "../Beyond Resume Components/FileUpload";
 
-interface RouteParams {
+interface JobFitmentPageProps {
   jobId: string;
 }
 
-const JobFitmentPage: React.FC = () => {
-  const location = useLocation<RouteParams>();
-  const jobId = location?.state?.jobId;
+const JobFitmentPage: React.FC<JobFitmentPageProps> = ({ jobId }) => {
   const [jobDescription, setJobDescription] = useState<string>("");
   const [resume, setResume] = useState<File | string | null>(null);
   const [fitmentSummary, setFitmentSummary] = useState<string>("");
   const [fitmentDetail, setFitmentDetail] = useState<string>("");
   const [loading, setLoading] = useState(false);
-  const [jobsData, setJobsData] = useState<any>([]);
-  const [jdLoading, setJdLoading] = useState(true);
   const resultRef = useRef<HTMLDivElement>(null);
 
-  const [currentUser, setCurrentUser] = useState<any>();
   useEffect(() => {
     getProfile().then((result: any) => {
       const data = result?.data?.data;
-      setCurrentUser(data);
       setResume(data?.userPersonalInfo?.resumeFile || "");
     });
   }, [jobId]);
@@ -53,11 +40,9 @@ const JobFitmentPage: React.FC = () => {
   useEffect(() => {
     const fetchJD = async () => {
       try {
-        setJdLoading(true);
         const result: any = await searchListDataFromTable("brJobs", {
           brJobId: jobId,
         });
-        setJobsData(result?.data?.data[0]);
         const jd = result?.data?.data?.[0]?.jobDescriptions;
         if (!jd) {
           console.warn("No job description found");
@@ -72,7 +57,6 @@ const JobFitmentPage: React.FC = () => {
       } catch (err) {
         console.error("Error fetching job description", err);
       } finally {
-        setJdLoading(false);
       }
     };
 
@@ -100,7 +84,10 @@ const JobFitmentPage: React.FC = () => {
       }
 
       const prompt1 =
-        `Here I'm attaching a job description link. From the linked PDF, extract the text and give the response in plain innerHTML.`.replace(/\s+/g, " ");
+        `Here I'm attaching a job description link. From the linked PDF, extract the text and give the response in plain innerHTML.`.replace(
+          /\s+/g,
+          " "
+        );
 
       const response = await getUserAnswerFromAiThroughPdf({
         question: prompt1,
@@ -117,9 +104,11 @@ You are an AI career fitment evaluator. Given a job description and a resume lin
   "detail": "<detailed gap analysis, gap resolution resources, timeline and 30-day action plan, all in HTML>"
 }
 
+- The response should be in the exact valid json format only as mentioned above. 
+
 Important:
 •⁠  ⁠Only return the JSON. No commentary, explanation, or markdown backticks.
-•⁠  ⁠For Summary HTML use 3 different categories such as green tick for meets fitment, yellow tilde for partial meet and red cross for no fitment. Add colour elements so that overall summary looks good
+•⁠  ⁠For Summary HTML use 3 different categories such as green tick for meets fitment, dark yellow tilde for partial meet and red cross for no fitment. Add colour elements so that overall summary looks good
 •⁠  ⁠For detailed HTML  keep three distinct sections 1. GAPs and its explanations, 2. Gaps and the resources where I can upskill myself 3. My GAP bridging planning with mile stones 
 •⁠  ⁠Make sure both "summary" and "detail" fields contain valid HTML (headings, tables, lists) along with Green, Yellow and red colour styles to distinguish between fully fits, partial fit and no fit.
 •⁠  ⁠Do not wrap the response in \⁠ \ ⁠\` or include text like "Here's the result:"
@@ -157,8 +146,6 @@ ${resumeLink ? `Here is the resume Text: ${resumeText}` : ""}
     }
   };
 
-  const [expanded, setExpanded] = useState(false);
-  const [showToggle, setShowToggle] = useState(false);
   const textRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -168,7 +155,6 @@ ${resumeLink ? `Here is the resume Text: ${resumeText}` : ""}
       );
       const height = textRef.current.scrollHeight;
       if (height > lineHeight * 10) {
-        setShowToggle(true);
       }
     }
   }, [jobDescription]);
@@ -176,273 +162,119 @@ ${resumeLink ? `Here is the resume Text: ${resumeText}` : ""}
   return (
     <Box
       sx={{
-        p: 4,
-        background: color.background2,
         position: "relative",
         overflow: "hidden",
         minHeight: "90vh",
-        color: "white",
+        p: 2,
+        pt: 0,
       }}
     >
-      {/* <Typography variant="h4"  gutterBottom>
+      <Typography
+        mb={2}
+        sx={{
+          fontSize: "26px",
+        }}
+      >
         Fitment Analysis
-      </Typography> */}
+      </Typography>
 
-      <BlobAnimation />
-
-      {jdLoading ? (
-        <Box
-          sx={{
-            minHeight: "70vh",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            flexDirection: "column",
-          }}
+      <Box position={"relative"}>
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
         >
-          <div className="newtons-cradle">
-            <div className="newtons-cradle__dot"></div>
-            <div className="newtons-cradle__dot"></div>
-            <div className="newtons-cradle__dot"></div>
-            <div className="newtons-cradle__dot"></div>
-          </div>
-          <Typography variant="h6" sx={{ mb: 2 }}>
-            Loading...
-          </Typography>
-        </Box>
-      ) : (
-        <Box position={"relative"}>
-          <Typography
-            variant="h6"
-            gutterBottom
-            sx={{
-              background: "linear-gradient(180deg, #50bcf6, #5a81fd)",
-              color: "white",
-              width: "fit-content",
-              p: 2,
-              borderRadius: "12px",
-              boxShadow: "0px 4px 10px rgba(90, 128, 253, 0.49)",
-              mx: "auto",
-            }}
-          >
-            {jobsData?.jobTitle} Fitment Analysis
-          </Typography>
+          <form onSubmit={handleSubmit}>
+            <FileUpload
+              questionFile={resume}
+              setQuestionFile={(file) => setResume(file)}
+              acceptFormat=".pdf"
+              showFileNameOnly={true}
+              changeLabel={"Upload Another Resume"}
+            />
 
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <form onSubmit={handleSubmit}>
-              <Typography
-                mb={2}
-                border={"solid 1px"}
-                width={"fit-content"}
-                borderRadius={2}
-                px={1.5}
-                py={0.5}
-                fontSize={"14px"}
-                sx={{
-                  background: color.background2,
-                }}
-              >
-                Job Description:
-              </Typography>
-              <Box
-                sx={{
-                  border: "solid 1px white",
-
-                  borderRadius: 4,
-                  p: 2,
-                  pt: 0,
-                  pb: 1,
-                  mb: 4,
-                  background: color.background2,
-                }}
-              >
-                <Typography
-                  ref={textRef}
+            {resume && (
+              <Box mt={3}>
+                <BeyondResumeButton
+                  type="submit"
+                  variant="contained"
+                  disabled={loading}
                   sx={{
-                    fontSize: "14px",
-                    display: "-webkit-box",
-                    WebkitLineClamp: expanded ? "unset" : 5,
-                    WebkitBoxOrient: "vertical",
-                    overflow: "hidden",
-                  }}
-                  component="div"
-                  dangerouslySetInnerHTML={{
-                    __html: jobDescription,
-                  }}
-                />
-
-                {showToggle && (
-                  <BeyondResumeButton
-                    variant="outlined"
-                    size="small"
-                    onClick={() => setExpanded((prev) => !prev)}
-                    sx={{
-                      background: "transparent",
-                      borderColor: "white",
-                      ml: "auto",
-                      display: "flex",
-                      gap: 2,
-                      width: "fit-content",
-                      my: 1,
-                      mt: 2,
-                      fontSize: "10px",
-                    }}
-                  >
-                    {expanded ? "Show Less" : "Show More"}
-                    {!expanded ? (
-                      <FontAwesomeIcon icon={faChevronCircleDown} />
-                    ) : (
-                      <FontAwesomeIcon icon={faChevronCircleUp} />
-                    )}
-                  </BeyondResumeButton>
-                )}
-              </Box>
-              <Box
-                sx={{
-                  background: color.background2,
-                  border: "solid 1px white",
-                  p: 4,
-                  borderRadius: "12px",
-                  justifyContent: "space-between",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  gap: 2,
-                  margin: "auto",
-                }}
-                component="label"
-              >
-                <input
-                  type="file"
-                  accept=".pdf"
-                  hidden
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      setResume(file); // resume now becomes a File
-                    }
-                  }}
-                />
-
-                {!resume && (
-                  <Typography
-                    sx={{
-                      textAlign: "center",
-                      color: "white",
-                      fontSize: "14px",
-                      px: 2,
-                    }}
-                  >
-                    Drag and drop file or click To Upload PDF • Max file size
-                    2MB
-                  </Typography>
-                )}
-
-                {resume && (
-                  <Typography
-                    sx={{
-                      color: "white",
-                      p: 1,
-                      px: 4,
-                      borderRadius: "44px",
-                      textAlign: "center",
-                      wordBreak: "break-word",
-                    }}
-                  >
-                    {typeof resume === "string"
-                      ? extractCleanFileName(resume)
-                      : resume.name}
-                  </Typography>
-                )}
-
-                <Typography
-                  variant="body2"
-                  sx={{
-                    background: "linear-gradient(180deg, #50bcf6, #50bcf6)",
-                    color: "white",
-                    p: 1,
-                    px: 4,
-                    borderRadius: "44px",
+                    mx: "auto",
+                    display: "block",
+                    width: "100%",
+                    mt: 6,
                   }}
                 >
-                  Upload Your Resume
-                </Typography>
+                  {loading ? (
+                    <Box
+                      display={"flex"}
+                      alignItems={"center"}
+                      justifyContent={"center"}
+                      color={"white"}
+                      gap={2}
+                    >
+                      Analyzing{" "}
+                      <CircularProgress sx={{ color: "white" }} size={18} />
+                    </Box>
+                  ) : (
+                    "Run Fitment Analysis"
+                  )}
+                </BeyondResumeButton>
               </Box>
-
-              {resume && (
-                <Box mt={3}>
-                  <BeyondResumeButton
-                    type="submit"
-                    variant="contained"
-                    disabled={loading}
-                    sx={{
-                      mx: "auto",
-                      display: "block",
-                      width: "100%",
-                      mt: 6,
-                    }}
-                  >
-                    {loading ? (
-                      <Box
-                        display={"flex"}
-                        alignItems={"center"}
-                        justifyContent={"center"}
-                        color={"white"}
-                        gap={2}
-                      >
-                        Analyzing{" "}
-                        <CircularProgress sx={{ color: "white" }} size={18} />
-                      </Box>
-                    ) : (
-                      "Run Fitment Analysis"
-                    )}
-                  </BeyondResumeButton>
-                </Box>
-              )}
-            </form>
-          </motion.div>
-
-          <Box ref={resultRef}>
-            {fitmentSummary && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5 }}
-              >
-                <Typography variant="h5" mt={4}>
-                  Quick Summary
-                </Typography>
-                <Paper
-                  elevation={2}
-                  sx={{ p: 2, py: 1, mt: 2 }}
-                  dangerouslySetInnerHTML={{ __html: fitmentSummary }}
-                />
-              </motion.div>
             )}
+          </form>
+        </motion.div>
 
-            {fitmentDetail && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.7 }}
-              >
-                <Typography variant="h5" mt={4}>
-                  Detailed Gap Plan
-                </Typography>
-                <Paper
-                  elevation={2}
-                  sx={{ p: 2, mt: 2 }}
-                  dangerouslySetInnerHTML={{ __html: fitmentDetail }}
-                />
-              </motion.div>
-            )}
-          </Box>
+        <Box ref={resultRef}>
+          {fitmentSummary && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+            >
+              <Typography variant="h5" mt={4}>
+                Quick Summary
+              </Typography>
+              <Paper
+                elevation={2}
+                sx={{
+                  mt: 2,
+                  borderRadius: 4,
+                  background: "transparent",
+                  color: "inherit",
+                  fontFamily: "montserrat-regular",
+                }}
+                dangerouslySetInnerHTML={{ __html: fitmentSummary }}
+              />
+            </motion.div>
+          )}
+
+          {fitmentDetail && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.7 }}
+            >
+              <Typography variant="h5" mt={4}>
+                Detailed Gap Plan
+              </Typography>
+              <Paper
+                elevation={2}
+                sx={{
+                  py: 1,
+                  mt: 2,
+                  borderRadius: 4,
+                  background: "transparent",
+                  color: "inherit",
+                  fontFamily: "montserrat-regular",
+                }}
+                dangerouslySetInnerHTML={{ __html: fitmentDetail }}
+              />
+            </motion.div>
+          )}
         </Box>
-      )}
+      </Box>
     </Box>
   );
 };

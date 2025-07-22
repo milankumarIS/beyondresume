@@ -1,5 +1,5 @@
-import React from "react";
 import { Autocomplete, Box, TextField } from "@mui/material";
+import React from "react";
 
 export default function FormAutocomplete2({
   label,
@@ -20,27 +20,27 @@ export default function FormAutocomplete2({
   const getPrimaryKey = (option: any) =>
     typeof option === "string" ? option : option?.[primeryKey] ?? option;
 
+  const [inputValue, setInputValue] = React.useState<string>(
+    typeof defaultValue === "string" ? defaultValue : getLabel(defaultValue)
+  );
+
   const [selectedValue, setSelectedValue] = React.useState<any>(
-    options.find((option: any) =>
-      primeryKey
-        ? getPrimaryKey(option) === getPrimaryKey(defaultValue)
-        : option === defaultValue
-    ) || defaultValue || null
+    typeof defaultValue === "string" ? defaultValue : getLabel(defaultValue)
   );
 
   React.useEffect(() => {
-    setSelectedValue(
-      options.find((option: any) =>
-        primeryKey
-          ? getPrimaryKey(option) === getPrimaryKey(defaultValue)
-          : option === defaultValue
-      ) || defaultValue || null
-    );
-  }, [options, defaultValue, primeryKey]);
+    const label =
+      typeof defaultValue === "string" ? defaultValue : getLabel(defaultValue);
+    setSelectedValue(label);
+    setInputValue(label);
+  }, [defaultValue]);
 
   const handleOptionChange = (event: any, newValue: any) => {
-    setSelectedValue(newValue);
-    setter(newValue);
+    const finalValue =
+      typeof newValue === "string" ? newValue : getLabel(newValue);
+
+    setSelectedValue(finalValue);
+    setter(finalValue);
   };
 
   return (
@@ -54,11 +54,7 @@ export default function FormAutocomplete2({
       {readonly ? (
         <TextField
           label={label}
-          value={
-            typeof selectedValue === "string"
-              ? selectedValue
-              : selectedValue?.[labelProp] || ""
-          }
+          value={selectedValue}
           variant="outlined"
           fullWidth
           InputProps={{
@@ -71,7 +67,13 @@ export default function FormAutocomplete2({
           options={options}
           getOptionLabel={(option: any) => getLabel(option)}
           value={selectedValue}
+          inputValue={inputValue}
+          onInputChange={(e, newInputValue) => {
+            setInputValue(newInputValue);
+            setter(newInputValue); // 🔥 Optional: send live typed value
+          }}
           onChange={handleOptionChange}
+          isOptionEqualToValue={(option, value) => getLabel(option) === value}
           renderInput={(params) => (
             <TextField
               sx={sx}
@@ -85,11 +87,6 @@ export default function FormAutocomplete2({
               label={label}
             />
           )}
-          isOptionEqualToValue={(option, value) =>
-            primeryKey
-              ? getPrimaryKey(option) === getPrimaryKey(value)
-              : option === value
-          }
         />
       )}
     </Box>

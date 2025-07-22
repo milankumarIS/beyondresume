@@ -2,12 +2,13 @@ import { Box, Typography } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 import { useHistory, useLocation, useParams } from "react-router";
 import Webcam from "react-webcam";
-import {
+import GradientText, {
   BeyondResumeButton,
-  BlobAnimation
+  BeyondResumeButton2,
 } from "../../../components/util/CommonStyle";
 import BeyondResumeLoader from "../Beyond Resume Components/BeyondResumeLoader";
 import AIProfileInterview from "../BeyondResumeProfile/AIProfileInterview";
+import { getUserFirstName } from "../../../services/axiosClient";
 
 const BeyondResumeReadyToJoin = () => {
   const location = useLocation();
@@ -31,24 +32,23 @@ const BeyondResumeReadyToJoin = () => {
 
   const [cameraAccessible, setCameraAccessible] = useState(true);
 
-useEffect(() => {
-  const checkCameraAccess = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: true,
-      });
-      stream.getTracks().forEach((track) => track.stop());
-      setCameraAccessible(true);
-    } catch (err) {
-      console.warn("Camera not accessible:", err);
-      setCameraAccessible(false);
-      // setIsVideoOn(false);
-    }
-  };
+  useEffect(() => {
+    const checkCameraAccess = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+        });
+        stream.getTracks().forEach((track) => track.stop());
+        setCameraAccessible(true);
+      } catch (err) {
+        console.warn("Camera not accessible:", err);
+        setCameraAccessible(false);
+        // setIsVideoOn(false);
+      }
+    };
 
-  checkCameraAccess();
-}, []);
-
+    checkCameraAccess();
+  }, []);
 
   useEffect(() => {
     const initMicDetection = async () => {
@@ -167,21 +167,43 @@ useEffect(() => {
         flexDirection: { xs: "column", lg: "column" },
         justifyContent: "center",
 
-        background: "linear-gradient(145deg, #0d0d0d, #2D3436)",
+        // background: "linear-gradient(145deg, #0d0d0d, #2D3436)",
         position: "relative",
         overflow: "hidden",
-        color: "white",
 
         minHeight: "calc(100vh - 58px)",
       }}
     >
-      <BlobAnimation />
+      <Box
+        sx={{
+          display: "flex",
+          gap: 1,
+          alignItems: "center",
+          justifyContent: "center",
+          width: "100%",
+        }}
+      >
+        <Typography variant="h4">Hi</Typography>
+        <GradientText text={getUserFirstName()} variant="h4" />
+      </Box>
+
+      <Typography
+        textAlign={"center"}
+        variant="h5"
+        sx={{
+          fontFamily: "Montserrat-Regular",
+        }}
+      >
+        Welcome to your online interview!
+      </Typography>
+      {/* <BlobAnimation /> */}
 
       <Box
         display="flex"
         gap={2}
         justifyContent={"space-around"}
         width={"100%"}
+        mt={4}
       >
         <Box display="flex" alignItems="center" flexDirection="column">
           <Box
@@ -283,11 +305,10 @@ useEffect(() => {
           )}
 
           {!cameraAccessible && micSilent && (
-  <Typography sx={{ mt: 2, color: "#ff5252", fontSize: "14px" }}>
-    Camera is not accessible. Please check your device settings.
-  </Typography>
-)}
-
+            <Typography sx={{ mt: 2, color: "#ff5252", fontSize: "14px" }}>
+              Camera is not accessible. Please check your device settings.
+            </Typography>
+          )}
 
           <div
             style={{
@@ -299,14 +320,10 @@ useEffect(() => {
             }}
           >
             <Box display="flex" gap={2} mb={1} mt={3}>
+              <BeyondResumeButton2 onClick={() => history.goBack()}>
+                Go Back
+              </BeyondResumeButton2>
               <BeyondResumeButton
-                sx={{
-                  background: isManualRead
-                    ? "linear-gradient(145deg, #0d0d0d, #2D3436)"
-                    : "rgba(226, 227, 227, 0.18)",
-                  color: isManualRead ? "white" : "#cdd5dd",
-                  border: "solid 1px",
-                }}
                 onClick={
                   () => setModalOpen(true)
                   // handleJoin();
@@ -324,24 +341,24 @@ useEffect(() => {
             sx={{
               width: "100%",
               maxWidth: 350,
-              background: "linear-gradient(145deg, #0d0d0d, #2D3436)",
+              background: "rgba(94, 94, 94, 0.15)",
               p: 2,
               borderRadius: 2,
               height: "fit-content",
               maxHeight: 400,
               overflowY: "auto",
               position: "relative",
+              color: "inherit",
               // border: "solid 1px white",
             }}
           >
-            <Typography variant="h6" sx={{ color: "#fff", mb: 1 }}>
+            <Typography variant="h6" sx={{ mb: 1, color: "inherit" }}>
               Instructions
             </Typography>
 
             <ul
               style={{
                 paddingLeft: "1.2rem",
-                color: "#d2dae2",
                 fontSize: "14px",
                 lineHeight: "1.6",
               }}
@@ -390,10 +407,7 @@ useEffect(() => {
               checked={isManualRead}
               onChange={(e) => setIsManualRead(e.target.checked)}
             />
-            <label
-              htmlFor="manualRead"
-              style={{ fontSize: "14px", color: "#d2dae2" }}
-            >
+            <label htmlFor="manualRead" style={{ fontSize: "14px" }}>
               I acknowledge the above instructions.
             </label>
           </Box>

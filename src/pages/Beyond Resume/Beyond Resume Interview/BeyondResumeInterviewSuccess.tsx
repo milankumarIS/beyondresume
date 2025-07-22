@@ -5,6 +5,7 @@ import React, { useEffect } from "react";
 import { useHistory } from "react-router";
 import {
   BeyondResumeButton,
+  BeyondResumeButton2,
   BlobAnimation,
 } from "../../../components/util/CommonStyle";
 
@@ -31,43 +32,52 @@ const BeyondResumeInterviewSuccess: React.FC = () => {
         alignItems: "center",
         justifyContent: "center",
         position: "relative",
-        background: "linear-gradient(145deg, #0d0d0d, #2D3436)",
-        color: "white",
+        background: "transparent",
         overflow: "hidden",
+        mt:-4
       }}
     >
-      <BlobAnimation />
+      {/* <BlobAnimation /> */}
 
-      <FontAwesomeIcon
+      <img
+        src="/assets/confetti.png"
+        alt="Loading illustration"
+        style={{ maxWidth: 100 }}
+      />
+      {/* <FontAwesomeIcon
         style={{ color: "#50bcf6", height: "104px" }}
         icon={faCheckCircle}
-      ></FontAwesomeIcon>
+      ></FontAwesomeIcon> */}
 
-      <Typography variant="h5" my={4} mb={2}>
-        Interview Completed Successfully
+      <Typography
+        fontFamily={"montserrat-regular"}
+        fontSize={"35px"}
+        my={4}
+        mb={2}
+      >
+        You’ve Completed Your Interview!
       </Typography>
 
-      <Typography variant="body1" mb={4}>
-        Thank you for your time during the interview.
+      <Typography fontFamily={"montserrat-regular"} variant="body1" mb={4}>
+        You’ve received your results. You can check them now or come back later{" "}
+        <br /> from your dashboard.
       </Typography>
 
-      <Box display={"flex"} gap={2} flexWrap={'wrap'}>
+      <Box display={"flex"} gap={2} flexWrap={"wrap"}>
         <BeyondResumeButton
           onClick={() => history.push(`/beyond-resume-interview-list`)}
           variant="contained"
           color="primary"
-          sx={{ px: 4, py: 1.5, borderRadius: 2, m: 0 }}
         >
           Check Result
         </BeyondResumeButton>
-        <BeyondResumeButton
+        <BeyondResumeButton2
           onClick={() => history.push(`/beyond-resume-interviews`)}
           variant="contained"
           color="primary"
-          sx={{ px: 4, py: 1.5, borderRadius: 2, m: 0 }}
         >
-          Back to Home
-        </BeyondResumeButton>
+          Return To Home
+        </BeyondResumeButton2>
       </Box>
     </Box>
   );

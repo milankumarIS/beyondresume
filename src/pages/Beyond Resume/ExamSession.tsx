@@ -152,32 +152,32 @@ const ExamSession: React.FC<ExamSessionProps> = ({
     setQuestionSpoken(true);
   };
 
-const speakText = (text: string): Promise<void> => {
-  return new Promise((resolve) => {
- setIsSpeaking(true);
+  const speakText = (text: string): Promise<void> => {
+    return new Promise((resolve) => {
+      setIsSpeaking(true);
       setConversation((prev) => [...prev, { speaker: "AI", text }]);
-          // await speakWithElevenLabs(text);
+      // await speakWithElevenLabs(text);
 
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = "en-US";
-    setIsSpeaking(true);
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = "en-US";
+      setIsSpeaking(true);
 
-    utterance.onend = () => {
-      setIsSpeaking(false);
-      resolve();
-    };
+      utterance.onend = () => {
+        setIsSpeaking(false);
+        resolve();
+      };
 
-    utterance.onerror = (e) => {
-      console.error("Speech synthesis error:", e);
-      setIsSpeaking(false);
-      resolve(); 
-    };
+      utterance.onerror = (e) => {
+        console.error("Speech synthesis error:", e);
+        setIsSpeaking(false);
+        resolve();
+      };
 
-    speechSynthesis.cancel();
+      speechSynthesis.cancel();
 
-    speechSynthesis.speak(utterance);
-  });
-};
+      speechSynthesis.speak(utterance);
+    });
+  };
 
   const startRecording = async () => {
     try {
@@ -263,7 +263,7 @@ const speakText = (text: string): Promise<void> => {
     moveToNextQuestion();
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     evaluateInterviewResponses({
       parsedData,
       userResponses,
@@ -279,21 +279,14 @@ const speakText = (text: string): Promise<void> => {
   };
 
   return (
-    <Box
-      className="full-screen-div"
-      p={4}
-      sx={{
-        background: "linear-gradient(145deg, #0d0d0d, #2D3436)",
-        color: "white",
-      }}
-    >
+    <Box className="full-screen-div" p={4}>
       <BeyondResumeButton
         variant="outlined"
         onClick={() => setPopupOpen(true)}
         disabled={isSpeaking || isRecording}
         sx={{
+          color: "inherit",
           background: "transparent",
-          borderColor: "white",
           position: "absolute",
           top: 30,
           right: 20,
@@ -417,7 +410,7 @@ const speakText = (text: string): Promise<void> => {
           variant="outlined"
           disabled={isSpeaking || isRecording}
           onClick={skipQuestion}
-          sx={{ background: "transparent", borderColor: "white" }}
+          sx={{ background: "transparent", color: "inherit" }}
         >
           Skip{" "}
           <FontAwesomeIcon
@@ -429,14 +422,14 @@ const speakText = (text: string): Promise<void> => {
         <ConfirmationPopup
           open={popupOpen}
           onClose={() => setPopupOpen(false)}
-          onConfirm={() =>
-            (location.href = `/beyond-resume-interview-success?sessionType=${encodeURIComponent(
-              sessionType
-            )}`)
-          }
+          onConfirm={async () => {
+            await handleSubmit();
+          }}
           color={"#50bcf6"}
-          message={"Do you want to end your interview?"}
-          warningMessage={`This will finish your interview. You cannot return to it later.`}
+          message="Are you sure you want to leave?"
+          warningMessage="Exiting now will submit your answers. You won’t be able to return to this interview session."
+          yesText="Submit & Exit"
+          noText="Stay & Continue"
           icon={
             <FontAwesomeIcon
               color={"#50bcf6"}

@@ -7,6 +7,7 @@ import { faFileExcel } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { BeyondResumeButton } from "../../components/util/CommonStyle";
 import { generateInterviewReportExcel } from "../../components/util/CommonFunctions";
+import color from "../../theme/color";
 
 type Question = {
   isCorrect: boolean;
@@ -69,7 +70,7 @@ const BeyondResumeInterviewOverview = () => {
           justifyContent: "center",
           alignItems: "center",
           flexDirection: "column",
-          background: "linear-gradient(145deg, #0d0d0d, #2D3436)",
+          // background: "linear-gradient(145deg, #0d0d0d, #2D3436)",
         }}
       >
         <div className="newtons-cradle">
@@ -102,25 +103,21 @@ const BeyondResumeInterviewOverview = () => {
     <Box
       sx={{
         p: 4,
-        background: "linear-gradient(145deg, #0d0d0d, #2D3436)",
+        // background: "linear-gradient(145deg, #0d0d0d, #2D3436)",
         minHeight: "100vh",
-        color: "white",
         position: "relative",
       }}
     >
       <Typography
         sx={{
-          background: "linear-gradient(180deg, #50bcf6, #5a81fd)",
-          color: "white",
           width: "fit-content",
           p: 2,
           borderRadius: "12px",
-          boxShadow: "0px 4px 10px rgba(90, 128, 253, 0.49)",
           position: "relative",
           m: "auto",
           mb: 2,
         }}
-        variant="h5"
+        variant="h4"
       >
         Interview Summary
       </Typography>
@@ -238,7 +235,7 @@ const BeyondResumeInterviewOverview = () => {
             type === "candidateResult" ? "space-between" : "-moz-initial",
           background:
             type === "candidateResult"
-              ? "linear-gradient(145deg, #0d0d0d, #2D3436)"
+              ? color.cardBg
               : "transparent",
           borderRadius: 4,
           border: type === "candidateResult" ? "solid 1px white" : "none",
@@ -265,7 +262,7 @@ const BeyondResumeInterviewOverview = () => {
           </Box>
         </Box>
         {type !== "candidateResult" && (
-          <Typography variant="h5">{remark}</Typography>
+          <Typography color="inherit" variant="h5">{remark}</Typography>
         )}
         {type === "candidateResult" && (
           <Box display={"flex"} flexDirection={"column"}>
@@ -307,7 +304,7 @@ const BeyondResumeInterviewOverview = () => {
       ) : (
         <Box
           sx={{
-            background: "linear-gradient(145deg, #0d0d0d, #2D3436)",
+            background: color.cardBg,
             border: "solid 1px white",
             p: 2,
             borderRadius: 4,

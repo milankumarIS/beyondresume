@@ -21,6 +21,7 @@ import {
   jobMode,
   jobType,
   payroll,
+  TalentPartnerScriptLines,
 } from "../../components/form/data";
 import {
   beyondResumeSchema,
@@ -28,7 +29,11 @@ import {
 } from "../../components/form/schema";
 import { useSnackbar } from "../../components/shared/SnackbarProvider";
 import { commonFormTextFieldSx } from "../../components/util/CommonFunctions";
-import { getUserId, getUserRole } from "../../services/axiosClient";
+import {
+  getUserFirstName,
+  getUserId,
+  getUserRole,
+} from "../../services/axiosClient";
 import {
   getUserAnswerFromAi,
   insertDataInTable,
@@ -37,6 +42,9 @@ import {
 } from "../../services/services";
 import BeyondResumeAvatar from "./Beyond Resume Components/BeyondResumeAvatar";
 import JobDescriptionResponse from "./JobDescriptionResponse";
+import GradientText, {
+  BeyondResumeButton,
+} from "../../components/util/CommonStyle";
 
 const BeyondResumeHome: React.FC = () => {
   const [loading, setLoading] = useState(false);
@@ -46,14 +54,6 @@ const BeyondResumeHome: React.FC = () => {
   // const [lastDateError, setLastDateError] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [avatarStatus, setAvatarStatus] = useState("");
-
-  const scriptLines = [
-    "Welcome, visionary! I’m your AI Talent Guide from Beyond Resume. Tired of sifting through endless resumes on LinkedIn or Naukri? Let me show you how we revolutionize hiring—saving you time while finding perfect-fit candidates.",
-    "Imagine describing a role in plain English—say, ‘Need a data scientist with Python and leadership skills’—and poof! Our AI crafts a full job description and tailored interview questions. Or upload your own. Either way, your job goes live in 30 seconds. No more template headaches!",
-    "Here’s the game-changer: Candidates choose how they’re assessed. Traditional hour-long written tests? Or an interactive AI voice interview that feels like a live chat? You get the same rich insights either way. Watch as candidates solve real problems—not just polish resumes.",
-    "See every applicant at a glance. Filter by ‘shortlisted,’ ‘rejected,’ or ‘needs review.’ Love a candidate? Shortlist them instantly. Best part? Grab a cumulative report—one PDF with every applicant’s skills, scores, and interview highlights. No more juggling spreadsheets!",
-    "Picture this: 70% less screening time, 50% deeper candidate insights, and zero ‘resume fluff.’ Our AI even flags hidden gems you might miss. Ready to hire smarter, not harder? Click ‘Post a Job’ now—or explore your dashboard. Let’s build your dream team together!",
-  ];
 
   const {
     control,
@@ -143,6 +143,8 @@ const BeyondResumeHome: React.FC = () => {
   const onSubmitHandler: SubmitHandler<BeyondResumeSchemaType> = async (
     data
   ) => {
+    console.log(data);
+
     // if (!lastDateOfApply) {
     //   setLastDateError("Last Date is required");
     //   return;
@@ -161,7 +163,17 @@ const BeyondResumeHome: React.FC = () => {
     - Qualifications
     - Job Type
     - Location
-    - Work Mode`;
+    - Work Mode
+
+    Before About section do not keep and other heading.
+
+    - Use <h3> for each section heading (e.g., About, Job Summary, Responsibilities, Qualifications, Job Type, Location, Work Mode).
+    - Use <p> for paragraph text
+    - Use <ul><li> for listing responsibilities and qualifications
+    - Ensure content includes a company introduction, a summary of the role, a detailed list of responsibilities, qualifications required, job type, location, and work mode.
+
+    The final output should be HTML-formatted and ready to render on a webpage, preserving all tags exactly.
+    `;
 
     try {
       setLoading(true);
@@ -202,11 +214,11 @@ const BeyondResumeHome: React.FC = () => {
   };
 
   return (
-    <Box>
+    <Box p={4}>
       <Box
         className="full-screen-div"
         sx={{
-          backgroundImage: "url('/assets/BR bg.png')",
+          // backgroundImage: "url('/assets/BR bg.png')",
           backgroundSize: "60% auto",
           backgroundRepeat: "no-repeat",
           backgroundPosition: "top right",
@@ -214,65 +226,45 @@ const BeyondResumeHome: React.FC = () => {
           // minHeight:'100vh'
         }}
       >
-        <CardMedia
-          component="img"
-          sx={{
-            position: "absolute",
-            top: "0",
-            left: "0",
-            height: "50%",
-            width: "auto",
-          }}
-          image="/assets/Object.png"
-        />
-
         <Box
           sx={{
-            // position: "absolute",
-            // top: "1%",
-            ml: "6%",
-            padding: 4,
             pb: 2,
-            maxWidth: { xs: "100%", md: "50vw" },
+            maxWidth: { xs: "100%", md: "100%" },
           }}
         >
-          <Typography
+          <Box
             sx={{
-              background: "linear-gradient(180deg, #50bcf6, #5a81fd)",
-              color: "white",
-              width: "fit-content",
-              p: 2,
-              borderRadius: "12px",
-              boxShadow: "0px 4px 10px rgba(90, 128, 253, 0.49)",
+              display: "flex",
+              gap: 1,
+              mb:2,
+              alignItems: "center",
+              justifyContent: "center",
+              width: "100%",
             }}
-            variant="h5"
-            mb={2.5}
           >
-            Beyond Resume
-          </Typography>
+            <Typography variant="h4">Hi</Typography>
+            <GradientText text={getUserFirstName()} variant="h4" />
+          </Box>
+
           <Typography
+            textAlign={"center"}
             mb={2}
-            variant="h5"
-            align="left"
-            gutterBottom
-            color="black"
+            variant="h6"
+            sx={{
+              fontFamily: "Montserrat-Regular",
+            }}
           >
-            Go Beyond Resumes. Discover Real Talent.
-          </Typography>
-          <Typography
-            mb={2}
-            align="left"
-            gutterBottom
-            sx={{ fontSize: "14px", color: "#a2a2a2" }}
-          >
-            Beyond Resume helps you discover the right talent faster through
-            AI-led interviews eliminating the guesswork and saving time on
-            traditional hiring methods.
+           Create a job opening and let us match the right candidates for you.
           </Typography>
 
           <form
             onSubmit={handleSubmit(onSubmitHandler)}
-            style={{ display: "flex", flexDirection: "column" }}
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              maxWidth: "60vw",
+              margin: "auto",
+            }}
           >
             <Grid2 container spacing={1}>
               <Grid2 size={{ xs: 12, sm: 6 }}>
@@ -299,14 +291,13 @@ const BeyondResumeHome: React.FC = () => {
 
                 <FormAutocomplete2
                   label="Job Title"
-                  options={jobFunctions}
+                  options={jobFunctions} // e.g., [{ id: 1, name: "Engineer" }]
                   defaultValue={selectedJobTitle}
-                  labelProp=""
-                  primeryKey=""
+                  labelProp="name"
+                  primeryKey="id"
                   setter={setSelectedJobTitle}
                   sx={{ ...commonFormTextFieldSx }}
                   px={2}
-                  search={""}
                 />
               </Grid2>
 
@@ -413,57 +404,43 @@ const BeyondResumeHome: React.FC = () => {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "flex-end",
+                  p:2
                 }}
               >
-                <Button
+                <BeyondResumeButton
                   type="submit"
                   variant="contained"
                   color="primary"
-                  sx={{
-                    borderRadius: "44px",
-                    px: 4,
-                    py: 1,
-                    mt: 3,
-                    mx: 2,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1,
-                    background: "linear-gradient(180deg, #50bcf6, #5a81fd)",
-                    transition: "all 0.3s",
-                    textTransform: "none",
-                    fontSize: "16px",
-                    "&:hover": {
-                      transform: "scale(1.08)",
-                    },
-                  }}
+
                   //   disabled={loading}
                 >
                   {loading ? (
                     <>
-                      Analyzing <CircularProgress color="inherit" size={18} />
+                      Analyzing <CircularProgress color="inherit" style={{marginLeft:'4px'}} size={18} />
                     </>
                   ) : (
                     <>
-                      Submit{" "}
+                      Generate JD{" "}
                       <FontAwesomeIcon
                         style={{ marginLeft: "6px" }}
                         icon={faArrowCircleRight}
                       />
                     </>
                   )}
-                </Button>
+                </BeyondResumeButton>
               </Grid2>
             </Grid2>
           </form>
         </Box>
       </Box>
+      
       {response && <JobDescriptionResponse jobId={jobid} response={response} />}
 
       {avatarStatus !== null && avatarStatus !== "CLOSED" && open && (
         <div>
           <BeyondResumeAvatar
             open={open}
-            scriptLines={scriptLines}
+            scriptLines={TalentPartnerScriptLines}
             onClose={() => setOpen(false)}
           />
         </div>

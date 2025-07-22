@@ -172,7 +172,7 @@ export default function BeyondResumeInterviewOverviewQA({
 
   return (
     <Box mt={4}>
-      <Typography variant="h6" color="white" mb={2}>
+      <Typography variant="h6"  mb={2}>
         Performance Graph
       </Typography>
 

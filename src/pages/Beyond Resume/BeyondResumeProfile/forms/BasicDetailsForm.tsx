@@ -179,10 +179,10 @@ export default function BasicDetailsForm({
     }
     onCancel();
   };
-  if (!dob) return null;
+  // if (!dob) return null;
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)}>
-      <Stack spacing={2} textAlign={"left"}>
+      <Stack spacing={2} textAlign={"left"} >
         <Box>
           <Stack
             sx={{

@@ -8,6 +8,7 @@ import {
   Stack,
 } from "@mui/material";
 import { commonFormTextFieldSx } from "../../../components/util/CommonFunctions";
+import color from "../../../theme/color";
 
 const defaultCategories = [
   "Technical Competence",
@@ -137,13 +138,13 @@ export default function CustomEvaluationDriver({
   );
 
   const isTotalValid = totalPercentage === 100;
-  const totalColor = isTotalValid ? "green" : "red";
+  const totalColor = isTotalValid ? "inherit" : "red";
   const totalMessage =
     totalPercentage < 100
       ? "The total weight is below 100%. Please allocate the remaining percentage across the selected evaluation categories."
       : totalPercentage > 100
       ? "The total weight exceeds 100%. Please reduce the allocation to maintain a valid distribution."
-      : "All evaluation weights are correctly distributed. You may proceed.";
+      : "Weights are balanced, You're good to go";
 
   useEffect(() => {
     const total = selectedCategories.reduce(
@@ -153,17 +154,25 @@ export default function CustomEvaluationDriver({
     setIsTotalValid(total === 100);
   }, [percentages, selectedCategories, setIsTotalValid]);
 
+  const size = 120;
+  const progress = totalPercentage / 100;
+  const strokeWidth = 22;
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference * (1 - progress);
+
   return (
-    <Box>
+    <Box textAlign={"center"}>
       <Typography
         gutterBottom
         align="center"
         fontWeight="bold"
-        color="black"
-        my={2}
+        mb={0}
         mt={4}
+        fontFamily={"montserrat-regular"}
       >
-        Customised Evaluation Driver
+        Pick the areas our AI should focus on while evaluating candidates. (Max
+        10 selections)
       </Typography>
 
       <Autocomplete
@@ -171,28 +180,34 @@ export default function CustomEvaluationDriver({
         options={allPossibleCategories}
         value={selectedCategories}
         onChange={handleCategoryChange}
-        renderInput={(params) => (
-          <TextField
-            {...params}
-            label="Select Evaluation Categories (max 10 selections)"
-          />
-        )}
+        renderInput={(params) => <TextField {...params} />}
         sx={{
           ...commonFormTextFieldSx,
           borderRadius: "12px",
           maxWidth: 700,
           margin: "auto",
-          my: 3,
+          mb: 6,
+          mt: 2,
         }}
       />
 
+      <Typography>
+        Here's the suggested weights for each evaluation category.
+      </Typography>
+
+      <Typography gutterBottom fontFamily={"montserrat-regular"}>
+        You can adjust them as needed — just make sure the total adds up to 100%
+      </Typography>
+
+      <Box display={'flex'} gap={4} alignItems={'center'} justifyContent={'center'}>
+
       <Box
+      width={'100%'}
         display="flex"
         flexWrap="wrap"
+        flexDirection={"column"}
         justifyContent="center"
-        gap={2}
         sx={{
-          boxShadow: "0px 0px 20px rgba(0, 0, 0, 0.10)",
           borderRadius: "12px",
           p: 2,
         }}
@@ -201,29 +216,35 @@ export default function CustomEvaluationDriver({
           <Box
             key={category}
             minWidth={"420px"}
-            maxWidth={"400px"}
             sx={{
-              p: 3,
+              p: 2,
               px: 4,
               borderRadius: "12px",
+              display: "flex",
+              justifyContent: "flex-start",
+              alignItems: "center",
+              gap: 2,
             }}
           >
-            <Stack direction="row" spacing={1} alignItems="center" mb={1}>
+            <Stack
+              direction="column"
+              spacing={1}
+              alignItems="flex-start"
+              minWidth={"200px"}
+            >
               <Typography
                 fontWeight={600}
-                color="white"
                 sx={{
-                  background: "linear-gradient(180deg, #50bcf6, #5a81fd)",
+                  color: color.titleColor,
                   borderRadius: "12px",
-                  px: 1,
-                  py: 0.5,
                   fontSize: "0.875rem",
+                  textAlign: "left",
                 }}
               >
                 {category}
               </Typography>
-              <Typography variant="body2" color="textSecondary">
-                ({getQuestionCount(percentages[category] || 0)} Qs)
+              <Typography variant="body2">
+                {getQuestionCount(percentages[category] || 0)} Questions
               </Typography>
             </Stack>
             <Slider
@@ -239,14 +260,14 @@ export default function CustomEvaluationDriver({
                     style={{
                       padding: "2px 10px",
                       borderRadius: "12px",
-                      backgroundColor:
+                      background:
                         percentages[category] === mark.value
-                          ? "#50bcf6"
+                          ? color.activeButtonBg
                           : "#ffffff22",
                       color:
                         percentages[category] === mark.value
                           ? "white"
-                          : "#50bcf6",
+                          : "inherit",
                     }}
                   >
                     {mark.label}
@@ -254,28 +275,59 @@ export default function CustomEvaluationDriver({
                 ),
               }))}
               valueLabelDisplay="auto"
-              sx={{ color: "#50bcf6", mt: 1 }}
+              sx={{ color: "#50bcf6", 
+               }}
             />
           </Box>
         ))}
       </Box>
-      <Box
-        textAlign="center"
-        mt={4}
-        sx={{
-          boxShadow: "0px 0px 20px rgba(0, 0, 0, 0.10)",
-          borderRadius: "12px",
-          p: 2,
-          width: "fit-content",
-          mx: "auto",
-        }}
-      >
-        <Typography fontWeight="bold" color={totalColor}>
-          Total: {totalPercentage}%
-        </Typography>
-        <Typography variant="body2" color={totalColor} mt={1}>
+
+      <Box width={'300px'} textAlign={'center'}>
+        <Box sx={{m:'auto', position: "relative", width: size, height: size }}>
+          <svg width={size} height={size}>
+            <circle
+              stroke="#2A2D3E"
+              fill="transparent"
+              strokeWidth={strokeWidth}
+              r={radius}
+              cx={size / 2}
+              cy={size / 2}
+            />
+            <circle
+              stroke={color.newFirstColor}
+              fill="transparent"
+              strokeWidth={strokeWidth}
+              strokeLinecap="round"
+              strokeDasharray={circumference}
+              strokeDashoffset={offset}
+              r={radius}
+              cx={size / 2}
+              cy={size / 2}
+              transform={`rotate(-90 ${size / 2} ${size / 2})`}
+            />
+          </svg>
+          <Typography
+            sx={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: size,
+              height: size,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              textAlign: "center",
+              fontSize: 16,
+              fontWeight: 600,
+            }}
+          >
+            {totalPercentage}%
+          </Typography>
+        </Box>
+        <Typography sx={{fontFamily:'montserrat-regular'}} textAlign={'center'} variant="body2" color={totalColor} mt={1}>
           {totalMessage}
         </Typography>
+      </Box>
       </Box>
     </Box>
   );

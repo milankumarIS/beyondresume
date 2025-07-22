@@ -1,24 +1,16 @@
-import {
-  Avatar,
-  Box,
-  Button,
-  Card,
-  Grid,
-  LinearProgress,
-  Tab,
-  Tabs,
-  Typography,
-} from "@mui/material";
+import { Box, Tab, Tabs, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
-import BeyondResumeSubscription from "./Beyond Resume Components/BeyondResumeSubscription";
 import { pricingPlans } from "../../components/form/data";
-import { getUserId } from "../../services/axiosClient";
+import { formatDateJob } from "../../components/util/CommonFunctions";
+import GradientText from "../../components/util/CommonStyle";
+import { getUserFirstName, getUserId, getUserRole } from "../../services/axiosClient";
 import {
   getProfile,
   searchDataFromTable,
   searchListDataFromTable,
 } from "../../services/services";
-import { BeyondResumeButton } from "../../components/util/CommonStyle";
+import color from "../../theme/color";
+import BeyondResumeSubscription from "./Beyond Resume Components/BeyondResumeSubscription";
 
 export default function BeyondResumePricing() {
   const [duration, setDuration] = useState("1month");
@@ -34,32 +26,13 @@ export default function BeyondResumePricing() {
     userName: "",
     phone: "",
     plan: "",
+    endDate: "",
     daysLeft: 0,
     mockUsed: 0,
     mockTotal: 0,
     jobUsed: 0,
     jobTotal: 0,
   });
-
-  //   console.log(subscriptionData);
-
-  const categories = [
-    {
-      icon: "Shape 3",
-      title: "Tailored Interview Practice",
-      desc: "Premium users unlock custom mock interviews based on their resume or dream job, ensuring every practice session is aligned with their actual career goals.",
-    },
-    {
-      icon: "Shape 7",
-      title: "Real-Time Voice Interview Simulations",
-      desc: "Experience advanced voice-based interviews that mimic real-world scenarios — available exclusively to Premium members for more immersive and confident preparation.",
-    },
-    {
-      icon: "Shape 4",
-      title: "Detailed AI Performance Insights",
-      desc: "Gain access to in-depth analytics on every answer — from structure to tone — with actionable suggestions to help you improve and stand out in real interviews.",
-    },
-  ];
 
   useEffect(() => {
     const checkSubscription = async () => {
@@ -88,11 +61,11 @@ export default function BeyondResumePricing() {
 
       if (!payment || new Date(payment.endDate) < now) return;
 
-        const planDetails = pricingPlans.find((plan) =>
-          payment.planName?.toLowerCase().includes(plan.title.toLowerCase())
-        );
+      const planDetails = pricingPlans.find((plan) =>
+        payment.planName?.toLowerCase().includes(plan.title.toLowerCase())
+      );
 
-    //   const planDetails = pricingPlans.find((plan) => plan.title === subscription.planName);
+      //   const planDetails = pricingPlans.find((plan) => plan.title === subscription.planName);
 
       const mockFeature = planDetails?.features.find((f) =>
         f.label.toLowerCase().includes("mock interview")
@@ -107,7 +80,7 @@ export default function BeyondResumePricing() {
         return match ? parseInt(match[1], 10) : 0;
       };
 
-    //   console.log(mockFeature);
+      //   console.log(mockFeature);
 
       const mockTotal = mockFeature?.label
         ? extractNumberFromLabel(mockFeature.label)
@@ -139,6 +112,7 @@ export default function BeyondResumePricing() {
         mockTotal,
         jobUsed,
         jobTotal,
+        endDate: formatDateJob(payment.endDate),
       });
     };
 
@@ -148,9 +122,6 @@ export default function BeyondResumePricing() {
   return (
     <Box
       sx={{
-        color: "white",
-        background:
-          "linear-gradient(180deg,rgb(255, 255, 255),rgb(220, 220, 220))",
         position: "relative",
         padding: "16px",
         minHeight: "100vh",
@@ -158,22 +129,6 @@ export default function BeyondResumePricing() {
     >
       {activeSubscription && (
         <>
-          <Typography
-            variant="h3"
-            sx={{
-              fontFamily: "Custom-Bold",
-              color: "black",
-              width: "fit-content",
-              p: 4,
-              pb: 2,
-              borderRadius: "12px",
-              textAlign: "center",
-              m: "auto",
-              lineHeight: 1,
-            }}
-          >
-            Your Active Plan
-          </Typography>
           <SubscriptionGlassCard
             {...subscriptionData}
             onUpgrade={() =>
@@ -183,65 +138,12 @@ export default function BeyondResumePricing() {
             }
           />
         </>
-
-        // <Box
-        //   sx={{
-        //     //   background: "#f4f4f4",
-        //     p: 3,
-        //     borderRadius: 2,
-        //     maxWidth: "600px",
-        //     mx: "auto",
-        //     textAlign: "center",
-        //     mt: 4,
-        //     mb: 2,
-        //     background: "linear-gradient(145deg, #0d0d0d, #2D3436)",
-        //   }}
-        // >
-        //   <Typography variant="h5" sx={{ fontWeight: 600, mb: 1 }}>
-        //     Current Plan: {activeSubscription.planName}
-        //   </Typography>
-        //   <Typography variant="body1">
-        //     Duration:{" "}
-        //     {new Date(activeSubscription.startDate).toLocaleDateString()} to{" "}
-        //     {new Date(activeSubscription.endDate).toLocaleDateString()}
-        //   </Typography>
-        //   <Typography variant="body2" sx={{ mt: 1 }}>
-        //     Days Left:{" "}
-        //     {Math.max(
-        //       0,
-        //       Math.floor(
-        //         (new Date(activeSubscription.endDate).getTime() -
-        //           new Date().getTime()) /
-        //           (1000 * 60 * 60 * 24)
-        //       )
-        //     )}
-        //   </Typography>
-        //   <Typography variant="body2" sx={{ mt: 1 }}>
-        //     Mock Interviews Left: {remainingMockInterviews}
-        //   </Typography>
-        //   <Typography variant="body2" sx={{ mt: 0.5 }}>
-        //     Job Posts Left: {remainingJobPosts}
-        //   </Typography>
-
-        //   <Button
-        //     variant="contained"
-        //     sx={{ mt: 2, borderRadius: "999px", px: 4 }}
-        //     onClick={() => {
-        //       document
-        //         .getElementById("plan-details")
-        //         ?.scrollIntoView({ behavior: "smooth" });
-        //     }}
-        //   >
-        //     Upgrade Plan
-        //   </Button>
-        // </Box>
       )}
 
       <Typography
-        variant="h3"
+        variant="h4"
         sx={{
           fontFamily: "Custom-Bold",
-          color: "black",
           width: "fit-content",
           p: 4,
           pb: 2,
@@ -251,26 +153,12 @@ export default function BeyondResumePricing() {
           lineHeight: 1,
         }}
       >
-        Your ideal plan starts here
-      </Typography>
-      <Typography
-        fontSize={"18px"}
-        mb={4}
-        maxWidth={"60%"}
-        mx={"auto"}
-        fontFamily="Montserrat-Regular"
-        color="black"
-        textAlign="center"
-      >
-        Explore our flexible subscription plans and choose the one that best
-        fits your unique needs, whether you're just starting out or scaling up.
+        Manage Your plans
       </Typography>
 
       <Box
         id="plan-details"
         sx={{
-          boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.46)",
-          background: "linear-gradient(145deg, #0d0d0d, #2D3436)",
           width: "fit-content",
           p: 2,
           mx: "auto",
@@ -284,20 +172,34 @@ export default function BeyondResumePricing() {
           allowScrollButtonsMobile
           centered
           sx={{
-            mt: 4,
-            mb: 4,
+            m: "auto",
+            fontFamily: "montserrat-regular",
+
+            my: 4,
+            background: "white",
+            width: "fit-content",
+            borderRadius: "32px",
+            p: 1,
+            minHeight: "0px",
+
             "& .MuiTab-root": {
-              color: "white",
-              background: "#2d3436",
+              color: "black",
+              background: "transparent",
               borderRadius: "999px",
               marginRight: "8px",
               paddingX: "16px",
+              minHeight: "0px",
               textTransform: "none",
               border: "1px solid #ffffff44",
+              fontFamily: "montserrat-regular",
             },
             "& .Mui-selected": {
-              background: "linear-gradient(180deg, #50bcf6, #5a81fd)",
+              background: color.newbg,
               color: "white !important",
+            },
+            "& .MuiButtonBase-root": {
+              p: 0,
+              py: 1,
             },
             "& .MuiTabs-indicator": {
               backgroundColor: "transparent",
@@ -315,96 +217,9 @@ export default function BeyondResumePricing() {
           setSelectedPlan={setSelectedPlan}
         />
       </Box>
-
-      <Typography
-        variant="h3"
-        sx={{
-          fontFamily: "Custom-Bold",
-          color: "black",
-          width: "fit-content",
-          p: 4,
-          pb: 2,
-          borderRadius: "12px",
-          textAlign: "center",
-          m: "auto",
-          lineHeight: 1,
-        }}
-      >
-        Why go premium
-      </Typography>
-
-      <Typography
-        fontSize={"18px"}
-        mb={4}
-        maxWidth={"60%"}
-        mx={"auto"}
-        fontFamily="Montserrat-Regular"
-        color="black"
-        textAlign="center"
-      >
-        Premium gives you smarter practice, real-time simulations, and AI
-        feedback — all to help you land your dream job.
-      </Typography>
-
-      <Grid container spacing={4} p={2} justifyContent="center">
-        {categories.map((cat, index) => (
-          <Grid
-            sx={{ display: "flex", justifyContent: "center" }}
-            item
-            xs={12}
-            sm={6}
-            md={4}
-            key={index}
-          >
-            <CategoryCard {...cat} />
-          </Grid>
-        ))}
-      </Grid>
     </Box>
   );
 }
-
-const CategoryCard = ({ icon, title, highlight, desc }: any) => {
-  return (
-    <Card
-      elevation={highlight ? 8 : 3}
-      sx={{
-        p: 6,
-        textAlign: "left",
-        borderRadius: 3,
-        width: "70%",
-        height: "300px",
-        boxShadow: "0 8px 24px rgba(29, 28, 39, 0.07)",
-        position: "relative",
-        background: "linear-gradient(145deg, #0d0d0d, #2D3436)",
-        color: "white",
-      }}
-    >
-      <Box position={"relative"} mb={2}>
-        {/* <FontAwesomeIcon
-          icon={icon}
-          size="6x"
-          style={{ marginBottom: "20px" }}
-        /> */}
-        <img style={{ width: "80px" }} src={`/assets/${icon}.png`}></img>
-        <Typography
-          mt={2}
-          variant="h6"
-          sx={{ fontFamily: "custom-bold", lineHeight: 1.2 }}
-        >
-          {title}
-        </Typography>
-        <Typography
-          sx={{ fontFamily: "Montserrat-Regular" }}
-          variant="body2"
-          mt={1}
-        >
-          {desc}
-        </Typography>
-      </Box>
-    </Card>
-  );
-};
 
 const SubscriptionGlassCard = ({
   userName = "Loganayaki",
@@ -416,104 +231,208 @@ const SubscriptionGlassCard = ({
   jobUsed = 1,
   jobTotal = 3,
   onUpgrade,
+  endDate,
 }: any) => {
-  const mockPercent = (mockUsed / mockTotal) * 100;
-  const jobPercent = (jobUsed / jobTotal) * 100;
+  const mockPercent = mockUsed / mockTotal;
+  const datePercent = 1 - daysLeft / 30;
+  const jobPercent = (jobUsed / jobTotal) ;
+
+  const mocksLeft = mockTotal - mockUsed;
+  const jobsLeft = jobTotal - jobUsed;
+
+  const stats = [
+    {
+      title:  "Practice Interviews" ,
+      centerText: "Left",
+      subtitle: `Used ${mockUsed} out of ${mockTotal}`,
+      progress: mockPercent,
+      color: color.secondActiveColor,
+
+      mocksLeft: `${mocksLeft}`,
+    },
+    {
+      title: "Auto-renewal in",
+      centerText: "days",
+      subtitle: `on ${endDate}`,
+      progress: datePercent,
+      color: color.activeColor,
+
+      daysLeft: `${daysLeft}`,
+    },
+  ];
+
+  const stats1 = [
+    {
+      title: 'Job Posts',
+      centerText: "Left",
+      subtitle: `Used ${jobUsed} out of ${jobTotal}`,
+      progress: jobPercent,
+      color: color.secondActiveColor,
+
+      mocksLeft: `${jobsLeft}`,
+    },
+    {
+      title: "Auto-renewal in",
+      centerText: "days",
+      subtitle: `on ${endDate}`,
+      progress: datePercent,
+      color: color.activeColor,
+
+      daysLeft: `${daysLeft}`,
+    },
+  ];
+
+  const statsMap = getUserRole() === 'CAREER SEEKER' ? stats : stats1;
 
   return (
-    <Card
-      sx={{
-        width: "100%",
-        maxWidth: 480,
-        mx: "auto",
-        mt: 4,
-        borderRadius: 4,
-        p: 4,
-        pt:6,
-        background: "linear-gradient(145deg, #0d0d0d, #2D3436)",
-
-        backdropFilter: "blur(10px)",
-        boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2)",
-        color: "white",
-        position: "relative",
-      }}
-    >
-      <Box textAlign="left" mb={3}>
-        {/* <Avatar
-          src="/assets/avatar.png"
-          sx={{ width: 80, height: 80, mx: "auto", mb: 1 }}
-        /> */}
-        <Typography variant="h6">Name: {userName}</Typography>
-        <Typography variant="body2" sx={{ opacity: 0.8 }}>
-          Email: {phone}
-        </Typography>
+    <Box>
+      <Box
+        sx={{
+          display: "flex",
+          gap: 1,
+          alignItems: "center",
+          justifyContent: "center",
+          width: "100%",
+        }}
+      >
+        <Typography variant="h4">Hi</Typography>
+        <GradientText text={getUserFirstName()} variant="h4" />
       </Box>
+      <Typography
+        variant="h5"
+        sx={{
+          fontFamily: "montserrat-regular",
+          width: "fit-content",
+          p: 4,
+          pb: 2,
+          borderRadius: "12px",
+          textAlign: "center",
+          m: "auto",
+          lineHeight: 1,
+        }}
+      >
+        You're currently on the{" "}
+        <span style={{ fontFamily: "custom-bold" }}> {plan} Plan</span>
+      </Typography>
 
       <Box
         sx={{
           display: "flex",
-          justifyContent: "space-between",
-          mb: 2,
-        //   px: 1,
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 4,
+          padding: 4,
         }}
       >
-        <Box>
-          <Typography fontSize={14} sx={{ opacity: 0.7 }}>
-            Current Plan
-          </Typography>
-          <Typography fontWeight="bold">{plan}</Typography>
-        </Box>
-        <Box>
-          <Typography fontSize={14} sx={{ opacity: 0.7 }}>
-            Days Left
-          </Typography>
-          <Typography fontWeight="bold">{daysLeft} days</Typography>
-        </Box>
+        {statsMap.map((stat, idx) => (
+          <DonutStatCard key={idx} {...stat} />
+        ))}
       </Box>
+    </Box>
+  );
+};
 
-      <Box mt={3}>
-        <Typography fontSize={14} mb={1}>
-          Mock Interviews ({mockUsed}/{mockTotal})
-        </Typography>
-        <LinearProgress
-          variant="determinate"
-          value={mockPercent}
-          sx={{
-            height: 10,
-            borderRadius: 5,
-            backgroundColor: "#333",
-            "& .MuiLinearProgress-bar": {
-              backgroundColor: "#50bcf6",
-            },
-            mb: 2,
-          }}
-        />
+interface DonutStatCardProps {
+  title: string;
+  centerText: string;
+  subtitle: string;
+  progress: number; // 0 to 1 (e.g., 0.5 for 50%)
+  color?: string;
+  daysLeft?: string;
+  mocksLeft?: string;
+}
 
-        <Typography fontSize={14} mb={1}>
-          Job Posts ({jobUsed}/{jobTotal})
-        </Typography>
-        <LinearProgress
-          variant="determinate"
-          value={jobPercent}
-          sx={{
-            height: 10,
-            borderRadius: 5,
-            backgroundColor: "#333",
-            "& .MuiLinearProgress-bar": {
-              backgroundColor: "#00c853",
-            },
-          }}
-        />
-      </Box>
+const DonutStatCard: React.FC<DonutStatCardProps> = ({
+  title,
+  centerText,
+  subtitle,
+  progress,
+  color = "#00B0F0",
+  daysLeft,
+  mocksLeft,
+}) => {
+  const size = 120;
+  const strokeWidth = 22;
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference * (1 - progress);
 
-      <BeyondResumeButton
-        variant="contained"
-        color="primary"
-        sx={{ m: "auto", display: "block", mt: 4 }}
-        onClick={onUpgrade}
+  return (
+    <Box
+      sx={{
+        borderRadius: 3,
+        padding: 2,
+        width: 180,
+        height: 200,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        color: "white",
+        backgroundColor: "#0A0E1A",
+      }}
+    >
+      <Typography
+        sx={{ fontFamily: "custom-bold" }}
+        variant="subtitle1"
+        fontWeight="bold"
+        mb={1}
       >
-        Upgrade Plan
-      </BeyondResumeButton>
-    </Card>
+        {title}
+      </Typography>
+
+      <Box sx={{ position: "relative", width: size, height: size }}>
+        <svg width={size} height={size}>
+          <circle
+            stroke="#2A2D3E"
+            fill="transparent"
+            strokeWidth={strokeWidth}
+            r={radius}
+            cx={size / 2}
+            cy={size / 2}
+          />
+          <circle
+            stroke={color}
+            fill="transparent"
+            strokeWidth={strokeWidth}
+            strokeLinecap="round"
+            strokeDasharray={circumference}
+            strokeDashoffset={offset}
+            r={radius}
+            cx={size / 2}
+            cy={size / 2}
+            transform={`rotate(-90 ${size / 2} ${size / 2})`}
+          />
+        </svg>
+        <Typography
+          sx={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: size,
+            height: size,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            textAlign: "center",
+            fontSize: 16,
+            fontWeight: 600,
+          }}
+        >
+          {mocksLeft ? mocksLeft : daysLeft}
+          <br /> {""}
+          {centerText}
+        </Typography>
+      </Box>
+
+      <Typography
+        sx={{ fontFamily: "montserrat-regular" }}
+        variant="body2"
+        mt={2}
+        textAlign="center"
+      >
+        {subtitle}
+      </Typography>
+    </Box>
   );
 };

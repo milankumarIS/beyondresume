@@ -551,7 +551,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #50bcf6;
+  background: linear-gradient(180deg, #06B0BF, #1353AE);
   border-radius: 10px;
 }
 
