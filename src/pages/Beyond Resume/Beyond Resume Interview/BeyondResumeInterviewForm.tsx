@@ -42,6 +42,7 @@ import BeyondResumeLoader from "../Beyond Resume Components/BeyondResumeLoader";
 import BeyondResumeUpgradeRequiredModal from "../Beyond Resume Components/BeyondResumeUpgradeRequiredModal";
 import { faArrowCircleRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import color from "../../../theme/color";
 
 const Container = styled(Box)({
   //   background: 'linear-gradient(180deg, #50bcf6, #5a81fd)',
@@ -249,8 +250,8 @@ const BeyondResumeInterviewForm = () => {
         }.
   
         2. For each category:
-          - Generate **at least 5 questions** with varying complexity levels (Low, Moderate, High).
-          - Include a **"complexity"** field for each question with values: "Low", "Moderate", or "High".
+          - Generate **at least 5 questions** with varying complexity levels (Beginner, Intermediate, Advance and Complex).
+          - Include a **"complexity"** field for each question with values:  "Beginner", "Intermediate", "Advance" and 'Complex.
           - Provide **a suggested answer** or key points to look for.
           - Include a **"qualifyingCriteria"** field for each category explaining how to evaluate if the candidate meets expectations in that area.
   
@@ -265,7 +266,7 @@ const BeyondResumeInterviewForm = () => {
               "questions": [
                 {
                   "question": "Your question text here",
-                  "complexity": "Low | Moderate | High",
+                  "complexity": "Beginner | Intermediate | Advance | Complex",
                   "suggestedAnswer": "Expected or acceptable answer points"
                 }
               ]
@@ -323,7 +324,11 @@ const BeyondResumeInterviewForm = () => {
           setOpen(false);
           const sessionType = "practiceSession";
           history.push(
-            `/beyond-resume-readyToJoin/${interviewId}?sessionType=${sessionType}`
+            `/beyond-resume-readyToJoin/${interviewId}?sessionType=${sessionType}`,
+            {
+              duration: duration,
+              noOfQuestions: duration / 2,
+            }
           );
         }, 300);
       } catch (error) {
@@ -450,9 +455,9 @@ const BeyondResumeInterviewForm = () => {
                 key={level}
                 value={level}
                 style={{
-                  backgroundColor:
-                    experience === level ? "white" : "#ffffff22",
-                  color: experience === level ? "black" : "white",
+                  background:
+                    experience === level ? color.activeButtonBg : "#ffffff22",
+                  color: experience === level ? "white" : "inherit",
                   borderRadius: "999px",
                   border: "1px solid #ccc",
                 }}
@@ -477,10 +482,8 @@ const BeyondResumeInterviewForm = () => {
           </ToggleButtonGroup>
         </Box>
 
-        <Box >
-          <Typography gutterBottom>
-           Interview Duration
-          </Typography>
+        <Box>
+          <Typography gutterBottom>Interview Duration</Typography>
           <Slider
             value={duration}
             onChange={(e, value) => setDuration(value as number)}
@@ -495,7 +498,7 @@ const BeyondResumeInterviewForm = () => {
                     padding: "2px 10px",
                     borderRadius: "12px",
                     backgroundColor:
-                      duration === mark.value ? "#50bcf6" : "#ffffff22",
+                      duration === mark.value ? color.activeColor : "#ffffff22",
                     color: duration === mark.value ? "white" : "grey",
                   }}
                 >
@@ -505,7 +508,7 @@ const BeyondResumeInterviewForm = () => {
             }))}
             valueLabelDisplay="auto"
             sx={{
-              color: "#50bcf6",
+              color: color.activeColor,
             }}
           />
         </Box>
@@ -579,7 +582,7 @@ const BeyondResumeInterviewForm = () => {
                   <Typography
                     variant="body2"
                     sx={{
-                      background: "linear-gradient(180deg, #50bcf6, #50bcf6)",
+                      background: color.activeButtonBg,
                       color: "white",
                       p: 1,
                       px: 4,
@@ -607,7 +610,7 @@ const BeyondResumeInterviewForm = () => {
                   <Typography
                     variant="body2"
                     sx={{
-                      background: "linear-gradient(180deg, #50bcf6, #50bcf6)",
+                      background: color.activeButtonBg,
                       color: "white",
                       p: 1,
                       px: 4,
@@ -773,15 +776,12 @@ const BeyondResumeInterviewForm = () => {
               />
             </>
           ) : (
-            <>
-              Submit{" "}
-            </>
-
+            <>Submit </>
           )}
         </BeyondResumeButton>
       </Form>
       <BeyondResumeLoader open={open} progress={progress} />
-      <BeyondResumeUpgradeRequiredModal open={showModal} />
+      {/* <BeyondResumeUpgradeRequiredModal open={showModal} /> */}
     </Box>
   );
 };

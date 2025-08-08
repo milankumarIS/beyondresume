@@ -413,9 +413,9 @@ export async function getAiAnswer(payload: any) {
   }
 }
 
-export function giveMarksToAiAnswer(payload: any) {
-  return client.post(`ai/giveMarksToAiAnswer`, payload);
-}
+// export function giveMarksToAiAnswer(payload: any) {
+//   return client.post(`ai/giveMarksToAiAnswer`, payload);
+// }
 
 export function getProfileScore(payload: any) {
   return client.post(`education/getProfileScore`, payload);
@@ -426,17 +426,18 @@ export function getStudentAnalytics(payload: any) {
 
 }
 
-export function getUserAiScore(payload: any) {
-  return client.post(`ai/getUserAiScore`, payload);
-}
+// export function getUserAiScore(payload: any) {
+//   return client.post(`ai/getUserAiScore`, payload);
+// }
 
 export function getUserAnswerFromAi(payload: any) {
   return client.post(`ai/getUserAnswerFromAi`, payload);
 }
 
-export function getUserAnswerFromAiThroughJson(payload: any) {
-  return client.post(`ai/getUserAnswerFromAiThroughJson`, payload);
-}
+// export function getUserAnswerFromAiThroughJson(payload: any) {
+//   return client.post(`ai/getUserAnswerFromAiThroughJson`, payload);
+// }
+
 export function getUserAnswerFromAiThroughPdf(payload: any) {
   return client.post(`ai/getUserAnswerFromAiThroughPdf`, payload);
 }
@@ -452,3 +453,8 @@ export function g2iRegister(payload: any) {
 export function g2iRegisterMobile(payload: any) {
   return client.post(`education/g2iRegister-mobile`, payload);
 }
+
+export function getRandomQuestions(query: any) {
+  return client.get(`brQuestionSets/getRandomQuestions`, { params: query });
+}
+

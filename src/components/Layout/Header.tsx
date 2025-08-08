@@ -1,23 +1,35 @@
 import {
-  faBell,
-  faCircleUser,
   faCloudMoon,
   faCloudSun,
-  faGear,
-  faMoon,
   faSignOut,
-  faSun,
-  faUser,
+  faUserCircle,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Box } from "@mui/material";
 import React, { useState } from "react";
-import { useTheme } from "../util/ThemeContext";
+import { useHistory, useLocation } from "react-router-dom";
+
+import { GradientFontAwesomeIcon } from "../util/CommonStyle";
 import ConfirmationPopup from "../util/ConfirmationPopup";
+import { useTheme } from "../util/ThemeContext";
+import { getUserRole } from "../../services/axiosClient";
 
 const Header: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
   const [popupOpen1, setPopupOpen1] = useState(false);
+  const history = useHistory();
+  const locationurl = useLocation();
+
+  const isOnProfilePage =
+    location.pathname === "/beyond-resume-candidate-profile";
+
+  const handleClick = () => {
+    if (isOnProfilePage) {
+      history.goBack();
+    } else {
+      history.push("/beyond-resume-candidate-profile");
+    }
+  };
 
   return (
     <div
@@ -29,6 +41,7 @@ const Header: React.FC = () => {
         justifyContent: "space-between",
         padding: "0 24px",
         backdropFilter: "blur(10px)",
+        zIndex: 100,
       }}
     >
       <img
@@ -39,14 +52,39 @@ const Header: React.FC = () => {
         // onClick={() => handleNavClick(history, setButtonColors, "/home")}
       ></img>
 
-      <Box p={1} fontSize={"20px"}>
+      <Box
+        p={1}
+        fontSize={"20px"}
+        display={"flex"}
+        alignItems={"center"}
+        gap={2.5}
+      >
         <FontAwesomeIcon
           icon={theme === "dark" ? faCloudSun : faCloudMoon}
-          style={{ marginRight: 24, cursor: "pointer" }}
+          style={{ cursor: "pointer" }}
           onClick={toggleTheme}
           title="Toggle Theme"
         />
+        {/* <FontAwesomeIcon
+          title="My Profile"
+          style={{
+            cursor: "pointer",
+            marginRight: 24,
+          }}
+          onClick={() => history.push("/beyond-resume-candidate-profile")}
+          icon={faUserCircle}
+        /> */}
+        {getUserRole() === "CAREER SEEKER"}
+        <Box style={{ cursor: "pointer" }} onClick={handleClick}>
+          {isOnProfilePage ? (
+            <GradientFontAwesomeIcon size={20} icon={faUserCircle} />
+          ) : (
+            <FontAwesomeIcon icon={faUserCircle} />
+          )}
+        </Box>
+
         <FontAwesomeIcon
+          title="Sign out"
           style={{
             cursor: "pointer",
           }}

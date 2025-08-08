@@ -107,7 +107,11 @@ const BeyondResumePracticeInterviewForm = () => {
 
         const sessionType = "practiceSession";
         history.push(
-          `/beyond-resume-readyToJoin/${interviewId}?sessionType=${sessionType}`
+          `/beyond-resume-readyToJoin/${interviewId}?sessionType=${sessionType}`,
+            {
+              duration: jobsData?.interviewDuration,
+              noOfQuestions: jobsData?.interviewDuration / 2,
+            }
         );
       })
       .catch((error) => {

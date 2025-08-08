@@ -6,9 +6,7 @@ import './theme/variables.css';
 
 import { ThemeProvider } from '@emotion/react';
 import '@google/model-viewer';
-import HeaderDesktop from './components/shared/Header/HeaderDesktop';
 import { ProtectedRoute } from './components/shared/ProtectedRoute';
-import { getUserRole } from './services/axiosClient';
 import './styles/global.css';
 import fontTheme from './theme/fontTheme';
 
@@ -17,6 +15,9 @@ import './components/util/Service.css';
 // import Letterhead from './components/util/Letterhead';
 
 import SSORedirectHandler from './components/Authentication/SSORedirectHandler';
+import LayoutContainer from './components/Layout/LayoutContainer';
+import { ThemeProviderCustom } from './components/util/ThemeContext';
+import { UserDataProvider } from './components/util/UserDataContext';
 import { UserModuleRoleProvider } from './components/util/UserModuleRoleContext';
 import BeyondResumeInterviewForm from './pages/Beyond Resume/Beyond Resume Interview/BeyondResumeInterviewForm';
 import BeyondResumeInterviewSuccess from './pages/Beyond Resume/Beyond Resume Interview/BeyondResumeInterviewSuccess';
@@ -33,15 +34,13 @@ import BeyondResumeJobInterviewForm from './pages/Beyond Resume/BeyondResumeJobI
 import BeyondResumeJobInterviewSession from './pages/Beyond Resume/BeyondResumeJobInterviewSession';
 import BeyondResumeJobInterviewSessionWritten from './pages/Beyond Resume/BeyondResumeJobInterviewSessionWritten';
 import BeyondResumeJobs from './pages/Beyond Resume/BeyondResumeJobs';
+import BeyondResumePartnerJobDetails from './pages/Beyond Resume/BeyondResumePartnerJobDetails';
 import BeyondResumePayment from './pages/Beyond Resume/BeyondResumePayment';
+import BeyondResumePracticeJobs from './pages/Beyond Resume/BeyondResumePracticeJobs';
 import BeyondResumePricing from './pages/Beyond Resume/BeyondResumePricing';
 import CandidateProfilePage from './pages/Beyond Resume/BeyondResumeProfile/CandidateProfilePage';
 import JobFitmentPage from './pages/Beyond Resume/BeyondResumeProfile/JobFitmentAnalysis';
 import BeyondResumeQuestionBankForm from './pages/Beyond Resume/BeyondResumeQuestionBankForm';
-import LayoutContainer from './components/Layout/LayoutContainer';
-import { ThemeProviderCustom } from './components/util/ThemeContext';
-import BeyondResumePracticeJobs from './pages/Beyond Resume/BeyondResumePracticeJobs';
-import BeyondResumePartnerJobDetails from './pages/Beyond Resume/BeyondResumePartnerJobDetails';
 // import { AvatarProvider } from './pages/Daily Education/Components/AvatarContext';
 // import DailyEducationRegister from './pages/Daily Education/DailyEducationRegister';
 // import MyTeamPerformance from './pages/MyTeamPerformance';
@@ -101,6 +100,8 @@ const App: React.FC = () => {
 
                   <Route path="/auth-callback" component={SSORedirectHandler} />
 
+              <UserDataProvider>
+
                   <ProtectedRoute path="/beyond-resume" component={BeyondResumeHome} />
                   <ProtectedRoute path="/beyond-resume-jobs" component={BeyondResumeJobs} />
                   <ProtectedRoute path="/beyond-resume-myjobs" component={BeyondResumeJobs} />
@@ -126,6 +127,7 @@ const App: React.FC = () => {
                   <ProtectedRoute path="/beyond-resume-practiceInterviewForm/:brMockInterviewId" component={BeyondResumePracticeInterviewForm} /> 
 
                   <ProtectedRoute path="/beyond-resume-fitment-analysis" component={JobFitmentPage} />
+              </UserDataProvider>
 
 
               
@@ -137,7 +139,6 @@ const App: React.FC = () => {
                 
                 
               {/* </AvatarProvider> */}
-
               </NotificationProvider>
               {/* </CartProvider> */}
             </UserModuleRoleProvider>

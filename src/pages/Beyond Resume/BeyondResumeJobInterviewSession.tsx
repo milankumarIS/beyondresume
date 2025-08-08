@@ -1,38 +1,39 @@
-import { Box, Typography } from "@mui/material";
+import { Box } from "@mui/material";
+import { useEffect, useState } from "react";
 import { useLocation, useParams } from "react-router";
-import JobDescriptionResponse from "./JobDescriptionResponse";
-import { useState, useEffect } from "react";
 import { searchListDataFromTable } from "../../services/services";
 import ExamSession from "./ExamSession";
 
 const BeyondResumeJobInterviewSession = () => {
   const location = useLocation();
-  const queryParams = new URLSearchParams(location.search);
-
-  const micStatus = queryParams.get("mic") === "true";
-  const videoStatus = queryParams.get("video") === "true";
 
   const { brJobId } = useParams<any>();
   const [jobsData, setJobsData] = useState<any>([]);
+
+  const [isAdaptive, setIsAdaptive] = useState(false);
 
   useEffect(() => {
     searchListDataFromTable("brJobApplicant", {
       brJobApplicantId: brJobId,
     }).then((result: any) => {
       setJobsData(result?.data?.data);
+      if (result?.data?.data[0]?.examMode === "Adaptive") {
+        setIsAdaptive(true);
+      }
     });
   }, []);
 
-    // console.log(jobsData[0]?.jobInterviewQuestions);
+  // console.log(jobsData[0]?.jobInterviewQuestions);
 
   return (
     <Box>
       {jobsData[0] && (
         <ExamSession
+          jobsData={jobsData}
           brJobId={brJobId}
           response={jobsData[0]?.jobInterviewQuestions}
-          videoStatus={videoStatus}
-          micStatus={micStatus}
+          interviewDuration={jobsData[0]?.interviewDuration}
+          isAdaptive={isAdaptive}
         />
       )}
     </Box>

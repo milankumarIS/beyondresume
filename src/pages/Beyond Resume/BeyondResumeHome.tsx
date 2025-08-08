@@ -45,6 +45,7 @@ import JobDescriptionResponse from "./JobDescriptionResponse";
 import GradientText, {
   BeyondResumeButton,
 } from "../../components/util/CommonStyle";
+import { useUserData } from "../../components/util/UserDataContext";
 
 const BeyondResumeHome: React.FC = () => {
   const [loading, setLoading] = useState(false);
@@ -54,7 +55,8 @@ const BeyondResumeHome: React.FC = () => {
   // const [lastDateError, setLastDateError] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [avatarStatus, setAvatarStatus] = useState("");
-
+ const { userData } = useUserData();
+ 
   const {
     control,
     register,
@@ -143,7 +145,7 @@ const BeyondResumeHome: React.FC = () => {
   const onSubmitHandler: SubmitHandler<BeyondResumeSchemaType> = async (
     data
   ) => {
-    console.log(data);
+    // console.log(data);
 
     // if (!lastDateOfApply) {
     //   setLastDateError("Last Date is required");
@@ -181,6 +183,9 @@ const BeyondResumeHome: React.FC = () => {
 
       const res = await getUserAnswerFromAi({ question: fullCommand });
 
+      // console.log(res);
+      
+
       const generatedDescription =
         res.data.data.candidates[0].content.parts[0].text;
       setResponse(generatedDescription);
@@ -213,6 +218,8 @@ const BeyondResumeHome: React.FC = () => {
     }
   };
 
+  
+
   return (
     <Box p={4}>
       <Box
@@ -243,7 +250,7 @@ const BeyondResumeHome: React.FC = () => {
             }}
           >
             <Typography variant="h4">Hi</Typography>
-            <GradientText text={getUserFirstName()} variant="h4" />
+            <GradientText text={userData?.firstName} variant="h4" />
           </Box>
 
           <Typography
@@ -291,7 +298,7 @@ const BeyondResumeHome: React.FC = () => {
 
                 <FormAutocomplete2
                   label="Job Title"
-                  options={jobFunctions} // e.g., [{ id: 1, name: "Engineer" }]
+                  options={jobFunctions} 
                   defaultValue={selectedJobTitle}
                   labelProp="name"
                   primeryKey="id"

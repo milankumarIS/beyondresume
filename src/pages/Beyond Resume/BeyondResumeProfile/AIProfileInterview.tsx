@@ -194,180 +194,195 @@ const AIProfileInterview = ({ open, onConversationComplete }) => {
     fetchAllUserData();
   }, []);
 
-  const handleUserSubmit = async () => {
-    if (!userInput.trim()) return;
-    setLoading(true);
+ const handleUserSubmit = async () => {
+  if (!userInput.trim()) return;
+  setLoading(true);
 
-    const fullPrompt = getConversationPrompt({
-      conversationContext: [...conversationContext, userSummary],
-      userInput,
-      currentUser,
-    });
-    // console.log(fullPrompt)
+  const fullPrompt = getConversationPrompt({
+    conversationContext: [...conversationContext, userSummary],
+    userInput,
+    currentUser,
+  });
 
-    try {
-      const res = await getUserAnswerFromAi({ question: fullPrompt });
-      const aiText =
-        res?.data?.data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+  try {
+    const res = await getUserAnswerFromAi({ question: fullPrompt });
+    const aiText =
+      res?.data?.data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
-      setConversationContext((prev) => [
-        ...prev,
-        `Candidate: ${userInput}`,
-        `AI: ${aiText}`,
-      ]);
+    setConversationContext((prev) => [
+      ...prev,
+      `Candidate: ${userInput}`,
+      `AI: ${aiText}`,
+    ]);
 
-      // console.log(conversationContext);
-      setUserInput("");
-      await speakText(aiText);
+    setUserInput("");
+    await speakText(aiText);
 
-      const finalJsonPrompt = getFinalJsonPrompt(conversationContext);
+    const finalJsonPrompt = getFinalJsonPrompt(conversationContext);
 
-      if (
-        aiText.toLowerCase().includes("you’re all set to do great") ||
-        aiText.toLowerCase().includes("let’s go crush")
-      ) {
-        try {
-          setAiLoading(true);
-          const res = await getUserAnswerFromAi({
-            question: finalJsonPrompt,
-          });
+    if (
+      aiText.toLowerCase().includes("you’re all set to do great") ||
+      aiText.toLowerCase().includes("let’s go crush")
+    ) {
+      setAiLoading(true);
 
-          const jsonString =
-            res?.data?.data?.candidates?.[0]?.content?.parts?.[0]?.text;
-          console.log("Final Captured Data:", jsonString);
+      let timeoutId: NodeJS.Timeout;
+      const runWithTimeout = async (promiseFn: () => Promise<void>, timeoutMs = 40000) => {
+        const timeoutPromise = new Promise<void>((resolve) => {
+          timeoutId = setTimeout(() => {
+            console.warn("Timeout reached. Proceeding to complete conversation.");
+            resolve();
+          }, timeoutMs);
+        });
 
-          const cleanJsonString = jsonString
-            .replace(/```json/g, "")
-            .replace(/```/g, "")
-            .trim();
+        await Promise.race([
+          (async () => {
+            try {
+              await promiseFn();
+            } catch (e) {
+              console.error("Error during sync:", e);
+            } finally {
+              clearTimeout(timeoutId);
+            }
+          })(),
+          timeoutPromise,
+        ]);
 
-          const parsedJson = JSON.parse(cleanJsonString);
-          setFinalUserData(parsedJson);
-          console.log("Final Captured Data:", parsedJson);
+        onConversationComplete?.();
+      };
 
-          const userId = getUserId();
+      await runWithTimeout(async () => {
+        const res = await getUserAnswerFromAi({ question: finalJsonPrompt });
 
-          if (parsedJson.basicDetails) {
-            const languagesArray = parsedJson.basicDetails.languages
-              ?.split(",")
-              .map((lang: string) => lang.trim())
-              .filter(Boolean);
+        const jsonString =
+          res?.data?.data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        console.log("Final Captured Data:", jsonString);
 
-            const dobInIST = parsedJson.basicDetails.dob
-              ? dayjs
-                  .utc(dayjs(parsedJson.basicDetails.dob).format("YYYY-MM-DD"))
-                  .toISOString()
-              : null;
+        const cleanJsonString = jsonString
+          .replace(/```json/g, "")
+          .replace(/```/g, "")
+          .trim();
 
+        const parsedJson = JSON.parse(cleanJsonString);
+        setFinalUserData(parsedJson);
+        console.log("Final Captured Data:", parsedJson);
+
+        const userId = getUserId();
+
+        if (parsedJson.basicDetails) {
+          const languagesArray = parsedJson.basicDetails.languages
+            ?.split(",")
+            .map((lang: string) => lang.trim())
+            .filter(Boolean);
+
+          const dobInIST = parsedJson.basicDetails.dob
+            ? dayjs.utc(dayjs(parsedJson.basicDetails.dob).format("YYYY-MM-DD")).toISOString()
+            : null;
+
+          const payload = {
+            userId,
+            dob: dobInIST,
+            languagesKnown: languagesArray,
+            about: parsedJson.basicDetails.about || "",
+          };
+
+          console.log("userPersonalInfo payload:", payload);
+          await syncDataInTable("userPersonalInfo", payload, "userId");
+        }
+
+        if (parsedJson.preference) {
+          const payload = {
+            userId,
+            preferedLocation: parsedJson.preference.location || "",
+            preferedShipt: parsedJson.preference.shift || "",
+            workplace: parsedJson.preference.workplace || "",
+            employmentType: parsedJson.preference.employmentType || "",
+          };
+
+          console.log("userJobPreference payload:", payload);
+          await syncDataInTable("userJobPreference", payload, "userId");
+        }
+
+        for (const edu of parsedJson.education || []) {
+          const {
+            academy,
+            degree,
+            specialization,
+            startMonthYear,
+            endMonthYear,
+          } = edu;
+
+          const payload = {
+            userId,
+            academyName: academy || "",
+            degreeName: degree || "",
+            specialization: specialization || "",
+            startDate: startMonthYear || dayjs(),
+            endDate: endMonthYear || dayjs(),
+          };
+
+          console.log("userEducation payload:", payload);
+          await syncDataInTable("userEducation", payload, "userId");
+        }
+
+        for (const exp of parsedJson.experience || []) {
+          const {
+            jobTitle,
+            company,
+            years,
+            employmentType,
+            current,
+            noticePeriod,
+          } = exp;
+
+          if (!jobTitle || !company) continue;
+
+          const payload = {
+            userId,
+            jobTitle: jobTitle || "",
+            jobProviderName: company || "",
+            duration: years || "",
+            employmentType: employmentType || "",
+            isCurrentlyWorking: current ?? false,
+            noticePeriod: noticePeriod || "",
+            aStartDate: "Tue, 08 Jul 2025 07:22:30 GMT",
+            aEndDate: "Tue, 08 Jul 2025 07:22:30 GMT",
+            city: "example",
+            state: "example",
+            country: "example",
+            categoryId: 1,
+            subCategoryId: 1,
+          };
+
+          console.log("experience payload:", payload);
+          await syncDataInTable("experience", payload, "userId");
+        }
+
+        if (parsedJson.skills?.skills) {
+          const skillsArray = parsedJson.skills.skills
+            .split(",")
+            .map((s: string) => s)
+            .filter(Boolean);
+
+          if (skillsArray.length > 0) {
             const payload = {
               userId,
-              dob: dobInIST,
-              languagesKnown: languagesArray,
-              about: parsedJson.basicDetails.about || "",
+              skills: skillsArray,
             };
 
-            console.log("userPersonalInfo payload:", payload);
+            console.log("skills payload (userPersonalInfo):", payload);
             await syncDataInTable("userPersonalInfo", payload, "userId");
           }
-
-          if (parsedJson.preference) {
-            const payload = {
-              userId,
-              preferedLocation: parsedJson.preference.location || "",
-              preferedShipt: parsedJson.preference.shift || "",
-              workplace: parsedJson.preference.workplace || "",
-              employmentType: parsedJson.preference.employmentType || "",
-            };
-
-            console.log("userJobPreference payload:", payload);
-            await syncDataInTable("userJobPreference", payload, "userId");
-          }
-
-          for (const edu of parsedJson.education || []) {
-            const {
-              academy,
-              degree,
-              specialization,
-              startMonthYear,
-              endMonthYear,
-            } = edu;
-
-            const payload = {
-              userId,
-              academyName: academy,
-              degreeName: degree,
-              specialization: specialization || "",
-              startDate: startMonthYear || dayjs(),
-              endDate: endMonthYear || dayjs(),
-            };
-
-            console.log("userEducation payload:", payload);
-            await syncDataInTable("userEducation", payload, "userId");
-          }
-
-          for (const exp of parsedJson.experience || []) {
-            const {
-              jobTitle,
-              company,
-              years,
-              employmentType,
-              current,
-              noticePeriod,
-            } = exp;
-
-            if (!jobTitle || !company) continue;
-
-            const payload = {
-              userId,
-              jobTitle: jobTitle,
-              jobProviderName: company,
-              duration: years || "",
-              employmentType: employmentType || "",
-              isCurrentlyWorking: current ?? false,
-              noticePeriod: noticePeriod || "",
-
-              aStartDate: "Tue, 08 Jul 2025 07:22:30 GMT",
-              aEndDate: "Tue, 08 Jul 2025 07:22:30 GMT",
-              city: "example",
-              state: "example",
-              country: "example",
-              categoryId: 1,
-              subCategoryId: 1,
-            };
-
-            console.log("experience payload:", payload);
-            await syncDataInTable("experience", payload, "userId");
-          }
-
-          if (parsedJson.skills?.skills) {
-            const skillsArray = parsedJson.skills.skills
-              .split(",")
-              .map((s: string) => s)
-              .filter(Boolean);
-
-            if (skillsArray.length > 0) {
-              const payload = {
-                userId,
-                skills: skillsArray,
-              };
-
-              console.log("skills payload (userPersonalInfo):", payload);
-              await syncDataInTable("userPersonalInfo", payload, "userId");
-            }
-          }
-
-          onConversationComplete?.();
-        } catch (err) {
-          onConversationComplete?.();
-          console.error("Failed to fetch or parse final AI data:", err);
         }
-      }
-    } catch (err) {
-      console.error("AI follow-up error:", err);
-    } finally {
-      setLoading(false);
+      });
     }
-  };
+  } catch (err) {
+    console.error("AI follow-up error:", err);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   useEffect(() => {
     if (step === 0) {
@@ -531,8 +546,8 @@ const AIProfileInterview = ({ open, onConversationComplete }) => {
                 {showDelayMessage && (
                   <Typography
                     variant="body2"
-                    color="text.secondary"
                     textAlign={"center"}
+                    color="white"
                     mt={1}
                   >
                     Hang on while we analyze your data. This may take a while or

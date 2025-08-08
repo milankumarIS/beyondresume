@@ -3,6 +3,7 @@ import {
   faCalendar,
   faEdit,
   faHouseLaptop,
+  faPlus,
   faTrash,
   faUserTie,
 } from "@fortawesome/free-solid-svg-icons";
@@ -23,14 +24,15 @@ import {
 import color from "../../../../theme/color";
 import ProfileSectionCard from "../../Beyond Resume Components/ProfileSectionCard";
 import ExperienceForm from "../forms/ExperienceForm";
+import { useTheme } from "../../../../components/util/ThemeContext";
 
-export default function ExperienceSection() {
+export default function ExperienceSection({ hideSensitive }: any) {
   const [data, setData] = useState<any[]>([]);
   const [isEditingIndex, setIsEditingIndex] = useState<number | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const isAlreadyCurrentlyWorking = data.some((d) => d.current);
-
+  const { theme } = useTheme();
   const fetchExperienceData = async () => {
     setLoading(true);
     try {
@@ -63,11 +65,13 @@ export default function ExperienceSection() {
   }, []);
 
   const handleSave = async (formData: any, index: number | null) => {
+    console.log(formData);
+
     const payload = {
       jobTitle: formData.jobTitle,
       employmentType: formData.employmentType,
-      noticePeriod: formData.noticePeriod,
-      isCurrentlyWorking: formData.current,
+      noticePeriod: formData.noticePeriod || "0",
+      isCurrentlyWorking: formData.current || false,
       duration: formData.years,
       jobProviderName: formData.company,
       userId: getUserId(),
@@ -80,6 +84,8 @@ export default function ExperienceSection() {
       categoryId: 1,
       subCategoryId: 1,
     };
+
+    console.log(payload);
 
     try {
       if (index !== null && data[index]?.id) {
@@ -120,6 +126,22 @@ export default function ExperienceSection() {
 
   return (
     <ProfileSectionCard title="Work Experience">
+      {!formOpen && data.length > 0 && !hideSensitive && (
+        <BeyondResumeButton
+          sx={{
+            position: "absolute",
+            top: 5,
+            right: 20,
+            fontSize: "12px",
+            fontFamily: "custom-bold",
+          }}
+          onClick={() => setFormOpen(true)}
+        >
+          <FontAwesomeIcon style={{ marginRight: "4px" }} icon={faPlus} />
+          Add New
+        </BeyondResumeButton>
+      )}
+
       <Stack spacing={2} sx={{ minWidth: "300px" }}>
         {loading ? (
           <Typography>Loading...</Typography>
@@ -147,22 +169,26 @@ export default function ExperienceSection() {
                   />
                 ) : (
                   <Stack
+                    flexDirection={"row"}
                     spacing={1}
+                    alignItems={"center"}
+                    justifyContent={"space-between"}
+                    gap={1}
                     style={{
                       position: "relative",
                       overflow: "hidden",
                       boxShadow: "0px 4px 10px rgba(90, 128, 253, 0.49)",
+                      border: "solid 1px rgba(90, 128, 253, 0.32)",
                     }}
                     borderRadius={4}
                     p={2}
-                    pt={3}
-                    pb={2.5}
+                    pt={exp.current ? 3 : 2}
                     minWidth={"250px"}
                   >
                     {exp.current && (
                       <Typography
                         sx={{
-                          background: color.background,
+                          background: color.activeButtonBg,
                           color: "white",
                           width: "fit-content",
                           borderRadius: "4px 0px 4px 0px",
@@ -178,72 +204,112 @@ export default function ExperienceSection() {
                       </Typography>
                     )}
 
-                    <IconTextRow1
-                      heading="Job Title"
-                      icon={faUserTie}
-                      text={exp.jobTitle}
-                    />
-                    <IconTextRow1
-                      heading="Company Name"
-                      icon={faBuilding}
-                      text={exp.company}
-                    />
-                    <IconTextRow1
-                      heading="Experience"
-                      icon={faCalendar}
-                      text={exp.years}
-                    />
-                    <IconTextRow1
-                      heading="Employment Type"
-                      icon={faHouseLaptop}
-                      text={exp.employmentType}
-                    />
-
-                    {exp.noticePeriod && exp.current && (
-                      <Typography>
-                        <b>* Notice Period:</b> {exp.noticePeriod}
-                      </Typography>
-                    )}
-                    <Stack
-                      sx={{ position: "absolute", top: 0, right: -8 }}
-                      direction="row"
-                      spacing={1}
-                    >
+                    <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
                       <Box
                         sx={{
-                          px: 2,
-                          minWidth: "0px",
-                          cursor: "pointer",
-                          color: "white",
-                          fontSize: "12px",
+                          background: "#ebebeb",
+                          padding: "6px",
+                          borderRadius: "8px",
+                          color: "#5b5e66",
                           display: "flex",
-                          gap: 1,
+                          alignItems: "center",
+                          justifyContent: "center",
                         }}
                       >
                         <FontAwesomeIcon
-                          icon={faEdit}
-                          onClick={() => setIsEditingIndex(index)}
+                          icon={faBuilding}
                           style={{
-                            fontSize: "12px",
-                            background:
-                              "linear-gradient(180deg, #50bcf6, #5a81fd)",
-                            padding: "6px",
-                            borderRadius: "4px",
-                          }}
-                        />
-                        <FontAwesomeIcon
-                          icon={faTrash}
-                          onClick={() => handleDelete(index)}
-                          style={{
-                            fontSize: "12px",
-                            background:
-                              "linear-gradient(180deg, #50bcf6, #5a81fd)",
-                            padding: "6px",
-                            borderRadius: "4px",
+                            fontSize: "36px",
+                            color: color.newbg,
                           }}
                         />
                       </Box>
-                    </Stack>
+
+                      <Box>
+                        <Typography
+                          sx={{
+                            color:
+                              theme === "dark"
+                                ? color.titleColor
+                                : color.titleLightColor,
+                          }}
+                        >
+                          {exp.jobTitle}
+                        </Typography>
+                        <Typography
+                          sx={{
+                            fontFamily: "montserrat-Regular",
+                            fontSize: "14px",
+                          }}
+                        >
+                          {exp.company}
+                        </Typography>
+                        <Typography
+                          sx={{
+                            fontFamily: "montserrat-Regular",
+                            fontSize: "14px",
+                          }}
+                        >
+                          {exp.years} ( {exp.employmentType})
+                        </Typography>
+
+                        {exp.noticePeriod && exp.current && (
+                          <Typography
+                            sx={{
+                              mt: 1,
+                              fontSize: "14px",
+                            }}
+                          >
+                            <b>Notice Period:</b> {exp.noticePeriod}
+                          </Typography>
+                        )}
+                      </Box>
+                    </Box>
+
+                    {!hideSensitive && (
+                      <Stack
+                        direction="row"
+                        spacing={1}
+                        sx={{
+                          //  alignSelf:'flex-end',
+                          display: "block",
+                          ml: "auto",
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            px: 2,
+                            minWidth: "0px",
+                            cursor: "pointer",
+                            color: "white",
+                            fontSize: "12px",
+                            display: "flex",
+                            gap: 1,
+                          }}
+                        >
+                          <FontAwesomeIcon
+                            icon={faEdit}
+                            onClick={() => setIsEditingIndex(index)}
+                            style={{
+                              fontSize: "14px",
+                              background: color.activeButtonBg,
+                              padding: "10px",
+                              borderRadius: "6px",
+                            }}
+                          />
+                          <FontAwesomeIcon
+                            icon={faTrash}
+                            onClick={() => handleDelete(index)}
+                            style={{
+                              fontSize: "14px",
+                              background: color.activeButtonBg,
+                              padding: "10px",
+                              borderRadius: "6px",
+                            }}
+                          />
+                        </Box>
+                      </Stack>
+                    )}
                   </Stack>
                 )}
               </div>
@@ -255,12 +321,6 @@ export default function ExperienceSection() {
                 onCancel={() => setFormOpen(false)}
                 disableCurrentCheckbox={isAlreadyCurrentlyWorking}
               />
-            )}
-
-            {!formOpen && data.length > 0 && (
-              <BeyondResumeButton onClick={() => setFormOpen(true)}>
-                Add More
-              </BeyondResumeButton>
             )}
           </>
         )}

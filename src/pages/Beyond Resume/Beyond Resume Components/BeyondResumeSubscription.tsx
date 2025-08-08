@@ -95,7 +95,7 @@ const PricingCard = ({
               component="span"
               fontFamily={"Custom-ExtraBold"}
             >
-              {duration === "lifetime" ? " / lifetime" : ` / ${duration}`}
+              {duration === "lifetime" ? " / lifetime" : duration === "1month" ? ' / month': ` / ${duration}`}
             </Typography>
           </Typography>
 

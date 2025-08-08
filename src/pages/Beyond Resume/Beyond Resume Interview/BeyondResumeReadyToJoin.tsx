@@ -1,36 +1,53 @@
-import { Box, Typography } from "@mui/material";
-import { useEffect, useRef, useState } from "react";
+import { Box, CircularProgress, Typography } from "@mui/material";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useHistory, useLocation, useParams } from "react-router";
 import Webcam from "react-webcam";
 import GradientText, {
   BeyondResumeButton,
   BeyondResumeButton2,
 } from "../../../components/util/CommonStyle";
+import { useUserData } from "../../../components/util/UserDataContext";
 import BeyondResumeLoader from "../Beyond Resume Components/BeyondResumeLoader";
+import { useProctoringSuite } from "../Beyond Resume Components/useProctoringSuite";
 import AIProfileInterview from "../BeyondResumeProfile/AIProfileInterview";
-import { getUserFirstName } from "../../../services/axiosClient";
 
 const BeyondResumeReadyToJoin = () => {
   const location = useLocation();
   const { brJobId } = useParams<any>();
   const query = new URLSearchParams(location.search);
+  const noOfQuestions = location?.state?.noOfQuestions;
+  const duration = location?.state?.duration;
+  const jobTitle = location?.state?.jobTitle;
+  const companyName = location?.state?.companyName;
+  const examMode = location?.state?.examMode;
+  const { userData } = useUserData();
+
   const sessionType = query.get("sessionType");
   const history = useHistory();
   const [isManualRead, setIsManualRead] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
 
   const [isMicOn, setIsMicOn] = useState(false);
-  const [isVideoOn, setIsVideoOn] = useState(true);
   const [micAccessible, setMicAccessible] = useState(true);
   const [micSilent, setMicSilent] = useState(false);
 
-  const webcamRef = useRef(null);
+  const webcamRef = useRef<Webcam | null>(null);
+
   const analyserRef = useRef<AnalyserNode | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const intervalRef = useRef<number | null>(null);
 
   const [cameraAccessible, setCameraAccessible] = useState(true);
+
+  const videoElementRef = useMemo(() => {
+    return {
+      current: webcamRef.current?.video ?? null,
+    } as React.RefObject<HTMLVideoElement | null>;
+  }, [webcamRef.current?.video]);
+
+  const { canvasRef, results, proctoringReady } =
+    useProctoringSuite(videoElementRef);
 
   useEffect(() => {
     const checkCameraAccess = async () => {
@@ -43,10 +60,8 @@ const BeyondResumeReadyToJoin = () => {
       } catch (err) {
         console.warn("Camera not accessible:", err);
         setCameraAccessible(false);
-        // setIsVideoOn(false);
       }
     };
-
     checkCameraAccess();
   }, []);
 
@@ -102,35 +117,35 @@ const BeyondResumeReadyToJoin = () => {
     };
   }, []);
 
-  const handleMicToggle = () => {
-    if (!micAccessible || micSilent) {
-      alert("Microphone is not accessible or is silent.");
-      return;
-    }
-    setIsMicOn((prev) => !prev);
-  };
+  const [detectionError, setDetectionError] = useState<string | null>(null);
 
-  const handleVideoToggle = () => {
-    setIsVideoOn((prev) => !prev);
-  };
+  useEffect(() => {
+    let error: string | null = null;
+    if (!proctoringReady) {
+      return;
+    } else if (results.objects.includes("cell phone")) {
+      error = "Mobile phone detected! Please remove it from the frame.";
+    } else if (results.faces.length === 0) {
+      error = "No face detected. Please ensure your face is clearly visible.";
+    } else if (results.faces.length > 1) {
+      error =
+        "Multiple faces detected. Only one person is allowed in the frame.";
+    }
+
+    setDetectionError(error);
+  }, [results.objects, results.faces]);
+
+  const queryParams = new URLSearchParams({
+    sessionType:
+      sessionType === "practiceSession"
+        ? "practiceSession"
+        : "interviewSession",
+  }).toString();
 
   const handleJoin = () => {
-    const queryParams = new URLSearchParams({
-      mic: isMicOn ? "true" : "false",
-      video: isVideoOn ? "true" : "false",
-      sessionType:
-        sessionType === "practiceSession"
-          ? "practiceSession"
-          : "interviewSession",
-    }).toString();
-
-    sessionType === "practiceSession"
-      ? history.push(
-          `/beyond-resume-practiceInterviewSession/${brJobId}?${queryParams}`
-        )
-      : history.push(
-          `/beyond-resume-jobInterviewSession/${brJobId}?${queryParams}`
-        );
+    history.push(
+      `/beyond-resume-jobInterviewSession/${brJobId}?${queryParams}`
+    );
   };
 
   const videoConstraints = {
@@ -148,10 +163,7 @@ const BeyondResumeReadyToJoin = () => {
         window.location.href = "/beyond-resume-interviews";
       }
     });
-
-    return () => {
-      unlisten();
-    };
+    return () => unlisten();
   }, [history]);
 
   return (
@@ -166,25 +178,20 @@ const BeyondResumeReadyToJoin = () => {
         gap: "2%",
         flexDirection: { xs: "column", lg: "column" },
         justifyContent: "center",
-
-        // background: "linear-gradient(145deg, #0d0d0d, #2D3436)",
         position: "relative",
         overflow: "hidden",
-
         minHeight: "calc(100vh - 58px)",
       }}
     >
       <Box
-        sx={{
-          display: "flex",
-          gap: 1,
-          alignItems: "center",
-          justifyContent: "center",
-          width: "100%",
-        }}
+        display="flex"
+        gap={1}
+        alignItems="center"
+        justifyContent="center"
+        width="100%"
       >
         <Typography variant="h4">Hi</Typography>
-        <GradientText text={getUserFirstName()} variant="h4" />
+        <GradientText text={userData?.firstName} variant="h4" />
       </Box>
 
       <Typography
@@ -213,14 +220,35 @@ const BeyondResumeReadyToJoin = () => {
               borderRadius: "12px",
               overflow: "hidden",
               background: "black",
-              // minHeight: { xs: "25vh", sm: "55vh" },
             }}
           >
-            {isVideoOn ? (
+            {!proctoringReady && (
+              <Box
+                sx={{
+                  width: "100%",
+                  backgroundColor: "black",
+                  height: "100%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  color: "white",
+                }}
+              >
+                <Typography variant="h6">Setting up your camera </Typography>
+                <CircularProgress
+                  size={20}
+                  style={{ marginLeft: "8px", color: "white" }}
+                />
+              </Box>
+            )}
+
+            <>
               <Webcam
                 audio={isMicOn}
                 ref={webcamRef}
-                mirrored={true}
                 videoConstraints={videoConstraints}
                 style={{
                   width: "100%",
@@ -229,67 +257,20 @@ const BeyondResumeReadyToJoin = () => {
                   borderRadius: "12px",
                 }}
               />
-            ) : (
-              <Box
-                sx={{
+              <canvas
+                ref={canvasRef}
+                style={{
+                  position: "absolute",
+                  top: 0,
+
+                  left: 0,
                   width: "100%",
-                  backgroundColor: "black",
-                  position: "relative",
-                  height: "300px",
+                  height: "100%",
+                  pointerEvents: "none",
                 }}
-              >
-                <div
-                  style={{
-                    position: "absolute" as "absolute",
-                    top: "50%",
-                    left: "50%",
-                    transform: "translate(-50%, -50%)",
-                  }}
-                >
-                  <Typography variant="h6">Camera Off</Typography>
-                </div>
-              </Box>
-            )}
+              />
+            </>
           </Box>
-
-          {/* <Box
-            display="flex"
-            justifyContent="center"
-            gap={2}
-            sx={{
-              padding: "8px 10px",
-              mt: "25px",
-              borderRadius: "26px",
-            }}
-          >
-            <BeyondResumeButton
-              onClick={handleMicToggle}
-              style={{
-                color: "white",
-                background: "linear-gradient(145deg, #0d0d0d, #2D3436)",
-                border: "solid 1px white",
-              }}
-            >
-              <FontAwesomeIcon
-                style={{ width: "20px", height: "20px" }}
-                icon={isMicOn ? faMicrophone : faMicrophoneSlash}
-              />
-            </BeyondResumeButton>
-
-            <BeyondResumeButton
-              onClick={handleVideoToggle}
-              style={{
-                color: "white",
-                background: "linear-gradient(145deg, #0d0d0d, #2D3436)",
-                border: "solid 1px white",
-              }}
-            >
-              <FontAwesomeIcon
-                style={{ width: "20px", height: "20px" }}
-                icon={isVideoOn ? faVideo : faVideoSlash}
-              />
-            </BeyondResumeButton>
-          </Box> */}
 
           {micSilent && (
             <Typography
@@ -310,30 +291,43 @@ const BeyondResumeReadyToJoin = () => {
             </Typography>
           )}
 
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              flexDirection: "column",
-              width: "100%",
-            }}
-          >
-            <Box display="flex" gap={2} mb={1} mt={3}>
-              <BeyondResumeButton2 onClick={() => history.goBack()}>
-                Go Back
-              </BeyondResumeButton2>
-              <BeyondResumeButton
-                onClick={
-                  () => setModalOpen(true)
-                  // handleJoin();
-                }
-                disabled={!isManualRead}
-              >
-                Proceed
-              </BeyondResumeButton>
-            </Box>
-          </div>
+          {detectionError && (
+            <Typography
+              sx={{
+                mt: 2,
+                color: "#ff5252",
+                fontSize: "14px",
+                textAlign: "center",
+              }}
+            >
+              {detectionError}
+            </Typography>
+          )}
+
+          <Box display="flex" gap={2} mb={1} mt={3}>
+            <BeyondResumeButton2 onClick={() => history.goBack()}>
+              Go Back
+            </BeyondResumeButton2>
+            <BeyondResumeButton
+              onClick={() => {
+                sessionType === "writtenExamSession"
+                  ? history.push(
+                      `/beyond-resume-jobInterviewSession-written/${brJobId}`
+                    )
+                  : sessionType === "practiceSession"
+                  ? history.push(
+                      `/beyond-resume-practiceInterviewSession/${brJobId}?${queryParams}`
+                    )
+                  : //  history.push(
+                    //       `/beyond-resume-jobInterviewSession/${brJobId}`
+                    //     );
+                    setModalOpen(true);
+              }}
+              disabled={!isManualRead || !!detectionError}
+            >
+              Proceed
+            </BeyondResumeButton>
+          </Box>
         </Box>
 
         <Box>
@@ -364,29 +358,74 @@ const BeyondResumeReadyToJoin = () => {
               }}
             >
               <li>
+                You are applying for <strong>{jobTitle}</strong> position at{" "}
+                <strong> {companyName}</strong>.
+              </li>
+              <li>
+                {examMode === "Adaptive" && (
+                  <>
+                    It is an <strong>adaptive evaluation</strong> type session
+                    and{" "}
+                  </>
+                )}
+                Your interview will have{" "}
+                {examMode === "Adaptive" ? (
+                  <strong>{duration / 2} Questions</strong>
+                ) : (
+                  <strong>{noOfQuestions} Questions</strong>
+                )}{" "}
+                and will last <strong>{duration} minutes</strong> long.
+              </li>
+              <li>
                 Please ensure your <strong>camera</strong> and{" "}
                 <strong>microphone</strong> are working.
               </li>
-              <li>
-                This is an <strong>AI-powered interview</strong>. You will hear
-                questions through voice.
-              </li>
-              <li>
-                Click on <strong>“Start Answering”</strong> when you're ready to
-                respond to the question.
-              </li>
-              <li>
-                Your answers will be recorded using{" "}
-                <strong>speech recognition</strong>.
-              </li>
-              <li>
-                You can skip a question if you're unsure. You cannot return to
-                it later.
-              </li>
+
+              {sessionType !== "writtenExamSession" && (
+                <>
+                  <li>
+                    This is an <strong>AI-powered interview</strong>. You will
+                    hear questions through voice.
+                  </li>
+                  <li>
+                    Click on <strong>“Start Answering”</strong> when you're
+                    ready to respond to the question.
+                  </li>
+                </>
+              )}
+
+              {sessionType !== "writtenExamSession" && (
+                <>
+                  <li>
+                    The exam is required to be taken in fullscreen mode. Any
+                    attempt to exit fullscreen or switch browser tabs will lead
+                    to automatic submission.
+                  </li>
+
+                  {examMode !== "Adaptive" && (
+                    <li>
+                      You can skip a question if you're unsure. You can return
+                      to it later.
+                    </li>
+                  )}
+                </>
+              )}
+
               <li>
                 After the last question, your interview will be automatically
-                submitted or you can choose to <strong>submit early</strong>.
+                submitted.
               </li>
+
+              <li>
+                Our system uses <strong>advanced AI-based proctoring </strong>{" "}
+                to monitor the interview session. Please maintain proper conduct
+                to avoid disruption.
+              </li>
+              <li>
+                Any suspicious activity may result in your session being{" "}
+                <strong>blocked</strong> or <strong>terminated</strong>.
+              </li>
+
               <li>
                 Make sure to stay in a quiet place and avoid interruptions.
               </li>
@@ -406,6 +445,7 @@ const BeyondResumeReadyToJoin = () => {
               id="manualRead"
               checked={isManualRead}
               onChange={(e) => setIsManualRead(e.target.checked)}
+              style={{ cursor: "pointer" }}
             />
             <label htmlFor="manualRead" style={{ fontSize: "14px" }}>
               I acknowledge the above instructions.

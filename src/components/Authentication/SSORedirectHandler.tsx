@@ -13,8 +13,7 @@ import {
   syncByTwoUniqueKeyData,
   syncDataInTable,
 } from "../../services/services";
-import color from "../../theme/color";
-
+import { getDeviceIp } from "../util/CommonFunctions";
 
 const SSORedirectHandler = () => {
   const location = useLocation();
@@ -22,16 +21,17 @@ const SSORedirectHandler = () => {
 
   const [loading, setLoading] = useState(true);
   const [info, setInfo] = useState<any | null>(null);
-  const [ip, 
-    setIp] = useState<any | null>(null);
+  const [ip, setIp] = useState<any | null>(null);
   const [countryCode, setCountryCode] = useState<string | null>(null);
   const queryParams = new URLSearchParams(location.search);
-  const token = queryParams.get("token") || "";
-  // const token =
-  //   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyTmFtZSI6IkNBTjE4QTAwMTE1IiwidXNlckVtYWlsIjoiaml0aGluLmtrQGhvdG1haWwuY29tIiwicGFzc3dvcmQiOiJUaGVlcmFtQDM2MCIsIkZpcnN0TmFtZSI6IkppdGhpbiIsIk1pZGRsZU5hbWUiOiIiLCJMYXN0TmFtZSI6IktLIiwidXNlclR5cGUiOiJJbmRpdmlkdWFsIiwiaXNQcm9maWxlQ3JlYXRlZCI6ZmFsc2UsImV4cCI6MTcyNTQ3ODYwMCwiaWF0IjoxNzUxODY3Mjc1fQ.FcqiKMCdyEyZUJDur4haE9ADyWljR7jeBDvx4AuF9f8";
+  // const token = queryParams.get("token") || "";
+  const token =
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyTmFtZSI6IkNBTjE4QTAwMTE1IiwidXNlckVtYWlsIjoiaml0aGluLmtrQGhvdG1haWwuY29tIiwicGFzc3dvcmQiOiJUaGVlcmFtQDM2MCIsIkZpcnN0TmFtZSI6IkppdGhpbiIsIk1pZGRsZU5hbWUiOiIiLCJMYXN0TmFtZSI6IktLIiwidXNlclR5cGUiOiJJbmRpdmlkdWFsIiwiaXNQcm9maWxlQ3JlYXRlZCI6ZmFsc2UsImV4cCI6MTcyNTQ3ODYwMCwiaWF0IjoxNzUxODY3Mjc1fQ.FcqiKMCdyEyZUJDur4haE9ADyWljR7jeBDvx4AuF9f8";
   // const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyTmFtZSI6IklORFUyM0EwMDA3MiIsInVzZXJFbWFpbCI6ImJoYWd5YS5zYXRoeWExOTk1QGdtYWlsLmNvbSIsInBhc3N3b3JkIjoicGFzc3dvcmRAU1NPMTIzIiwiRmlyc3ROYW1lIjoiYmhhZ3lhIiwiTWlkZGxlTmFtZSI6IiIsIkxhc3ROYW1lIjoiIiwidXNlclR5cGUiOiJJbmR1c3RyeSIsImlzUHJvZmlsZUNyZWF0ZWQiOmZhbHNlLCJleHAiOjE3MjU0Nzg2MDAsImlhdCI6MTc1MTg3NDM1MX0.7IgPdxcX6IPUXjTa1oj9t5CtqjiyP--S2wBjbwfGUss'
+  // const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjgsInVzZXJOYW1lIjoiQ0FOMjVBMTk1OTAiLCJwYXNzd29yZCI6IiQyYSQxMCRkZzgxTU1FZ0t5clIyYlFQVDA3VXBPbFFwUzQySzFENXQySXFJdW9jTnN1VFdmRDE1ZkdZRyIsInVzZXJUeXBlIjpudWxsLCJ1c2VyVHlwZUltYWdlIjpudWxsLCJ1c2VyRGFpbHlMaWZlQ29kZSI6IkRMLUlORC0xMjM0NTY3ODkxMjMiLCJzdXBlcnZpc29yQ29kZSI6bnVsbCwiZmlyc3RSaWRlRGF0ZSI6bnVsbCwidXNlclN0YXR1cyI6IkFDVElWRSIsImNyZWF0ZWRBdCI6IjIwMjUtMDgtMDRUMDk6NDY6MjYuMDAwWiIsInVwZGF0ZWRBdCI6IjIwMjUtMDgtMDRUMDk6NDY6MjYuMDAwWiIsInVzZXJDb250YWN0Ijp7InVzZXJDb250YWN0SWQiOjgsInVzZXJFbWFpbCI6ImJoYWd5YS5zYkBza2lsbGFibGVycy5jb20iLCJ1c2VyUGhvbmVOdW1iZXIiOm51bGwsImNvbnRhY3RTb3VyY2UiOiJTSUdOVVAiLCJjb250YWN0VHlwZSI6bnVsbCwidXNlcklkIjo4LCJ1c2VyQ29udGFjdFN0YXR1cyI6IkFDVElWRSIsImNyZWF0ZWRBdCI6IjIwMjUtMDgtMDRUMDk6NDY6MjYuMDAwWiIsInVwZGF0ZWRBdCI6IjIwMjUtMDgtMDRUMDk6NDY6MjYuMDAwWiJ9LCJ1c2VyUGVyc29uYWxJbmZvIjp7InVzZXJQZXJzb25hbEluZm9JZCI6OCwiZmlyc3ROYW1lIjpudWxsLCJtaWRkbGVOYW1lIjpudWxsLCJsYXN0TmFtZSI6bnVsbCwicmVzdW1lRmlsZSI6bnVsbCwidXNlckltYWdlIjpudWxsLCJuYXRpb25hbElkIjpudWxsLCJnZW5kZXJJZCI6bnVsbCwiZG9iIjpudWxsLCJhZ2UiOm51bGwsInVzZXJJZCI6OCwiYWJvdXQiOm51bGwsInVzZXJQZXJzb25hbEluZm9TdGF0dXMiOiJBQ1RJVkUiLCJjcmVhdGVkQXQiOiIyMDI1LTA4LTA0VDA5OjQ2OjI2LjAwMFoiLCJ1cGRhdGVkQXQiOiIyMDI1LTA4LTA0VDA5OjQ2OjI2LjAwMFoiLCJnZW5kZXIiOm51bGx9LCJsb2dpbk1ldGhvZCI6IldFQiIsInZlcnNpb24iOjEsImlhdCI6MTc1NDMwMDc4NywiZXhwIjoxNzU0Mzg3MTg3fQ.1t95AtOtzH1XI_oByYL1-39viCjDo0p2pFUeoL1cOHY'
 
-  // const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyTmFtZSI6IkNBTjIwQTAwMjc2IiwidXNlckVtYWlsIjoib2ZmaWNpYWxyb2hpdDI3QGdtYWlsLmNvbSIsInBhc3N3b3JkIjoiU2tpbGxhYmxlcnNAMTIzJCIsIkZpcnN0TmFtZSI6IlJvaGl0ICIsIk1pZGRsZU5hbWUiOiIiLCJMYXN0TmFtZSI6Ikt1bWFyIiwidXNlclR5cGUiOiJJbmRpdmlkdWFsIiwiaXNQcm9maWxlQ3JlYXRlZCI6dHJ1ZSwiZXhwIjoxNzI1NDc4NjAwLCJpYXQiOjE3NTMxNjAxNTZ9.w6HTfS8hhYBi_kIFqjMkGNdffvGWe8GdVNp-6OSmW4A'
+  // const token =
+  //   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyTmFtZSI6IkNBTjIwQTAwMjc2IiwidXNlckVtYWlsIjoib2ZmaWNpYWxyb2hpdDI3QGdtYWlsLmNvbSIsInBhc3N3b3JkIjoiU2tpbGxhYmxlcnNAMTIzJCIsIkZpcnN0TmFtZSI6IlJvaGl0ICIsIk1pZGRsZU5hbWUiOiIiLCJMYXN0TmFtZSI6Ikt1bWFyIiwidXNlclR5cGUiOiJJbmRpdmlkdWFsIiwiaXNQcm9maWxlQ3JlYXRlZCI6dHJ1ZSwiZXhwIjoxNzI1NDc4NjAwLCJpYXQiOjE3NTMxNjAxNTZ9.w6HTfS8hhYBi_kIFqjMkGNdffvGWe8GdVNp-6OSmW4A";
   const [decoded, setDecoded] = useState<any | null>(null);
 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -71,21 +71,22 @@ const SSORedirectHandler = () => {
     LastName,
     isProfileCreated,
     isNewUser,
+    brJobId,
   } = decoded || {};
 
-  useEffect(() => {
-    async function fetchCountryCode() {
-      // const code = await getCountryCode();
-      // setCountryCode(code);
-    }
+  // useEffect(() => {
+  //   async function fetchCountryCode() {
+  //     // const code = await getCountryCode();
+  //     // setCountryCode(code);
+  //   }
 
-    fetchCountryCode();
-  }, []);
+  //   fetchCountryCode();
+  // }, []);
 
   useEffect(() => {
     async function fetchInfo() {
       const info = await Device.getInfo();
-      const ip = 'ip';
+      const ip = await getDeviceIp();
       setIp(ip);
       setInfo(info);
     }
@@ -116,16 +117,22 @@ const SSORedirectHandler = () => {
         password,
         userStatus: "ACTIVE",
         contactSource: "SIGNUP",
-        userDailyLifeCode: 'DL-IND-123456789123',
+        // userDailyLifeCode: `DL-IND-${getRandomNumber()}`,
+        userDailyLifeCode: "DL-IND-123456789123",
       };
 
       const loginPayload = {
         userName,
         password,
-        userLoginDeviceName: 'device name',
-        loginMethod:"WEB",
-        userLoginDeviceIP: 'ip',
+        userLoginDeviceName: info.model,
+        loginMethod:
+          info.platform === "ios" || info.platform === "android"
+            ? "MOBILE"
+            : "WEB",
+        userLoginDeviceIP: ip,
       };
+
+      // console.log(loginPayload);
 
       registerMobileProfile(payload)
         .then((res: any) => {
@@ -172,14 +179,11 @@ const SSORedirectHandler = () => {
 
         // console.log(personalPayload);
 
-        syncDataInTable("userPersonalInfo", personalPayload, "userId").catch(
-          (error) => {
-            showSnackbar(
-              error?.response?.data?.msg || "Error updating profile",
-              "error"
-            );
-          }
-        );
+        try {
+          await syncDataInTable("userPersonalInfo", personalPayload, "userId");
+        } catch (error) {
+          console.error(error || "Error updating profile", "error");
+        }
 
         const payload = {
           moduleRoleId,
@@ -189,17 +193,18 @@ const SSORedirectHandler = () => {
           userModuleRoleStatus: "ACTIVE",
         };
 
-        moduleSetter(payload);
+        await moduleSetter(payload);
 
-        const moduleRole = await searchDataFromTable("moduleRole", {
+        const moduleRoleRes = await searchDataFromTable("moduleRole", {
           moduleRoleId: moduleRoleId,
         });
-        const dlModule = await searchDataFromTable("DlModule", {
-          moduleId: moduleRole?.data?.data?.moduleId,
+
+        const dlModuleRes = await searchDataFromTable("DlModule", {
+          moduleId: moduleRoleRes?.data?.data?.moduleId,
         });
 
-        const defaultRole = moduleRole?.data?.data;
-        const defaultName = dlModule?.data?.data;
+        const defaultRole = moduleRoleRes?.data?.data;
+        const defaultName = dlModuleRes?.data?.data;
 
         const roleValue = [
           defaultRole.moduleRoleName,
@@ -210,9 +215,11 @@ const SSORedirectHandler = () => {
 
         localStorage.setItem("userRole", roleValue);
 
-        setTimeout(() => {
-          window.location.href = `/${defaultRole.moduleLandingPage}`;
-        }, 100);
+        if (brJobId && userType === "Individual") {
+          window.location.href = `/beyond-resume-jobdetails/${brJobId}`;
+        }
+
+        window.location.href = `/${defaultRole.moduleLandingPage}`;
       } else {
         SSOlogout();
         // showSnackbar("Login failed", "error");

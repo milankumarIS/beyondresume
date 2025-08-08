@@ -9,6 +9,7 @@ import {
 } from "@mui/material";
 import { commonFormTextFieldSx } from "../../../components/util/CommonFunctions";
 import color from "../../../theme/color";
+import { CustomThumbComponent } from "../../../components/util/CommonStyle";
 
 const defaultCategories = [
   "Technical Competence",
@@ -199,135 +200,157 @@ export default function CustomEvaluationDriver({
         You can adjust them as needed — just make sure the total adds up to 100%
       </Typography>
 
-      <Box display={'flex'} gap={4} alignItems={'center'} justifyContent={'center'}>
-
       <Box
-      width={'100%'}
-        display="flex"
-        flexWrap="wrap"
-        flexDirection={"column"}
-        justifyContent="center"
-        sx={{
-          borderRadius: "12px",
-          p: 2,
-        }}
+        display={"flex"}
+        gap={4}
+        alignItems={"center"}
+        justifyContent={"center"}
       >
-        {selectedCategories.map((category) => (
-          <Box
-            key={category}
-            minWidth={"420px"}
-            sx={{
-              p: 2,
-              px: 4,
-              borderRadius: "12px",
-              display: "flex",
-              justifyContent: "flex-start",
-              alignItems: "center",
-              gap: 2,
-            }}
-          >
-            <Stack
-              direction="column"
-              spacing={1}
-              alignItems="flex-start"
-              minWidth={"200px"}
+        <Box
+          width={"100%"}
+          display="flex"
+          flexWrap="wrap"
+          flexDirection={"column"}
+          justifyContent="center"
+          sx={{
+            borderRadius: "12px",
+            p: 2,
+          }}
+        >
+          {selectedCategories.map((category) => (
+            <Box
+              key={category}
+              minWidth={"420px"}
+              sx={{
+                p: 2,
+                px: 4,
+                borderRadius: "12px",
+                display: "flex",
+                justifyContent: "flex-start",
+                alignItems: "center",
+                gap: 2,
+              }}
             >
-              <Typography
-                fontWeight={600}
-                sx={{
-                  color: color.titleColor,
-                  borderRadius: "12px",
-                  fontSize: "0.875rem",
-                  textAlign: "left",
-                }}
+              <Stack
+                direction="column"
+                spacing={1}
+                alignItems="flex-start"
+                minWidth={"200px"}
               >
-                {category}
-              </Typography>
-              <Typography variant="body2">
-                {getQuestionCount(percentages[category] || 0)} Questions
-              </Typography>
-            </Stack>
-            <Slider
-              value={percentages[category] || 0}
-              onChange={(e, val) => handleSliderChange(category, val as number)}
-              min={0}
-              max={100}
-              step={10}
-              marks={marks.map((mark) => ({
-                ...mark,
-                label: (
-                  <span
-                    style={{
-                      padding: "2px 10px",
-                      borderRadius: "12px",
-                      background:
-                        percentages[category] === mark.value
-                          ? color.activeButtonBg
-                          : "#ffffff22",
-                      color:
-                        percentages[category] === mark.value
-                          ? "white"
-                          : "inherit",
-                    }}
-                  >
-                    {mark.label}
-                  </span>
-                ),
-              }))}
-              valueLabelDisplay="auto"
-              sx={{ color: "#50bcf6", 
-               }}
-            />
-          </Box>
-        ))}
-      </Box>
+                <Typography
+                  fontWeight={600}
+                  sx={{
+                    color: color.titleColor,
+                    borderRadius: "12px",
+                    fontSize: "0.875rem",
+                    textAlign: "left",
+                  }}
+                >
+                  {category}
+                </Typography>
+                <Typography variant="body2">
+                  {getQuestionCount(percentages[category] || 0)} Questions
+                </Typography>
+              </Stack>
+              <Slider
+                value={percentages[category] || 0}
+                onChange={(e, val) =>
+                  handleSliderChange(category, val as number)
+                }
+                min={0}
+                max={100}
+                step={1}
+                marks={marks.map((mark) => ({
+                  ...mark,
+                  label: (
+                    <span
+                      style={{
+                        padding: "2px 10px",
+                        borderRadius: "12px",
+                        background:
+                          percentages[category] === mark.value
+                            ? color.activeButtonBg
+                            : "#ffffff22",
+                        color:
+                          percentages[category] === mark.value
+                            ? "white"
+                            : "inherit",
+                      }}
+                    >
+                      {mark.label}
+                    </span>
+                  ),
+                }))}
+                // components={{ Thumb: CustomThumbComponent }}
+                valueLabelDisplay="auto"
+                sx={{
+                  color: "#50bcf6",
+                  "& .MuiSlider-thumb": {
+                    width: 24,
+                    height: 24,
+                    backgroundColor: "#fff",
+                    border: "2px solid #50bcf6",
+                  },
+                }}
+              />
+            </Box>
+          ))}
+        </Box>
 
-      <Box width={'300px'} textAlign={'center'}>
-        <Box sx={{m:'auto', position: "relative", width: size, height: size }}>
-          <svg width={size} height={size}>
-            <circle
-              stroke="#2A2D3E"
-              fill="transparent"
-              strokeWidth={strokeWidth}
-              r={radius}
-              cx={size / 2}
-              cy={size / 2}
-            />
-            <circle
-              stroke={color.newFirstColor}
-              fill="transparent"
-              strokeWidth={strokeWidth}
-              strokeLinecap="round"
-              strokeDasharray={circumference}
-              strokeDashoffset={offset}
-              r={radius}
-              cx={size / 2}
-              cy={size / 2}
-              transform={`rotate(-90 ${size / 2} ${size / 2})`}
-            />
-          </svg>
-          <Typography
-            sx={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              width: size,
-              height: size,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              textAlign: "center",
-              fontSize: 16,
-              fontWeight: 600,
-            }}
+        <Box width={"300px"} textAlign={"center"}>
+          <Box
+            sx={{ m: "auto", position: "relative", width: size, height: size }}
           >
-            {totalPercentage}%
+            <svg width={size} height={size}>
+              <circle
+                stroke="#2A2D3E"
+                fill="transparent"
+                strokeWidth={strokeWidth}
+                r={radius}
+                cx={size / 2}
+                cy={size / 2}
+              />
+              <circle
+                stroke={totalPercentage !== 100 ? "red" : "green"}
+                fill="transparent"
+                strokeWidth={strokeWidth}
+                strokeLinecap="round"
+                strokeDasharray={circumference}
+                strokeDashoffset={offset}
+                r={radius}
+                cx={size / 2}
+                cy={size / 2}
+                transform={`rotate(-90 ${size / 2} ${size / 2})`}
+              />
+            </svg>
+            <Typography
+              sx={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: size,
+                height: size,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                textAlign: "center",
+                fontSize: 16,
+                fontWeight: 600,
+              }}
+            >
+              {totalPercentage}%
+            </Typography>
+          </Box>
+          <Typography
+            sx={{ fontFamily: "montserrat-regular" }}
+            textAlign={"center"}
+            variant="body2"
+            color={totalColor}
+            mt={1}
+          >
+            {totalMessage}
           </Typography>
         </Box>
-        <Typography sx={{fontFamily:'montserrat-regular'}} textAlign={'center'} variant="body2" color={totalColor} mt={1}>
-          {totalMessage}
-        </Typography>
-      </Box>
       </Box>
     </Box>
   );

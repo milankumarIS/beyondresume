@@ -1,10 +1,12 @@
 import {
   faBuilding,
   faCloudSun,
+  faEdit,
+  faLocationDot,
   faLocationPin,
   faUserTie,
 } from "@fortawesome/free-solid-svg-icons";
-import { Stack, Typography } from "@mui/material";
+import { Box, Stack, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import {
   BeyondResumeButton,
@@ -13,12 +15,15 @@ import {
 import { getUserId } from "../../../../services/axiosClient";
 import {
   searchDataFromTable,
-  syncDataInTable
+  syncDataInTable,
 } from "../../../../services/services";
 import ProfileSectionCard from "../../Beyond Resume Components/ProfileSectionCard";
 import JobPreferenceForm from "../forms/JobPreferenceForm";
+import { useTheme } from "../../../../components/util/ThemeContext";
+import color from "../../../../theme/color";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-export default function JobPreferenceSection() {
+export default function JobPreferenceSection({ hideSensitive }: any) {
   const [isEditing, setIsEditing] = useState(false);
   const [jobPreference, setJobPreference] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -27,7 +32,7 @@ export default function JobPreferenceSection() {
     const fetchJobPreference = async () => {
       try {
         const response = await searchDataFromTable("userJobPreference", {
-           userId: getUserId()
+          userId: getUserId(),
         });
 
         // console.log(response)
@@ -106,46 +111,66 @@ export default function JobPreferenceSection() {
     );
   }
 
+  const { theme } = useTheme();
+
   return (
-    <ProfileSectionCard
-      title="Job Preference"
-      onEdit={() => setIsEditing(true)}
-    >
+    <Box position={"relative"} p={3} pr={2}>
       <Stack
         spacing={1}
         style={{
           position: "relative",
           overflow: "hidden",
-          boxShadow: "0px 4px 10px rgba(90, 128, 253, 0.49)",
+          background: theme === "dark" ? color.jobCardBg : color.jobCardBgLight,
         }}
         borderRadius={4}
         p={2}
-        pt={3}
-        pb={2.5}
-        minWidth={"200px"}
+        pt={1}
+        minWidth={"250px"}
       >
+        {!hideSensitive && (
+          <FontAwesomeIcon
+            style={{
+              fontSize: "12px",
+              background: color.activeButtonBg,
+              padding: "6px",
+              borderRadius: "4px",
+              color: "white",
+              position: "absolute",
+              top: 15,
+              right: 15,
+              zIndex: 2,
+            }}
+            icon={faEdit}
+            onClick={() => setIsEditing(true)}
+          ></FontAwesomeIcon>
+        )}
+
+        <Typography sx={{ fontFamily: "custom-bold", mb: 4 }}>
+          Job preference
+        </Typography>
+
         <IconTextRow1
-          heading="Location"
-          icon={faLocationPin}
+          // heading="Location"
+          icon={faLocationDot}
           text={jobPreference.location}
         />
         <IconTextRow1
-          heading="Employment Type"
+          // heading="Employment Type"
           icon={faUserTie}
           text={jobPreference.employmentType}
         />
         <IconTextRow1
-          heading="Workplace"
+          // heading="Workplace"
           icon={faBuilding}
           text={jobPreference.workplace}
         />
 
         <IconTextRow1
-          heading="Shift"
+          // heading="Shift"
           icon={faCloudSun}
           text={jobPreference.shift}
         />
       </Stack>
-    </ProfileSectionCard>
+    </Box>
   );
 }

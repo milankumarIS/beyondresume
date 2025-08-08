@@ -26,7 +26,7 @@ function chunkArray<T>(array: T[], size: number): T[][] {
 }
 
 const BeyondResumeTestimony = () => {
-  const testimonialChunks = chunkArray(testimonials, 6);
+  const testimonialChunks = chunkArray(testimonials, 4);
 
   return (
     <Box my={6} px={2}>
@@ -60,12 +60,12 @@ const BeyondResumeTestimony = () => {
             <Box key={chunkIndex} p={2} pb={6}>
               <Grid container spacing={2}>
                 {chunk.map((item, index) => (
-                  <Grid item xs={12} sm={6} md={4} key={index}>
+                  <Grid item xs={12} sm={6} md={3} key={index}>
                     <Card
                       elevation={3}
                       sx={{
                         borderRadius: 3,
-                        backgroundColor: "#fafafa",
+                        background: "linear-gradient(-30deg, #D7F4FF, #FFFFFF)",
                         height: "100%",
                         transition: "all 0.6s",
                         boxShadow: "4px 4px 15px rgba(0, 0, 0, 0.11)",
@@ -76,36 +76,44 @@ const BeyondResumeTestimony = () => {
                       }}
                     >
                       <CardContent>
+                        <Stack
+                          direction="column"
+                          justifyContent="center"
+                          alignItems="center"
+                          mt={2}
+                        >
+                          <Avatar sx={{ mb: 1 }}>{item.name[0]}</Avatar>
+                          <Typography variant="subtitle2">
+                            {item.name}
+                          </Typography>
+                          <Typography
+                            variant="caption"
+                            sx={{ fontFamily: "montserrat-regular" }}
+                          >
+                            {item.role}
+                          </Typography>
+                        </Stack>
+
                         <Typography
-                          variant="body1"
+                          variant="body2"
                           sx={{
-                            mb: 2,
+                            mt: 2,
+                            hyphens: "auto",
                             fontFamily: "montserrat-regular",
                           }}
                         >
                           {item.feedback}
                         </Typography>
 
-                        <Stack
-                          direction="row-reverse"
-                          justifyContent="space-between"
-                          alignItems="center"
-                          spacing={2}
-                          mt={2}
-                        >
-                          <Avatar>{item.name[0]}</Avatar>
-                          <Box>
-                            <Typography variant="subtitle2">
-                              {item.name}
-                            </Typography>
-                            <Typography
-                              variant="caption"
-                              sx={{ fontFamily: "montserrat-regular" }}
-                            >
-                              {item.role}
-                            </Typography>
-                          </Box>
-                        </Stack>
+                        <img
+                          style={{
+                            margin: "auto",
+                            display: "block",
+                            marginTop: "20px",
+                          }}
+                          src="/assets/testimony vector.png"
+                          alt=""
+                        />
                       </CardContent>
                     </Card>
                   </Grid>

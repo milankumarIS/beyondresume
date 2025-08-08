@@ -1,18 +1,13 @@
 import {
   faCake,
+  faEdit,
   faEnvelope,
   faGlobe,
   faPhone,
   faVenusMars,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  Avatar,
-  Box,
-  Card,
-  Stack,
-  Typography
-} from "@mui/material";
+import { Avatar, Box, Card, Divider, Stack, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import { genderArray1 } from "../../../../components/form/data";
 import { formatDate } from "../../../../components/util/CommonFunctions";
@@ -25,9 +20,15 @@ import { getProfile } from "../../../../services/services";
 import color from "../../../../theme/color";
 import ProfileSectionCard from "../../Beyond Resume Components/ProfileSectionCard";
 import BasicDetailsForm from "../forms/BasicDetailsForm";
+import { useTheme } from "../../../../components/util/ThemeContext";
 
-export default function BasicDetailsSection({ data, onSave }: any) {
+export default function BasicDetailsSection({
+  data,
+  onSave,
+  hideSensitive,
+}: any) {
   const [isEditing, setIsEditing] = useState(false);
+  const { theme } = useTheme();
 
   const [currentUser, setCurrentUser] = useState<any>();
   useEffect(() => {
@@ -35,6 +36,7 @@ export default function BasicDetailsSection({ data, onSave }: any) {
       setCurrentUser({ ...result?.data?.data });
     });
   }, [isEditing]);
+  // console.log(currentUser);
 
   if (!currentUser && !isEditing) {
     return (
@@ -97,102 +99,173 @@ export default function BasicDetailsSection({ data, onSave }: any) {
   }
 
   return (
-    <ProfileSectionCard title="" onEdit={() => setIsEditing(true)}>
+    <Box>
       <Stack
         spacing={1}
+        flexDirection={"row"}
         sx={{
-          width: "300px",
-          textAlign: "center",
-          pb: 2,
+          justifyContent: "space-between",
+          alignItems: "center",
+          textAlign: "left",
+          p: 2,
+          pl: 0,
+          pt: 0,
         }}
       >
-        {currentUser?.userPersonalInfo?.userImage ? (
-          <Avatar
-            src={currentUser?.userPersonalInfo?.userImage}
-            alt="Avatar"
-            sx={{ width: 90, height: 90, mx: "auto", alignSelf: "center" }}
-          />
-        ) : (
-          <Avatar
-            alt="Avatar"
-            sx={{ width: 90, height: 90, mx: "auto", alignSelf: "center" }}
-          >
-            BR
-          </Avatar>
-        )}
-
-        <Typography style={{ marginBottom: "-12px" }} variant="h6">
-          {currentUser?.userPersonalInfo?.firstName ||
-          currentUser?.userPersonalInfo?.middleName ||
-          currentUser?.userPersonalInfo?.lastName ? (
-            <>
-              {currentUser?.userPersonalInfo?.firstName || ""}{" "}
-              {currentUser?.userPersonalInfo?.middleName || ""}{" "}
-              {currentUser?.userPersonalInfo?.lastName || ""}
-            </>
-          ) : (
-            "No name"
-          )}
-        </Typography>
-
-        <Typography
-          sx={{
-            fontFamily: "Montserrat-Regular",
-          }}
+        <Box
+          display={"flex"}
+          flexDirection={"column"}
+          alignItems={"flex-start"}
+          p={2}
+          pr={4}
         >
-          {getUserName()}
-        </Typography>
+          <Box
+            sx={{ display: "flex", mb: 2, width: "100%" }}
+            alignItems={"center"}
+            justifyContent={"space-between"}
+            gap={2}
+          >
+            <Box
+              display={"flex"}
+              alignItems={"center"}
+              justifyContent={"center"}
+              gap={2}
+            >
+              {currentUser?.userPersonalInfo?.userImage ? (
+                <Avatar
+                  src={currentUser?.userPersonalInfo?.userImage}
+                  alt="Avatar"
+                  sx={{
+                    width: 90,
+                    height: 90,
+                    mx: "auto",
+                    alignSelf: "center",
+                  }}
+                />
+              ) : (
+                <Avatar
+                  alt="Avatar"
+                  sx={{
+                    width: 90,
+                    height: 90,
+                    mx: "auto",
+                    alignSelf: "center",
+                  }}
+                >
+                  {currentUser?.userPersonalInfo?.firstName?.[0]}
+                </Avatar>
+              )}
 
-        {/* <Divider
-          sx={{ border: "solid 1.5px", borderColor: color.newFirstColor }}
-        /> */}
-        <div
-          style={{
+              <div>
+                <Typography
+                  style={{ marginBottom: "1px", fontFamily: "custom-bold" }}
+                  variant="h5"
+                >
+                  {currentUser?.userPersonalInfo?.firstName ||
+                  currentUser?.userPersonalInfo?.middleName ||
+                  currentUser?.userPersonalInfo?.lastName ? (
+                    <>
+                      {currentUser?.userPersonalInfo?.firstName || ""}{" "}
+                      {currentUser?.userPersonalInfo?.middleName || ""}{" "}
+                      {currentUser?.userPersonalInfo?.lastName || ""}
+                    </>
+                  ) : (
+                    "No name"
+                  )}
+                </Typography>
+
+                <Typography
+                  sx={{
+                    fontSize: "14px",
+                    fontFamily: "Montserrat-Regular",
+                  }}
+                >
+                  {getUserName()}
+                </Typography>
+              </div>
+            </Box>
+
+            {!hideSensitive && (
+              <BeyondResumeButton
+                onClick={() => {
+                  setIsEditing(true);
+                }}
+              >
+                Edit Profile{" "}
+                <FontAwesomeIcon style={{ marginLeft: "8px" }} icon={faEdit} />
+              </BeyondResumeButton>
+            )}
+          </Box>
+
+          <div style={{ width: "100%", flexGrow: 1 }}>
+            <Typography sx={{ fontFamily: "custom-bold" }}>About Me</Typography>
+            {/* <Divider sx={{ border: "solid 1px grey", my: 1, opacity: 0.4 }} /> */}
+
+            <Typography
+              sx={{ textAlign: "left", fontFamily: "montserrat-regular" }}
+            >
+              {currentUser?.userPersonalInfo?.about || "No data"}
+            </Typography>
+          </div>
+        </Box>
+
+        <Box
+          sx={{
+            minWidth: "250px",
             textAlign: "left",
             display: "flex",
             flexDirection: "column",
-            gap: 6,
-            boxShadow: "0px 4px 10px rgba(90, 128, 253, 0.49)",
+            gap: 1,
             borderRadius: "12px",
-            padding: "12px",
+            padding: 2,
+            background:
+              theme === "dark" ? color.jobCardBg : color.jobCardBgLight,
           }}
         >
+          <Typography sx={{ fontFamily: "custom-bold", mb: 1 }}>
+            Contact & Other Details
+          </Typography>
+
           <Box display={"flex"} alignItems={"center"} gap={1}>
-            <FontAwesomeIcon
-              style={{
-                background: color.newFirstColor,
-                color: "white",
-                padding: "4px",
+            <Box
+              sx={{
+                background: "#ebebeb",
+                padding: "2px",
+                height: "18px",
+                width: "18px",
                 borderRadius: "4px",
-                height: "14px",
-                width: "14px",
+                color: "#5b5e66",
+                display: "flex",
+                alignItems: "center",
+                justifyContent:'center'
               }}
-              icon={faEnvelope}
-            />{" "}
+            >
+              <FontAwesomeIcon icon={faEnvelope} />{" "}
+            </Box>
+
             <Typography
               sx={{
                 fontSize: "14px",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
                 whiteSpace: "nowrap",
+                fontFamily: "montserrat-regular",
                 flexGrow: 1,
                 minWidth: 0,
-                //   display:'flex',
-                //   alignItems:'center',
-                //   gap:0.5
               }}
             >
-              {/* {data.email} */}
               {currentUser?.userContact?.userEmail}
             </Typography>
           </Box>
 
           <IconTextRow
+            hideSensitive={hideSensitive}
             icon={faPhone}
             text={currentUser?.userContact?.userPhoneNumber || "No data"}
           />
 
           <IconTextRow
+            hideSensitive={hideSensitive}
             icon={faCake}
             text={
               currentUser?.userPersonalInfo?.dob
@@ -202,11 +275,13 @@ export default function BasicDetailsSection({ data, onSave }: any) {
           />
 
           <IconTextRow
+            hideSensitive={hideSensitive}
             icon={faVenusMars}
             text={currentUser?.userPersonalInfo?.gender?.gender || "No data"}
           />
 
           <IconTextRow
+            hideSensitive={hideSensitive}
             icon={faGlobe}
             text={
               Array.isArray(currentUser?.userPersonalInfo?.languagesKnown) &&
@@ -215,16 +290,8 @@ export default function BasicDetailsSection({ data, onSave }: any) {
                 : "No data"
             }
           />
-        </div>
-
-        {/* <Divider
-          sx={{ border: "solid 1.5px", borderColor: color.newFirstColor }}
-        /> */}
-        <Typography sx={{ textAlign: "left" }}>
-          <b>About:</b> <br />{" "}
-          {currentUser?.userPersonalInfo?.about || "No data"}
-        </Typography>
+        </Box>
       </Stack>
-    </ProfileSectionCard>
+    </Box>
   );
 }

@@ -21,9 +21,7 @@ import React, { JSX, useEffect, useState } from "react";
 import { useHistory, useLocation } from "react-router";
 import PaginationControlled from "../../components/shared/Pagination";
 import { generateInterviewReportExcel } from "../../components/util/CommonFunctions";
-import {
-  BeyondResumeButton
-} from "../../components/util/CommonStyle";
+import { BeyondResumeButton } from "../../components/util/CommonStyle";
 import { paginateDataFromTable } from "../../services/services";
 import color from "../../theme/color";
 type LocationState = {
@@ -202,12 +200,17 @@ const BeyondResumeCandidateList = () => {
           mb: 3,
         }}
       >
-        <CustomToggleButtonGroup exclusive>
+        <CustomToggleButtonGroup
+          exclusive
+          sx={{
+            background:color.cardBg
+          }}
+        >
           <CustomToggleButton
             value="yes"
             sx={{
-              background: color.activeButtonBg,
-              color: "#fff",
+              // background: color.activeButtonBg,
+              color: "inherit",
               boxShadow: "0px 4px 10px rgba(90, 128, 253, 0.49)",
             }}
           >
@@ -215,6 +218,22 @@ const BeyondResumeCandidateList = () => {
           </CustomToggleButton>
         </CustomToggleButtonGroup>
       </Box>
+      {/* <Typography
+        variant="h5"
+        sx={{
+          fontFamily: "Custom-Bold",
+          width: "fit-content",
+          p: 4,
+          pb: 2,
+          borderRadius: "12px",
+          textAlign: "center",
+          m: "auto",
+          lineHeight: 1,
+          textDecoration:'underline'
+        }}
+      >
+        Candidate List
+      </Typography> */}
 
       {data.length > 0 && (
         <BeyondResumeButton
@@ -408,10 +427,10 @@ const BeyondResumeCandidateList = () => {
                                 display="block"
                                 textAlign={"left"}
                               >
-                                {formatDateWithSuffix(interview.updatedAt)},{" "}
+                                {formatDateWithSuffix(interview.createdAt)},{" "}
                                 {""}
                                 {new Date(
-                                  interview.updatedAt
+                                  interview.createdAt
                                 ).toLocaleTimeString([], {
                                   hour: "2-digit",
                                   minute: "2-digit",
@@ -508,12 +527,16 @@ const BeyondResumeCandidateList = () => {
                               right: 0,
                               // border:'solid 1px white',
                               background: bgcolor,
+                              color: getTextColor(bgcolor),
+
                               px: 1,
                               py: 0.5,
                               borderRadius: "0px 0px 0px 8px",
                             }}
                           >
-                            <Typography>{score}/100</Typography>
+                            <Typography sx={{ color: getTextColor(bgcolor) }}>
+                              {score}/100
+                            </Typography>
                           </Box>
                         </Card>
                       </Grid>
@@ -622,28 +645,17 @@ const CustomToggleButton = styled(ToggleButton)(({ theme }) => ({
   },
 }));
 
-const getFormattedDateKey = (dateString: string) => {
-  const date = new Date(dateString);
-  const today = new Date();
-  const yesterday = new Date();
-  yesterday.setDate(today.getDate() - 1);
+const getTextColor = (bgcolor: string) => {
+  if (bgcolor.includes("#4CAF50") || bgcolor.includes("#81C784"))
+    return "white"; // Excellent - green
+  if (bgcolor.includes("#8BC34A") || bgcolor.includes("#AED581"))
+    return "black"; // Great - lime
+  if (bgcolor.includes("#FFC107") || bgcolor.includes("#FFD54F"))
+    return "black"; // Good - yellow
+  if (bgcolor.includes("#FF9800") || bgcolor.includes("#FFB74D"))
+    return "white"; // Fair - orange
+  if (bgcolor.includes("#F44336") || bgcolor.includes("186, 39, 39"))
+    return "white"; // Needs Improvement - red
 
-  const isToday = date.toDateString() === today.toDateString();
-  const isYesterday = date.toDateString() === yesterday.toDateString();
-
-  if (isToday) return "Today";
-  if (isYesterday) return "Yesterday";
-
-  // Format as "28th May"
-  const day = date.getDate();
-  const month = date.toLocaleString("default", { month: "short" }); // "May"
-  const suffix =
-    day % 10 === 1 && day !== 11
-      ? "st"
-      : day % 10 === 2 && day !== 12
-      ? "nd"
-      : day % 10 === 3 && day !== 13
-      ? "rd"
-      : "th";
-  return `${day}${suffix} ${month}`;
+  return "black"; // Default fallback
 };

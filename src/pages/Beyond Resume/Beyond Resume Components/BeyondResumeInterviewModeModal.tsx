@@ -16,6 +16,8 @@ import color from "../../../theme/color";
 interface InterviewModeModalProps {
   open: boolean;
   rawJobData: any;
+  noOQuestion?: any;
+  duration?: any;
   onSelectMode: (mode: "AI_VIDEO" | "BASIC_EXAM") => void;
 }
 
@@ -23,6 +25,8 @@ const InterviewModeModal: React.FC<InterviewModeModalProps> = ({
   open,
   onSelectMode,
   rawJobData,
+  noOQuestion,
+  duration
 }) => {
   const { theme } = useTheme();
   return (
@@ -55,7 +59,7 @@ const InterviewModeModal: React.FC<InterviewModeModalProps> = ({
                 theme === "dark" ? color.titleColor : color.titleLightColor,
               background:
                 theme === "dark" ? color.jobCardBg : color.jobCardBgLight,
-              borderRadius: "12px",
+              borderRadius: "8px",
               width: "fit-content",
               px: 2,
               m: "auto",
@@ -99,7 +103,7 @@ const InterviewModeModal: React.FC<InterviewModeModalProps> = ({
                 background:
                   theme === "dark" ? 'white' : color.jobCardBgLight,
                 "&:hover": {
-                  border: "solid 2px #50bcf6",
+                  // border: "solid 2px #50bcf6",
                   transform: "scale(1.03)",
                 },
               }}
@@ -109,7 +113,7 @@ const InterviewModeModal: React.FC<InterviewModeModalProps> = ({
                   margin: "auto",
                   display: "block",
                 }}
-                src="/public/assets/ai base.png"
+                src="/assets/ai base.png"
               />
 
               <Typography
@@ -191,7 +195,7 @@ const InterviewModeModal: React.FC<InterviewModeModalProps> = ({
                 background:
                   theme === "dark" ? 'white' : color.jobCardBgLight,
                 "&:hover": {
-                  border: "solid 2px #50bcf6",
+                  // border: "solid 2px #50bcf6",
                   transform: "scale(1.03)",
                 },
               }}
@@ -201,7 +205,7 @@ const InterviewModeModal: React.FC<InterviewModeModalProps> = ({
                   margin: "auto",
                   display: "block",
                 }}
-                src="/public/assets/web base.png"
+                src="/assets/web base.png"
               />
               <Typography
                 variant="h6"

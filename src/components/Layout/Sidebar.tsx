@@ -1,22 +1,21 @@
-import React, { useEffect, useState } from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faHome,
   faBriefcase,
-  faUser,
-  faCrown,
-  faIdCard,
-  faMoneyBill,
-  faScroll,
-  faUserCircle,
+  faChartSimple,
   faCirclePlus,
+  faComments,
+  faCrown,
+  faHome,
+  faUser,
+  faUserCircle
 } from "@fortawesome/free-solid-svg-icons";
-import { useHistory, useLocation } from "react-router-dom";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Box, Typography } from "@mui/material";
+import React, { useEffect, useState } from "react";
+import { useHistory, useLocation } from "react-router-dom";
+import { getUserRole, isLoggedIn } from "../../services/axiosClient";
 import color from "../../theme/color";
-import { isLoggedIn, getUserRole } from "../../services/axiosClient";
-import { useTheme } from "../util/ThemeContext";
 import { GradientFontAwesomeIcon } from "../util/CommonStyle";
+import { useTheme } from "../util/ThemeContext";
 
 const navItems = [
   { icon: faHome, label: "Home", path: "/beyond-resume" },
@@ -54,21 +53,21 @@ const buttonsArray: any[] = [
   {
     title: "Practice",
     url: "/beyond-resume-interviews",
-    icon: faScroll,
+    icon: faChartSimple,
     role: "CAREER SEEKER",
   },
   {
     title: "My Interviews",
     url: "/beyond-resume-interview-list",
-    icon: faUserCircle,
+    icon: faComments,
     role: "CAREER SEEKER",
   },
-  {
-    title: "My Profile",
-    url: "/beyond-resume-candidate-profile",
-    icon: faIdCard,
-    role: "CAREER SEEKER",
-  },
+  // {
+  //   title: "My Profile",
+  //   url: "/beyond-resume-candidate-profile",
+  //   icon: faIdCard,
+  //   role: "CAREER SEEKER",
+  // },
   {
     title: "Plans",
     url: "/beyond-resume-pricing",

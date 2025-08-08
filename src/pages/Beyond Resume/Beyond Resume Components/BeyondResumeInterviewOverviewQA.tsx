@@ -1,29 +1,31 @@
 import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-    Accordion,
-    AccordionDetails,
-    AccordionSummary,
-    Box,
-    Grid,
-    Tab,
-    Tabs,
-    Typography,
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
+  Box,
+  Grid,
+  Tab,
+  Tabs,
+  Typography,
 } from "@mui/material";
 import { useState } from "react";
 import {
-    Bar,
-    BarChart,
-    CartesianGrid,
-    Cell,
-    LabelList,
-    Pie,
-    PieChart,
-    ResponsiveContainer,
-    Tooltip,
-    XAxis,
-    YAxis,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  LabelList,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
 } from "recharts";
+import color from "../../../theme/color";
+import { useTheme } from "../../../components/util/ThemeContext";
 // import { CustomTooltip } from "../../Daily Education/Components/StudentGraphCanvas";
 
 type MCQOption = {
@@ -47,10 +49,12 @@ type GroupedQuestions = {
 
 type Props = {
   groupedQuestions: GroupedQuestions;
+  examMode?: string;
 };
 
 export default function BeyondResumeInterviewOverviewQA({
   groupedQuestions,
+  examMode,
 }: Props) {
   const [selectedCategory, setSelectedCategory] = useState(
     Object.keys(groupedQuestions)[0]
@@ -64,7 +68,7 @@ export default function BeyondResumeInterviewOverviewQA({
       return { category, score: Math.round(percentage) };
     }
   );
-// console.log(groupedQuestions)
+  // console.log(groupedQuestions)
   const handleTabChange = (event, newValue) => {
     setSelectedCategory(newValue);
   };
@@ -81,7 +85,6 @@ export default function BeyondResumeInterviewOverviewQA({
       { name: "Wrong", value: wrong, color: "#D32F2F" },
       { name: "Not Answered", value: notAnswered, color: "#FFAB00" },
     ];
-
     return (
       <Box
         px={2}
@@ -169,127 +172,141 @@ export default function BeyondResumeInterviewOverviewQA({
       </Box>
     );
   };
+  const { theme } = useTheme();
 
   return (
     <Box mt={4}>
-      <Typography variant="h6"  mb={2}>
-        Performance Graph
-      </Typography>
+      {examMode !== "Adaptive" ? (
+        <>
+          <Typography variant="h6" mb={2}>
+            Performance Graph
+          </Typography>
 
-      <ResponsiveContainer
-        width="100%"
-        height={300}
-        style={{
-          background: "linear-gradient(145deg, #0d0d0d, #2D3436)",
-          border: "solid 1px",
-          padding: "12px 0px",
-          borderRadius: "12px",
-          paddingTop: "24px",
-        }}
-      >
-        <BarChart
-          data={chartData}
-          style={{
-            margin: "12px",
-            marginLeft: "-24px",
-          }}
-        >
-          <CartesianGrid
-            stroke="rgba(204, 204, 204, 0.31)"
-            vertical={false}
-            horizontal={true}
-          />
-          <XAxis
-            dataKey="category"
-            stroke="#ffffff"
-            tick={{
-              fill: "#ffffff",
-              fontSize: 12,
-              fontFamily: "custom-bold",
+          <ResponsiveContainer
+            width="100%"
+            height={300}
+            style={{
+              background: color.cardBg,
+              color: "inherit",
+              border: "solid 1px",
+              padding: "12px 0px",
+              borderRadius: "12px",
+              paddingTop: "24px",
             }}
-          />
-          <YAxis
-            stroke="#ffffff"
-            domain={[0, 100]}
-            tick={{
-              fill: "#ffffff",
-              fontSize: 12,
-              fontFamily: "custom-bold",
-            }}
-            tickFormatter={(tick) => `${tick}%`}
-          />
-
-          {/* <Tooltip content={<CustomTooltip bgColor="#50bcf6" showPercent />} /> */}
-
-          <Bar
-            stroke="white"
-            strokeWidth={2}
-            dataKey="score"
-            fill="#50bcf6"
-            style={{ fontFamily: "custom-regular" }}
           >
-            <LabelList
-              dataKey="score"
-              position="top"
-              content={({ value, x, y, width }) => {
-                if (value === 0 || value == null) {
-                  const numX = typeof x === "number" ? x : parseFloat(x || "0");
-                  const numY = typeof y === "number" ? y : parseFloat(y || "0");
-                  const numWidth =
-                    typeof width === "number"
-                      ? width
-                      : parseFloat(width || "0");
-
-                  return (
-                    <text
-                      x={numX + numWidth / 2}
-                      y={numY - 5}
-                      fill="white"
-                      textAnchor="middle"
-                      fontSize={12}
-                      fontFamily="custom-regular"
-                    >
-                      No Data
-                    </text>
-                  );
-                }
-                return null;
+            <BarChart
+              data={chartData}
+              style={{
+                margin: "12px",
+                marginLeft: "-24px",
               }}
-            />
-          </Bar>
-        </BarChart>
-      </ResponsiveContainer>
+            >
+              <CartesianGrid
+                stroke={theme === "dark" ? "#ffffff9b" : "rgba(0, 0, 0, 0.64)"}
+                vertical={false}
+                horizontal={true}
+              />
+              <XAxis
+                dataKey="category"
+                stroke={theme === "dark" ? "#ffffff" : "#000000"}
+                tick={{
+                  fill: theme === "dark" ? "#ffffff" : "#000000",
 
-      <Tabs
-        value={selectedCategory}
-        onChange={handleTabChange}
-        variant="scrollable"
-        allowScrollButtonsMobile
-        sx={{
-          mt: 4,
-          mb: 2,
-          "& .MuiTab-root": {
-            color: "white",
-            background: "#2d3436",
-            borderRadius: "20px",
-            marginRight: "8px",
-            paddingX: "16px",
-            textTransform: "none",
-            border: "1px solid #ffffff44",
-          },
-          "& .Mui-selected": {
-            background: "linear-gradient(180deg, #50bcf6, #5a81fd)",
-            color: "white !important",
-          },
-          "& .MuiTabs-indicator": {
-            backgroundColor: "transparent",
-          },
-        }}
-      >
-        {Object.keys(groupedQuestions).map((category) => (
-          <Tab key={category} value={category} label={category} />
-        ))}
-      </Tabs>
+                  fontSize: 12,
+                  fontFamily: "custom-bold",
+                }}
+              />
+              <YAxis
+                stroke={theme === "dark" ? "#ffffff" : "#000000"}
+                domain={[0, 100]}
+                tick={{
+                  fill: theme === "dark" ? "#ffffff" : "#000000",
+                  fontSize: 12,
+                  fontFamily: "custom-bold",
+                }}
+                tickFormatter={(tick) => `${tick}%`}
+              />
+
+              {/* <Tooltip content={<CustomTooltip bgColor="#50bcf6" showPercent />} /> */}
+
+              <Bar
+                stroke={theme === "dark" ? "#ffffff" : "#000000"}
+                strokeWidth={2}
+                dataKey="score"
+                fill="#50bcf6"
+                style={{ fontFamily: "custom-regular" }}
+              >
+                <LabelList
+                  dataKey="score"
+                  position="top"
+                  content={({ value, x, y, width }) => {
+                    if (value === 0 || value == null) {
+                      const numX =
+                        typeof x === "number" ? x : parseFloat(x || "0");
+                      const numY =
+                        typeof y === "number" ? y : parseFloat(y || "0");
+                      const numWidth =
+                        typeof width === "number"
+                          ? width
+                          : parseFloat(width || "0");
+
+                      return (
+                        <text
+                          x={numX + numWidth / 2}
+                          y={numY - 5}
+                          fill={theme === "dark" ? "#ffffff" : "#000000"}
+                          textAnchor="middle"
+                          fontSize={12}
+                          fontFamily="custom-regular"
+                        >
+                          No Data
+                        </text>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+
+          <Tabs
+            value={selectedCategory}
+            onChange={handleTabChange}
+            variant="scrollable"
+            allowScrollButtonsMobile
+            sx={{
+              mt: 4,
+              mb: 2,
+              "& .MuiTab-root": {
+                color: "white",
+                background: "#2d3436",
+                borderRadius: "40px",
+                marginRight: "8px",
+                paddingX: "16px",
+                textTransform: "none",
+                border: "1px solid #ffffff44",
+              },
+              "& .Mui-selected": {
+                background: color.activeButtonBg,
+                color: "white !important",
+              },
+              "& .MuiTabs-indicator": {
+                backgroundColor: "transparent",
+              },
+            }}
+          >
+            {Object.keys(groupedQuestions).map((category) => (
+              <Tab key={category} value={category} label={category} />
+            ))}
+          </Tabs>
+        </>
+      ) : (
+        <Typography textAlign={'center'} variant="h6" mb={4}>
+          Adaptive Evaluation Insights
+        </Typography>
+        
+      )}
 
       <Box px={2}>
         {/* <Typography variant="subtitle1" color="white" mb={1}>
@@ -326,13 +343,13 @@ export default function BeyondResumeInterviewOverviewQA({
               style={{
                 marginTop: "12px",
                 boxShadow: "none",
-                background: "linear-gradient(145deg, #0d0d0d, #2D3436)",
-                border: `2px solid ${borderColor}`,
+                background: color.cardBg,
+                // border: `2px solid ${borderColor}`,
                 borderRadius: "12px",
-                color: "white",
                 padding: "12px",
                 position: "relative",
                 overflow: "hidden",
+                color: "inherit",
               }}
               sx={{
                 "&.MuiAccordion-root::before": {
@@ -355,7 +372,9 @@ export default function BeyondResumeInterviewOverviewQA({
                 }}
                 expandIcon={
                   <FontAwesomeIcon
-                    style={{ color: "white" }}
+                    style={{
+                      color: "inherit",
+                    }}
                     icon={faChevronDown}
                   />
                 }
@@ -375,7 +394,7 @@ export default function BeyondResumeInterviewOverviewQA({
                 >
                   {statusText}
                 </Typography>
-                <Typography fontWeight={600}>
+                <Typography fontWeight={600} maxWidth={"95%"}>
                   {index + 1}. {item.question}
                 </Typography>
               </AccordionSummary>
@@ -414,7 +433,7 @@ export default function BeyondResumeInterviewOverviewQA({
                     </ul>
                   </Box>
                 )}
-                <Grid container spacing={2} >
+                <Grid container spacing={2}>
                   <Grid item xs={12} sm={6}>
                     <Typography variant="subtitle2" mb={0.5}>
                       Suggested Answer:

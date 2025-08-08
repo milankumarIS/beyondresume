@@ -2,7 +2,7 @@ import { faEdit } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Box, Paper, Typography } from "@mui/material";
 import { ReactNode } from "react";
-import color from "../../../theme/color";
+import { useTheme } from "../../../components/util/ThemeContext";
 
 interface Props {
   title: string;
@@ -11,16 +11,17 @@ interface Props {
 }
 
 export default function ProfileSectionCard({ title, children, onEdit }: Props) {
+  const { theme } = useTheme();
   return (
     <Paper
       sx={{
         p: 2,
-        mb: 2,
-        background: "white",
-        color: "black",
+        background: "transparent",
+        color: "inherit",
         borderRadius: "14px",
         height: "fit-content",
         boxShadow: "none",
+        position: "relative",
       }}
     >
       <Box
@@ -29,7 +30,9 @@ export default function ProfileSectionCard({ title, children, onEdit }: Props) {
         alignItems="center"
         mb={2}
       >
-        <Typography variant="h6">{title}</Typography>
+        <Typography sx={{ fontFamily: "custom-bold" }} variant="h6">
+          {title}
+        </Typography>
         {onEdit && (
           <FontAwesomeIcon
             style={{
@@ -37,7 +40,7 @@ export default function ProfileSectionCard({ title, children, onEdit }: Props) {
               background: "linear-gradient(180deg, #50bcf6, #5a81fd)",
               padding: "6px",
               borderRadius: "4px",
-              color:'white'
+              color: "white",
             }}
             icon={faEdit}
             onClick={onEdit}

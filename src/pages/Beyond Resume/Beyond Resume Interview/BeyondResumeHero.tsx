@@ -56,6 +56,7 @@ export default function BeyondResumeHero({ onScrollClick }) {
   const [count, setCount] = useState(0);
 
   const total = interviewList.length;
+// console.log(total);
 
   useEffect(() => {
     if (count < total) {
@@ -63,6 +64,7 @@ export default function BeyondResumeHero({ onScrollClick }) {
       const timer = setTimeout(() => {
         setCount((prev) => Math.min(prev + increment, total));
       }, 30);
+      
 
       return () => clearTimeout(timer);
     }

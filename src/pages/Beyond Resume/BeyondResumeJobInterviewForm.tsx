@@ -1,5 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Box, CircularProgress, Typography, styled } from "@mui/material";
+import { useEffect, useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { useHistory, useParams } from "react-router";
 import FormTextField from "../../components/form/FormTextField";
@@ -8,23 +9,21 @@ import {
   interviewFormSchema,
 } from "../../components/form/schema";
 import { useSnackbar } from "../../components/shared/SnackbarProvider";
-import { commonFormTextFieldSx } from "../../components/util/CommonFunctions";
 import {
-  BeyondResumeButton,
-  BlobAnimation,
-} from "../../components/util/CommonStyle";
+  commonFormTextFieldSx,
+  countTotalQuestions,
+} from "../../components/util/CommonFunctions";
+import { BeyondResumeButton } from "../../components/util/CommonStyle";
 import { getUserId } from "../../services/axiosClient";
 import {
+  UploadAuthFile,
   getProfile,
-  insertDataInTable,
+  getUserAnswerFromAiThroughPdf,
   searchDataFromTable,
   syncByTwoUniqueKeyData,
-  syncDataInTable,
 } from "../../services/services";
-import { faArrowCircleRight } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useEffect, useState } from "react";
 import InterviewModeModal from "./Beyond Resume Components/BeyondResumeInterviewModeModal";
+import FileUpload from "./Beyond Resume Components/FileUpload";
 
 const Container = styled(Box)({
   //   background: 'linear-gradient(180deg, #50bcf6, #5a81fd)',
@@ -72,8 +71,12 @@ const BeyondResumeJobInterviewForm = () => {
   const openSnackBar = useSnackbar();
   const [loading, setLoading] = useState(false);
   const [showModeModal, setShowModeModal] = useState(false);
+  const [noOfQuestion, setNoOfQuestions] = useState<number | null>(null);
+  const [duration, setDuration] = useState<number | null>(null);
   const [applicantId, setApplicantId] = useState<string | null>(null);
-  const [jobs, setJobs] = useState<any[]>([]);
+  const [jobs, setJobs] = useState<any>({});
+  const [resume, setResume] = useState<File | string | null>(null);
+  const [resumeError, setResumeError] = useState<string | null>(null);
 
   const [currentUser, setCurrentUser] = useState<any>();
   useEffect(() => {
@@ -92,6 +95,7 @@ const BeyondResumeJobInterviewForm = () => {
         setValue("fullName", fullName);
         setValue("email", data?.userContact?.userEmail || "");
         setValue("phone", data?.userContact?.userPhoneNumber || "");
+        setResume(data?.userPersonalInfo?.resumeFile || "");
       }
     });
   }, [setValue]);
@@ -102,8 +106,60 @@ const BeyondResumeJobInterviewForm = () => {
     try {
       setLoading(true);
 
+      if (!resume) {
+        setResumeError("Resume is required.");
+        setLoading(false);
+        return;
+      } else {
+        setResumeError(null);
+      }
+
+      let resumeLink: string | null = null;
+
+      if (resume instanceof File) {
+        const formData = new FormData();
+        formData.append("file", resume);
+        const result = await UploadAuthFile(formData);
+
+        resumeLink = result?.data?.data?.location;
+        if (!resumeLink)
+          throw new Error("Resume upload failed. No link returned.");
+      } else if (typeof resume === "string" && resume.length > 0) {
+        resumeLink = resume;
+      }
+
+      let extractedResumeText: string = "";
+
+      try {
+        const prompt1 =
+          `Here I'm attaching a job description link. From the linked PDF, extract the text and give the response in plain innerHTML.`.replace(
+            /\s+/g,
+            " "
+          );
+
+        const response = await getUserAnswerFromAiThroughPdf({
+          question: prompt1,
+          urls: [resumeLink],
+        });
+
+        extractedResumeText = response?.data?.data || "";
+      } catch (err) {
+        console.error("Resume Fetch failed", err);
+      }
+
       const result: any = await searchDataFromTable("brJobs", { brJobId });
       const rawJobData = result?.data?.data || {};
+
+      const cleanedContent = rawJobData?.jobInterviewQuestions
+        .replace(/```json/g, "")
+        .replace(/```/g, "")
+        .replace(/<[^>]*>?/gm, "")
+        .trim();
+
+      const data1 = JSON.parse(cleanedContent);
+      const totalQuestions = countTotalQuestions(data1);
+      setNoOfQuestions(totalQuestions);
+      setDuration(rawJobData?.interviewDuration);
       setJobs(rawJobData);
       const excludedFields = [
         "createdBy",
@@ -132,9 +188,10 @@ const BeyondResumeJobInterviewForm = () => {
         interviewOverview: "",
         questionFile: "",
         numberOfApplicantLimit: 0,
+        candidateResume: extractedResumeText,
       };
 
-      // console.log(payload)
+      console.log(payload);
 
       const insertResult: any = await syncByTwoUniqueKeyData(
         "brJobApplicant",
@@ -154,10 +211,28 @@ const BeyondResumeJobInterviewForm = () => {
   const handleModeSelect = (mode: "AI_VIDEO" | "BASIC_EXAM") => {
     if (!applicantId) return;
     setShowModeModal(false);
+
+    const sessionType = "writtenExamSession";
+
     if (mode === "AI_VIDEO") {
-      history.push(`/beyond-resume-readyToJoin/${applicantId}`);
+      history.push(`/beyond-resume-readyToJoin/${applicantId}`, {
+        duration: duration,
+        noOfQuestions: noOfQuestion,
+        companyName: jobs?.companyName,
+        jobTitle: jobs?.jobTitle,
+        examMode: jobs?.examMode,
+      });
     } else {
-      history.push(`/beyond-resume-jobInterviewSession-written/${applicantId}`);
+      history.push(
+        `/beyond-resume-readyToJoin/${applicantId}?sessionType=${sessionType}`,
+        {
+          duration: duration,
+          noOfQuestions: noOfQuestion,
+          companyName: jobs?.companyName,
+          jobTitle: jobs?.jobTitle,
+          examMode: jobs?.examMode,
+        }
+      );
     }
   };
 
@@ -250,6 +325,25 @@ const BeyondResumeJobInterviewForm = () => {
             sx={commonFormTextFieldSx}
           /> */}
 
+          <FileUpload
+            sx={{ px: 0, mx: 2 }}
+            questionFile={resume}
+            setQuestionFile={(file) => {
+              setResume(file);
+              setResumeError(null); 
+            }}
+            acceptFormat=".pdf"
+            showFileNameOnly={true}
+            uploadLabel={"Upload Resume"}
+            changeLabel={"Upload Another Resume"}
+          />
+
+          {resumeError && (
+            <Typography color="error" sx={{ mt: -1.5, ml: 2 }}>
+              {resumeError}
+            </Typography>
+          )}
+
           <BeyondResumeButton
             type="submit"
             variant="contained"
@@ -268,10 +362,10 @@ const BeyondResumeJobInterviewForm = () => {
             ) : (
               <>
                 Submit{" "}
-                <FontAwesomeIcon
+                {/* <FontAwesomeIcon
                   style={{ marginLeft: "6px" }}
                   icon={faArrowCircleRight}
-                />
+                /> */}
               </>
             )}
           </BeyondResumeButton>
@@ -282,6 +376,7 @@ const BeyondResumeJobInterviewForm = () => {
         rawJobData={jobs}
         open={showModeModal}
         onSelectMode={handleModeSelect}
+        noOQuestion={noOfQuestion}
       />
     </>
   );

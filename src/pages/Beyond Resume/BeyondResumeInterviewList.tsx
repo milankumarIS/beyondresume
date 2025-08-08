@@ -1,9 +1,4 @@
-import {
-  faBriefcase,
-  faBuilding,
-  faChevronCircleRight,
-  faLocationDot,
-} from "@fortawesome/free-solid-svg-icons";
+import { faBuilding } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   Box,
@@ -17,13 +12,11 @@ import {
 import React, { useEffect, useState } from "react";
 import { useHistory } from "react-router";
 import PaginationControlled from "../../components/shared/Pagination";
-import {
-  BeyondResumeButton
-} from "../../components/util/CommonStyle";
+import { BeyondResumeButton } from "../../components/util/CommonStyle";
+import { useTheme } from "../../components/util/ThemeContext";
 import { getUserId } from "../../services/axiosClient";
-import {
-  paginateDataFromTable
-} from "../../services/services";
+import { paginateDataFromTable } from "../../services/services";
+import color from "../../theme/color";
 
 const BeyondResumeInterviewList = () => {
   const [interviewList, setInterviewList] = useState<any[]>([]);
@@ -32,7 +25,6 @@ const BeyondResumeInterviewList = () => {
   const [page, setPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [reload, setReload] = useState(false);
-
 
   useEffect(() => {
     setLoading(true);
@@ -58,7 +50,7 @@ const BeyondResumeInterviewList = () => {
       },
     }).then((result: any) => {
       setTotalCount(result?.data?.data?.count);
-// console.log(result?.data?.data?.rows)
+      // console.log(result?.data?.data?.rows)
       const sortedList = result?.data?.data?.rows?.sort((a: any, b: any) => {
         return (
           new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
@@ -81,6 +73,7 @@ const BeyondResumeInterviewList = () => {
 
   const history = useHistory();
 
+  const { theme } = useTheme();
   //   if (loading) {
   //     return (
   //       <Box
@@ -127,7 +120,7 @@ const BeyondResumeInterviewList = () => {
           alignItems: "center",
           position: "relative",
           mb: 3,
-          color:'inherit'
+          color: "inherit",
         }}
       >
         <CustomToggleButtonGroup
@@ -162,7 +155,7 @@ const BeyondResumeInterviewList = () => {
             Processing your Result
           </Typography>
         </Box>
-      ) : Object.keys(interviewList).length  === 0 ? (
+      ) : Object.keys(interviewList).length === 0 ? (
         <Box
           sx={{
             minHeight: "70vh",
@@ -170,7 +163,7 @@ const BeyondResumeInterviewList = () => {
             justifyContent: "center",
             alignItems: "center",
             flexDirection: "column",
-            color:'inherit'
+            color: "inherit",
           }}
         >
           <Typography variant="h6" color="inherit">
@@ -193,7 +186,7 @@ const BeyondResumeInterviewList = () => {
                       padding: "6px 16px",
                       fontWeight: 600,
                       //   fontSize: "18px",
-                      background: "linear-gradient(180deg, #50bcf6, #5a81fd)",
+                      background: color.activeButtonBg,
                       color: "#fff",
                       boxShadow: "0px 4px 10px rgba(90, 128, 253, 0.49)",
                       width: "fit-content",
@@ -212,115 +205,107 @@ const BeyondResumeInterviewList = () => {
                       item
                       xs={12}
                       sm={6}
-                      md={4}
+                      md={6}
                       key={index}
                       position={"relative"}
                     >
                       <Card
+                        onClick={() =>
+                          history.push(
+                            `/beyond-resume-interview-overview/${
+                              isPractice
+                                ? interview?.brInterviewId
+                                : interview?.brJobApplicantId
+                            }?type=${isPractice ? "practice" : "job"}`
+                          )
+                        }
                         sx={{
                           background:
-                            "linear-gradient(145deg, #0d0d0d, #2D3436)",
+                            theme === "dark"
+                              ? color.jobCardBg
+                              : color.jobCardBgLight,
 
-                          color: "white",
                           borderRadius: 3,
                           textAlign: "center",
                           p: 2,
-                          py: 4,
-                          pb: 3,
-                          maxWidth: "300px",
-                          minHeight: "250px",
+                          boxShadow: "none",
+                          // minHeight: "250px",
                           position: "relative",
                           m: "auto",
+                          color: "inherit",
                         }}
                       >
                         {interview.companyName ? (
                           <>
                             <Box
-                              sx={{
-                                display: "flex",
-                                gap: 1,
-                                alignItems: "center",
-                                justifyContent: "flex-start",
-                                mt: 2,
-                              }}
+                              display={"flex"}
+                              alignItems={"center"}
+                              textAlign={"left"}
+                              gap={2}
+                              mb={2}
                             >
-                              <FontAwesomeIcon
-                                style={{
-                                  height: "40px",
-                                  background:
-                                    "linear-gradient(145deg, #0d0d0d, #2D3436)",
-                                  padding: "6px",
-                                  borderRadius: "4px",
-                                  // border: "solid 1px white",
-                                }}
-                                icon={faBuilding}
-                              ></FontAwesomeIcon>
-                              <div style={{ textAlign: "left" }}>
-                                <Typography fontWeight="bold">
-                                  {interview?.companyName}
-                                </Typography>
-                                <Typography
-                                  sx={{
-                                    fontSize: "14px",
-                                    fontFamily: "Montserrat-Regular",
+                              <Box>
+                                <FontAwesomeIcon
+                                  icon={faBuilding}
+                                  style={{
+                                    fontSize: "44px",
+                                    background: "white",
+                                    borderRadius: "8px",
+                                    padding: "12px",
+                                    color: color.newbg,
                                   }}
-                                  mt={0}
-                                >
-                                  {interview?.jobTitle}
-                                </Typography>
-                              </div>
-                            </Box>
+                                />
+                              </Box>
 
-                            <Box
-                              sx={{
-                                display: "flex",
-                                alignItems: "center",
-                                mt: 2,
-                                width: "90%",
-                                textAlign: "left",
-                              }}
-                            >
-                              <Typography
-                                sx={{
-                                  fontSize: "14px",
-                                  fontFamily: "Montserrat-Regular",
-                                  width: "50%",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: 1,
-                                }}
-                              >
-                                <FontAwesomeIcon icon={faLocationDot} />
-                                <Box
-                                  component="span"
+                              <div>
+                                <Typography
+                                  mb={0.5}
+                                  variant="h6"
+                                  onClick={() =>
+                                    history.push(
+                                      `/beyond-resume-interview-overview/${
+                                        isPractice
+                                          ? interview?.brInterviewId
+                                          : interview?.brJobApplicantId
+                                      }?type=${isPractice ? "practice" : "job"}`
+                                    )
+                                  }
                                   sx={{
-                                    whiteSpace: "nowrap",
+                                    display: "-webkit-box",
                                     overflow: "hidden",
                                     textOverflow: "ellipsis",
-                                    display: "inline-block",
+                                    WebkitLineClamp: 1,
+                                    WebkitBoxOrient: "vertical",
+                                    cursor: "pointer",
+                                    color:
+                                      theme === "dark"
+                                        ? color.titleColor
+                                        : color.titleLightColor,
+                                    "&:hover": {
+                                      textDecoration: "underline",
+                                    },
                                   }}
                                 >
-                                  {interview?.location}
-                                </Box>
-                              </Typography>
+                                  {interview.jobTitle}
+                                </Typography>
 
-                              <Typography
-                                sx={{
-                                  fontSize: "14px",
-                                  fontFamily: "Montserrat-Regular",
-                                  width: "50%",
-                                  whiteSpace: "nowrap",
-                                  overflow: "hidden",
-                                  textOverflow: "ellipsis",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: 1,
-                                  justifyContent: "flex-end",
-                                }}
-                              >
-                                <FontAwesomeIcon icon={faBriefcase} />
-                                {interview?.jobType}
-                              </Typography>
+                                <Typography
+                                  fontSize={"16px"}
+                                  mt={-0.5}
+                                  mb={1}
+                                  sx={{ fontFamily: "Custom-Regular" }}
+                                >
+                                  {interview.companyName}
+                                </Typography>
+
+                                <Typography
+                                  fontSize={"14px"}
+                                  mt={-0.5}
+                                  sx={{ fontFamily: "montserrat-regular" }}
+                                >
+                                  {interview.location} ({interview.jobType})
+                                </Typography>
+                              </div>
                             </Box>
                           </>
                         ) : (
@@ -377,7 +362,7 @@ const BeyondResumeInterviewList = () => {
                           {interview.interviewSuggestion}
                         </Typography>
 
-                        <BeyondResumeButton
+                        {/* <BeyondResumeButton
                           onClick={() =>
                             history.push(
                               `/beyond-resume-interview-overview/${
@@ -393,7 +378,7 @@ const BeyondResumeInterviewList = () => {
                             px: 1.5,
                             background: isPractice
                               ? bgcolor
-                              : "linear-gradient(180deg, #50bcf6, #5a81fd)",
+                              : color.activeButtonBg,
                             ml: "auto",
                             display: isPractice
                               ? "-webkit-inline-flex"
@@ -401,20 +386,16 @@ const BeyondResumeInterviewList = () => {
                           }}
                         >
                           See Result
-                          <FontAwesomeIcon
-                            style={{ marginLeft: "5px" }}
-                            icon={faChevronCircleRight}
-                          ></FontAwesomeIcon>
-                        </BeyondResumeButton>
+                        </BeyondResumeButton> */}
 
-                        <Box
+                        {/* <Box
                           sx={{
                             position: "absolute",
                             top: 0,
                             left: 0,
                             // border:'solid 1px white',
-                            background:
-                              "linear-gradient(180deg, #50bcf6, #5a81fd)",
+                            background: color.activeButtonBg,
+                            color: "white",
                             px: 1,
                             py: 0.5,
                             borderRadius: "0px 0px 8px 0px",
@@ -431,7 +412,7 @@ const BeyondResumeInterviewList = () => {
                               }
                             )}
                           </Typography>
-                        </Box>
+                        </Box> */}
                       </Card>
                     </Grid>
                   );
@@ -524,7 +505,7 @@ const CustomToggleButton = styled(ToggleButton)(({ theme }) => ({
   color: "grey",
 
   "&.Mui-selected": {
-    background: "linear-gradient(180deg, #50bcf6, #5a81fd)",
+    background: color.activeButtonBg,
     color: "#fff",
     boxShadow: "0px 4px 10px rgba(90, 128, 253, 0.49)",
   },

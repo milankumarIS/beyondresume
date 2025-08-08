@@ -11,6 +11,7 @@ import {
 } from "../../services/services";
 import color from "../../theme/color";
 import BeyondResumeSubscription from "./Beyond Resume Components/BeyondResumeSubscription";
+import { useUserData } from "../../components/util/UserDataContext";
 
 export default function BeyondResumePricing() {
   const [duration, setDuration] = useState("1month");
@@ -127,7 +128,7 @@ export default function BeyondResumePricing() {
         minHeight: "100vh",
       }}
     >
-      {activeSubscription && (
+      {/* {activeSubscription && (
         <>
           <SubscriptionGlassCard
             {...subscriptionData}
@@ -138,7 +139,7 @@ export default function BeyondResumePricing() {
             }
           />
         </>
-      )}
+      )} */}
 
       <Typography
         variant="h4"
@@ -146,7 +147,7 @@ export default function BeyondResumePricing() {
           fontFamily: "Custom-Bold",
           width: "fit-content",
           p: 4,
-          pb: 2,
+          pb: 0,
           borderRadius: "12px",
           textAlign: "center",
           m: "auto",
@@ -233,6 +234,9 @@ const SubscriptionGlassCard = ({
   onUpgrade,
   endDate,
 }: any) => {
+
+   const { userData } = useUserData();
+
   const mockPercent = mockUsed / mockTotal;
   const datePercent = 1 - daysLeft / 30;
   const jobPercent = (jobUsed / jobTotal) ;
@@ -296,7 +300,8 @@ const SubscriptionGlassCard = ({
         }}
       >
         <Typography variant="h4">Hi</Typography>
-        <GradientText text={getUserFirstName()} variant="h4" />
+                   <GradientText text={userData?.firstName} variant="h4" />
+
       </Box>
       <Typography
         variant="h5"
@@ -336,7 +341,7 @@ interface DonutStatCardProps {
   title: string;
   centerText: string;
   subtitle: string;
-  progress: number; // 0 to 1 (e.g., 0.5 for 50%)
+  progress: number; 
   color?: string;
   daysLeft?: string;
   mocksLeft?: string;

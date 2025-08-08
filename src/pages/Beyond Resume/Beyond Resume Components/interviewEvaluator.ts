@@ -17,8 +17,10 @@ export const evaluateInterviewResponses = async ({
   redirectToSuccess = true,
   speakText,
   setLoading,
+  jobsData,
 }: {
   parsedData: any;
+  jobsData?: any;
   userResponses: string[][];
   brJobId?: number;
   brInterviewId?: number;
@@ -32,7 +34,7 @@ export const evaluateInterviewResponses = async ({
 }) => {
   setLoading?.(true);
 
-  // console.log("jiu");
+  console.log(jobsData);
 
   try {
     if (speakText) {
@@ -52,6 +54,65 @@ export const evaluateInterviewResponses = async ({
           AnswerKey: q.AnswerKey,
         }))
     );
+
+    let generatedResume: string | null = null;
+    let generatedCoverLetter: string | null = null;
+
+    if (jobsData) {
+      const resumePrompt = `
+I have found a job opportunity for the role of "${
+        jobsData[0]?.jobTitle
+      }" and I would like to apply for it. Before proceeding, I want to assess my suitability for the position.
+
+I am providing the following for your evaluation:
+- My complete resume
+- The full job description
+- A JSON file containing a simulation of interview questions and my responses
+
+Please analyze the information and return your evaluation in **exactly** the format specified below.
+
+
+Resume:
+${jobsData[0]?.candidateResume}
+
+
+Job Description:
+${jobsData[0]?.jobDescriptions}
+
+
+Simulation JSON (Questions and Answers):
+${JSON.stringify(output)}
+
+
+### Response Format (Return in exactly this JSON structure):
+
+{
+  "generatedResume": "Generate a fully formatted and polished HTML version of my resume, tailored especially to the job description and my simulation responses. Ensure it is refined, visually structured, and ready to render on a webpage, preserving all original formatting including headings, bullet points, and line breaks.",
+  "generatedCoverLetter": "Write a fully polished and ready-to-use HTML cover letter addressed to the hiring manager at ${jobsData[0]?.companyName}. Ensure it is fully personalized with no placeholders or dummy content. 
+   Highlight how my skills align with the specific requirements of the job and explain how I can contribute to the company’s success. Include a real-life example where I overcame a challenging task, resolved it effectively, and what I learned from the experience. The final output should be professional, tailored, and suitable for direct submission without further edits."
+
+}
+`;
+
+      const resumeRes = await getUserAnswerFromAi({ question: resumePrompt });
+      const rawResumeText =
+        resumeRes?.data?.data?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+      try {
+        const cleanedText = rawResumeText.replace(/```json|```/g, "").trim();
+
+        // console.log(cleanedText);
+        const parsed = JSON.parse(cleanedText);
+        // console.log(parsed);
+
+        generatedResume = parsed.generatedResume;
+        generatedCoverLetter = parsed.generatedCoverLetter;
+      } catch (error) {
+        console.error("Failed to parse AI response:", error);
+      }
+    }
+    // console.log(generatedResume);
+    // console.log(generatedCoverLetter);
 
     const fullCommand = `You are an expert interview evaluator. Based on the candidate's responses, you will return a strict and objective evaluation in JSON format.
 
@@ -103,10 +164,12 @@ export const evaluateInterviewResponses = async ({
     ### Input:
     Here is the input JSON to evaluate: ${JSON.stringify(output)}
     `;
-    
+
     // console.log(fullCommand);
     const res = await getUserAnswerFromAi({ question: fullCommand });
     const rawText = res?.data?.data?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    // console.log(rawText);
 
     let interviewScore: number | null = null;
     let interviewOverview: string | null = null;
@@ -116,13 +179,12 @@ export const evaluateInterviewResponses = async ({
 
     let updatedOutput = output;
 
-    // console.log("jiusww");
-    // console.log(rawText);
-
     try {
       const cleanedText = rawText.replace(/```json|```/g, "").trim();
+
+      // console.log(cleanedText);
       const parsed = JSON.parse(cleanedText);
-      // console.log("jiuswsssssssw");
+      // console.log(parsed);
 
       interviewScore = parsed.interviewScore;
       interviewOverview = parsed.interviewOverview;
@@ -150,8 +212,6 @@ export const evaluateInterviewResponses = async ({
       console.error("Failed to parse AI response:", error);
     }
 
-    // console.log(updatedOutput);
-
     try {
       if (brJobId) {
         await updateByIdDataInTable(
@@ -164,6 +224,8 @@ export const evaluateInterviewResponses = async ({
             interviewSuggestion,
             brInterviewLevel,
             brJobApplicantStatus: "CONFIRMED",
+            generatedResume,
+            generatedCoverLetter,
           },
           "brJobApplicantId"
         );
@@ -184,11 +246,10 @@ export const evaluateInterviewResponses = async ({
           "brInterviewId"
         );
       }
-      // console.log("jssssssssssssssssssssssssiusww");
 
       if (redirectToSuccess) {
         location.href = `/beyond-resume-interview-success?sessionType=${encodeURIComponent(
-          sessionType
+          sessionType || "aiInterview"
         )}`;
       }
     } catch (error: any) {

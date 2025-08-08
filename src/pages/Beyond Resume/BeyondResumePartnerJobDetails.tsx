@@ -26,6 +26,8 @@ const BeyondResumeJobDetails = () => {
     fetchJobDetails();
   }, []);
 
+  // console.log(jobsData[0]?.jobInterviewQuestions);
+  
   return (
     <Box p={2} pt={0}>
       {loading ? (
@@ -56,7 +58,7 @@ const BeyondResumeJobDetails = () => {
             onJobUpdate={() => window.location.reload()}
           />
 
-          {getUserRole() !== "CAREER SEEKER" && (
+          {getUserRole() !== "CAREER SEEKER" && jobsData[0]?.jobInterviewQuestions !== 'No Questions Yet!' &&(
               <GeneratedAiQnaResponse
                 status={jobStatus}
                 response={jobsData[0]?.jobInterviewQuestions}

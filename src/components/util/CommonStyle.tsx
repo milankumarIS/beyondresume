@@ -280,18 +280,42 @@ export const CustomToggleButton = styled(ToggleButton)(({ theme }) => ({
 }));
 
 const iconStyle = {
-  background: color.newFirstColor,
-  color: "white",
+  background: "#ebebeb",
+  color: "#5b5e66",
   padding: "4px",
   borderRadius: "4px",
   height: "14px",
   width: "14px",
 };
 
-export const IconTextRow = ({ icon, text }: { icon: any; text: string }) => (
+export const IconTextRow = ({
+  icon,
+  text,
+  hideSensitive,
+}: {
+  icon: any;
+  text: string;
+  hideSensitive?: boolean;
+}) => (
   <Box display="flex" alignItems="center" gap={1}>
-    <FontAwesomeIcon style={iconStyle} icon={icon} />
-    <Typography sx={{ fontSize: "14px" }}>{text}</Typography>
+    <Box
+      sx={{
+        background: "#ebebeb",
+        padding: "2px",
+        height: "18px",
+        width: "18px",
+        borderRadius: "4px",
+        color: "#5b5e66",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <FontAwesomeIcon icon={icon} />
+    </Box>
+    <Typography sx={{ fontSize: "14px", fontFamily: "montserrat-regular" }}>
+      {text}
+    </Typography>
   </Box>
 );
 
@@ -300,21 +324,32 @@ export const IconTextRow1 = ({
   text,
   heading,
 }: {
-  icon: any;
+  icon?: any;
   text: string;
-  heading: string;
+  heading?: string;
 }) => (
   <Box>
     <Box display="flex" alignItems="center" gap={1}>
-      <FontAwesomeIcon style={iconStyle} icon={icon} />
+      <Box
+        sx={{
+          background: "#ebebeb",
+          padding: "2px",
+          height: "18px",
+          width: "18px",
+          borderRadius: "4px",
+          color: "#5b5e66",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <FontAwesomeIcon icon={icon} />
+      </Box>
       {heading && <Typography>{heading}</Typography>}
+      <Typography sx={{ fontSize: "14px", fontFamily: "Montserrat-Regular" }}>
+        {text}
+      </Typography>
     </Box>
-
-    <Typography
-      sx={{ fontSize: "14px", mt: 1, fontFamily: "Montserrat-Regular" }}
-    >
-      {text}
-    </Typography>
   </Box>
 );
 
@@ -452,6 +487,9 @@ export const StyledTypography = styled(Typography)(({ theme }) => ({
   "& h2": {
     display: "none",
   },
+  "& p": {
+    marginBottom: 0,
+  },
 }));
 
 export const slideLeftVariants: Variants = {
@@ -477,8 +515,12 @@ export const slideLeftVariants: Variants = {
 };
 
 const formatTime = (seconds: number) => {
-  const h = Math.floor(seconds / 3600).toString().padStart(2, "0");
-  const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, "0");
+  const h = Math.floor(seconds / 3600)
+    .toString()
+    .padStart(2, "0");
+  const m = Math.floor((seconds % 3600) / 60)
+    .toString()
+    .padStart(2, "0");
   const s = (seconds % 60).toString().padStart(2, "0");
   return { h, m, s };
 };
@@ -498,11 +540,7 @@ export const TimerDisplay = ({ totalSeconds }: { totalSeconds: number }) => {
         { value: m, label: "mins" },
         { value: s, label: "secs" },
       ].map((item, index) => (
-        <Box
-          key={index}
-          textAlign="center"
-          mx={2}
-        >
+        <Box key={index} textAlign="center" mx={2}>
           <Typography variant="h4" fontWeight="bold">
             {item.value}
           </Typography>
@@ -538,7 +576,7 @@ export const CustomTabs: React.FC<DurationTabsProps> = ({
         width: "fit-content",
         borderRadius: "32px",
         p: 1,
-        mb:2,
+        mb: 2,
         minHeight: "0px",
         "& .MuiTab-root": {
           color: "inherit",
@@ -570,3 +608,33 @@ export const CustomTabs: React.FC<DurationTabsProps> = ({
     </Tabs>
   );
 };
+
+import { SliderThumb } from "@mui/material";
+
+type CustomThumbProps = React.HTMLAttributes<unknown> & {
+  value: number;
+};
+
+export const CustomThumbComponent = (props: CustomThumbProps) => {
+  const { children, value, ...other } = props;
+
+  return (
+    <SliderThumb {...other}>
+      {children}
+      {/* <span
+        style={{
+          position: "absolute",
+          top: -30,
+          backgroundColor: "#50bcf6",
+          color: "#fff",
+          fontSize: 12,
+          padding: "2px 6px",
+          borderRadius: 4,
+        }}
+      >      {value}
+        {props["aria-valuenow"]}%
+      </span> */}
+    </SliderThumb>
+  );
+};
+

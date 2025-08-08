@@ -20,6 +20,8 @@ interface ConfirmationPopupProps {
   message?: string;
   yesText?: string;
   noText?: string;
+  noButton?: boolean;
+  disableOutsideClose?: boolean;
 }
 
 const ConfirmationPopup: React.FC<ConfirmationPopupProps> = ({
@@ -33,11 +35,22 @@ const ConfirmationPopup: React.FC<ConfirmationPopupProps> = ({
   message = `Are you sure you want to ${actionText} this item?`,
   yesText = "Yes",
   noText = "No",
+  noButton = true,
+  disableOutsideClose = false,
 }) => {
   return (
     <Dialog
       open={open}
-      onClose={onClose}
+        disableEscapeKeyDown={disableOutsideClose}
+      onClose={(event, reason) => {
+        if (
+          disableOutsideClose &&
+          (reason === "backdropClick" || reason === "escapeKeyDown")
+        ) {
+          return;
+        }
+        onClose();
+      }}
       sx={{
         "& .MuiDialog-paper": {
           p: 2,
@@ -73,12 +86,14 @@ const ConfirmationPopup: React.FC<ConfirmationPopupProps> = ({
         sx={{
           justifyContent: "center",
           mb: 3,
-          gap:2
+          gap: 2,
         }}
       >
-        <BeyondResumeButton2 onClick={onClose} variant="contained">
-          {noText}
-        </BeyondResumeButton2>
+        {noButton && (
+          <BeyondResumeButton2 onClick={onClose} variant="contained">
+            {noText}
+          </BeyondResumeButton2>
+        )}
         <BeyondResumeButton onClick={onConfirm} variant="contained">
           {yesText}
         </BeyondResumeButton>

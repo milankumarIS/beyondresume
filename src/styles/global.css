@@ -896,3 +896,9 @@ ion-loading.custom-loading {
 .pulse-button {
   animation: pulse 2s infinite;
 }
+
+#webgazerVideoContainer,
+#webgazerFaceOverlay,
+#webgazerFaceFeedbackBox {
+  display: none !important;
+}

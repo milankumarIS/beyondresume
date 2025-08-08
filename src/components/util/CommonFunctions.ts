@@ -16,16 +16,16 @@ import * as XLSX from "xlsx";
 //   }
 // }
 
-// export async function getDeviceIp() {
-//   try {
-//     const response = await fetch("https://api.ipify.org?format=json");
-//     const data = await response.json();
-//     return data.ip;
-//   } catch (error) {
-//     console.error("Error getting 3-letter country code from IP:", error);
-//     return null;
-//   }
-// }
+export async function getDeviceIp() {
+  try {
+    const response = await fetch("https://api.ipify.org?format=json");
+    const data = await response.json();
+    return data.ip;
+  } catch (error) {
+    console.error("Error getting 3-letter country code from IP:", error);
+    return null;
+  }
+}
 
 export function formatDate(userDate: any) {
   return new Date(userDate)
@@ -414,8 +414,8 @@ export const commonFormTextFieldSx = {
   borderRadius: "44px",
   border: "0px",
   "& .MuiOutlinedInput-root": {
-  background: "white",
-  color: "black",
+    background: "white",
+    color: "black",
 
     border: "0px",
     borderRadius: "44px",
@@ -439,7 +439,6 @@ export const commonFormTextFieldSx = {
     backgroundColor: "white",
   },
 
-  
   "& .MuiOutlinedInput-notchedOutline": {
     border: "none",
     borderRadius: "44px",
@@ -452,7 +451,6 @@ export function shuffleArray<T>(array: T[]): T[] {
     .sort((a, b) => a.sort - b.sort)
     .map(({ item }) => item);
 }
-
 
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
@@ -477,7 +475,6 @@ export const generateInterviewReportExcel = async (
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet("Interview Report");
 
-  // Step 1: Collect all unique category names
   const categorySet = new Set<string>();
   applicants.forEach((applicant) => {
     (applicant.interviewQuestionAnswer || []).forEach((q) => {
@@ -562,34 +559,33 @@ export const generateInterviewReportExcel = async (
     };
   });
 
- for (const applicant of applicants) {
-  const row = [applicant.fullName || "N/A"];
+  for (const applicant of applicants) {
+    const row = [applicant.fullName || "N/A"];
 
-  for (const category of categories) {
-    const questions = (applicant.interviewQuestionAnswer || []).filter(
-      (q) => q.categoryName === category
-    );
-    const total = questions.length;
-    const notAnswered = questions.filter((q) => !q.userAnswer).length;
-    const right = questions.filter((q) => q.isCorrect).length;
-    const wrong = total - notAnswered - right;
+    for (const category of categories) {
+      const questions = (applicant.interviewQuestionAnswer || []).filter(
+        (q) => q.categoryName === category
+      );
+      const total = questions.length;
+      const notAnswered = questions.filter((q) => !q.userAnswer).length;
+      const right = questions.filter((q) => q.isCorrect).length;
+      const wrong = total - notAnswered - right;
 
-    const percent = (val: number) =>
-      total === 0 ? "0%" : `${Math.round((val / total) * 100)}%`;
+      const percent = (val: number) =>
+        total === 0 ? "0%" : `${Math.round((val / total) * 100)}%`;
 
-    row.push(
-      `${notAnswered}`,
-      percent(notAnswered),
-      `${right}`,
-      percent(right),
-      `${wrong}`,
-      percent(wrong)
-    );
+      row.push(
+        `${notAnswered}`,
+        percent(notAnswered),
+        `${right}`,
+        percent(right),
+        `${wrong}`,
+        percent(wrong)
+      );
+    }
+
+    worksheet.addRow(row);
   }
-
-  worksheet.addRow(row); // ✅ Make sure this is inside the loop!
-}
-
 
   worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
     if (rowNumber <= 2) return;
@@ -675,10 +671,14 @@ export const readExcelFileAsJson = async (file: File) => {
   return result;
 };
 
-
 export const safeParseAiJson = (
   raw: string
-): { summary: string; detail: string } | null => {
+): {
+  recommendations: string;
+  fitmentPercentage: string;
+  summary: string;
+  detail: string;
+} | null => {
   if (!raw) return null;
 
   let cleaned = raw
@@ -712,8 +712,50 @@ export const safeParseAiJson = (
 
 export function extractCleanFileName(url: string): string {
   const fileName = url.split("/").pop() || "";
-  const decoded = decodeURIComponent(fileName); 
+  const decoded = decodeURIComponent(fileName);
   const hyphenIndex = decoded.indexOf("-");
   return hyphenIndex !== -1 ? decoded.substring(hyphenIndex + 1) : decoded;
 }
 
+export function countTotalQuestions(data: any): number {
+  if (!data || !Array.isArray(data.categories)) return 0;
+
+  return data.categories.reduce((total: number, category: any) => {
+    if (Array.isArray(category.questions)) {
+      return total + category.questions.length;
+    }
+    return total;
+  }, 0);
+}
+
+export const getFormattedDateKey = (dateString: string) => {
+  const date = new Date(dateString);
+  const today = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(today.getDate() - 1);
+
+  const isToday = date.toDateString() === today.toDateString();
+  const isYesterday = date.toDateString() === yesterday.toDateString();
+
+  const time = date.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+
+  if (isToday) return `Today at ${time}`;
+  if (isYesterday) return `Yesterday at ${time}`;
+
+  const day = date.getDate();
+  const month = date.toLocaleString("default", { month: "short" }); // "May"
+  const suffix =
+    day % 10 === 1 && day !== 11
+      ? "st"
+      : day % 10 === 2 && day !== 12
+      ? "nd"
+      : day % 10 === 3 && day !== 13
+      ? "rd"
+      : "th";
+
+  return `${day}${suffix} ${month} at ${time}`;
+};

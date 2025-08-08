@@ -42,6 +42,7 @@ import BeyondResumeJobFilterComponent from "./Beyond Resume Components/BeyondRes
 import JobCard from "./Beyond Resume Components/JobCard";
 import BeyondResumeJobDetails from "./BeyondResumeJobDetails";
 import React from "react";
+import { useUserData } from "../../components/util/UserDataContext";
 
 type Job = {
   brJobId: string;
@@ -54,12 +55,17 @@ type Job = {
 
 const BeyondResumeJobs = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeJobs, setActiveJobs] = useState<any[]>([]);
+
   const [savedJobs, setSavedJobs] = useState<any[]>([]);
+  const [searchedSavedJobs, setSearchedSavedJobs] = useState<any[]>([]);
+
+  const [activeJobs, setActiveJobs] = useState<any[]>([]);
   const [pendingJobs, setPendingJobs] = useState<any[]>([]);
   const [completedJobs, setCompletedJobs] = useState<any[]>([]);
-  const [filteredJobs, setFilteredJobs] = useState<any[]>([]);
 
+  const [filteredJobs, setFilteredJobs] = useState<any[]>([]);
+  const [seekerJobs, setSeekerJobs] = useState<any[]>([]);
+  const { userData } = useUserData();
   const isJobPage = location.pathname.startsWith("/beyond-resume-myjobs");
   const history = useHistory();
   const openSnackBar = useSnackbar();
@@ -177,22 +183,81 @@ const BeyondResumeJobs = () => {
     });
   };
 
-  const handleSearch = () => {
-    const term = searchTerm.toLowerCase();
-    const results = activeJobs.filter(
-      (job) =>
-        job.jobTitle?.toLowerCase().includes(term) ||
-        job.description?.toLowerCase().includes(term) ||
-        job.location?.toLowerCase().includes(term)
-    );
-    setFilteredJobs(results);
-  };
-
   const sortByNewest = (jobs: any[]) =>
     jobs.sort(
       (a, b) =>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
+
+  const [userSkills, setUserSkills] = useState<string[]>([]);
+  const [jobPreference, setJobPreference] = useState<{
+    location?: string;
+    workplace?: string;
+    employmentType?: string;
+    shift?: string;
+  }>({});
+  const [recommendedJobs, setRecommendedJobs] = useState<any[]>([]);
+  const [showRecommendedJobs, setShowRecommendedJobs] = useState(true);
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      const userId = getUserId();
+
+      try {
+        const skillRes = await searchDataFromTable("userPersonalInfo", {
+          userId,
+        });
+        const skillsArray = Array.isArray(skillRes?.data?.data?.skills)
+          ? skillRes.data.data.skills.map((s: string) => s.toLowerCase())
+          : [];
+        setUserSkills(skillsArray);
+
+        const prefRes = await searchDataFromTable("userJobPreference", {
+          userId,
+        });
+        const item = prefRes?.data?.data;
+        setJobPreference({
+          location: item?.preferedLocation?.toLowerCase(),
+          shift: item?.preferedShipt?.toLowerCase(),
+          workplace: item?.workplace?.toLowerCase(),
+          employmentType: item?.employmentType?.toLowerCase(),
+        });
+      } catch (error) {
+        console.error("Failed to fetch user profile info", error);
+      }
+    };
+
+    fetchUserProfile();
+  }, []);
+
+  useEffect(() => {
+    if (!userSkills.length) return;
+
+    const matched: any[] = [];
+    const unmatched: any[] = [];
+
+    seekerJobs.forEach((job) => {
+      const jobSkillsArray = Array.isArray(job.skills)
+        ? job.skills
+        : typeof job.skills === "string"
+        ? job.skills.split(",").map((s) => s.trim())
+        : [];
+
+      const jobSkills = jobSkillsArray.map((s: string) => s.toLowerCase());
+
+      const skillMatched = jobSkills.some((skill: string) =>
+        userSkills.includes(skill)
+      );
+
+      if (skillMatched) {
+        matched.push(job);
+      } else {
+        unmatched.push(job);
+      }
+    });
+
+    setRecommendedJobs(matched);
+  }, [userSkills, seekerJobs]);
 
   const fetchJobs = async () => {
     setLoading(true);
@@ -211,13 +276,13 @@ const BeyondResumeJobs = () => {
 
         const allJobs = activeResult?.data?.data || [];
 
-        const activeJobs = allJobs.filter(
+        const allActiveJobs = allJobs.filter(
           (job) =>
             job.brJobStatus === "ACTIVE" &&
             (!job.endDate || new Date(job.endDate) > now)
         );
 
-        const expiredJobs = allJobs.filter(
+        const allExpiredJobs = allJobs.filter(
           (job) =>
             (job.brJobStatus === "ACTIVE" &&
               job.endDate &&
@@ -225,9 +290,11 @@ const BeyondResumeJobs = () => {
             job.brJobStatus === "CLOSED"
         );
 
-        setActiveJobs(sortByNewest(activeJobs));
+        // console.log(allActiveJobs);
+
+        setActiveJobs(sortByNewest(allActiveJobs));
         setPendingJobs(sortByNewest(pendingResult?.data?.data || []));
-        setCompletedJobs(sortByNewest(expiredJobs));
+        setCompletedJobs(sortByNewest(allExpiredJobs));
       } else {
         const [result, userAppliedJobs, userSavedJobs] = await Promise.all([
           searchListDataFromTable("brJobs", { brJobStatus: "ACTIVE" }),
@@ -241,9 +308,7 @@ const BeyondResumeJobs = () => {
           }),
         ]);
 
-        const allActiveJobs = result?.data?.data || [];
-
-        const activeJobs = allActiveJobs.filter(
+        const allActiveJobs = result?.data?.data.filter(
           (job) => !job.endDate || new Date(job.endDate) > now
         );
 
@@ -251,17 +316,29 @@ const BeyondResumeJobs = () => {
           (userAppliedJobs?.data?.data || []).map((app) => app.brJobId)
         );
 
-        const jobsNotYetApplied = activeJobs.filter(
+        const jobsNotYetApplied = allActiveJobs.filter(
           (job) => !appliedJobIds.has(job.brJobId)
         );
 
         const sortedActive = sortByNewest(jobsNotYetApplied);
-        setActiveJobs(sortedActive);
+        // setActiveJobs(sortedActive);
 
         const filtered = applyFilters(sortedActive);
         setFilteredJobs(filtered);
+        setSeekerJobs(filtered);
+        // console.log(filtered);
 
-        setSavedJobs(userSavedJobs?.data?.data || []);
+        const savedJobIds = new Set(
+          (userSavedJobs?.data?.data || []).map((job) => job.brJobId)
+        );
+
+        const savedJobsFromFiltered = filtered.filter((job) =>
+          savedJobIds.has(job.brJobId)
+        );
+
+        setSavedJobs(savedJobsFromFiltered);
+        setSearchedSavedJobs(savedJobsFromFiltered);
+        // setSavedJobs(userSavedJobs?.data?.data || []);
       }
     } catch (error) {
       console.error("Failed to fetch jobs:", error);
@@ -272,14 +349,14 @@ const BeyondResumeJobs = () => {
 
   useEffect(() => {
     fetchJobs();
-  }, [isJobPage]);
+  }, [isJobPage, showSavedJobs, filters]);
 
-  useEffect(() => {
-    if (!isJobPage) {
-      const filtered = applyFilters(activeJobs);
-      setFilteredJobs(filtered);
-    }
-  }, [filters, activeJobs]);
+  // useEffect(() => {
+  //   if (!isJobPage) {
+  //     const filtered = applyFilters(filteredJobs);
+  //     setFilteredJobs(filtered);
+  //   }
+  // }, [filters, activeJobs]);
 
   const toggleStatus = async () => {
     try {
@@ -300,18 +377,32 @@ const BeyondResumeJobs = () => {
     }
   };
 
+  // console.log(searchTerm);
+
   useEffect(() => {
     if (!isJobPage) {
       const term = searchTerm.toLowerCase();
-      const results = activeJobs.filter(
-        (job) =>
-          job.jobTitle?.toLowerCase().includes(term) ||
-          job.description?.toLowerCase().includes(term) ||
-          job.location?.toLowerCase().includes(term)
-      );
-      setFilteredJobs(results);
+      if (term === "") {
+        setSeekerJobs(filteredJobs);
+        setSearchedSavedJobs(savedJobs);
+      } else {
+        const results = filteredJobs.filter(
+          (job) =>
+            job.jobTitle?.toLowerCase().includes(term) ||
+            job.description?.toLowerCase().includes(term) ||
+            job.location?.toLowerCase().includes(term)
+        );
+        const results1 = savedJobs.filter(
+          (job) =>
+            job.jobTitle?.toLowerCase().includes(term) ||
+            job.description?.toLowerCase().includes(term) ||
+            job.location?.toLowerCase().includes(term)
+        );
+        setSeekerJobs(results);
+        setSearchedSavedJobs(results1);
+      }
     }
-  }, [searchTerm, activeJobs, isJobPage]);
+  }, [searchTerm]);
 
   const JobsSection = ({
     title,
@@ -326,7 +417,8 @@ const BeyondResumeJobs = () => {
       {}
     );
     const [loadingApplicants, setLoadingApplicants] = useState<boolean>(false);
-    const [savedJobs, setSavedJobs] = useState<Set<string>>(new Set());
+    const [savedJobsSet, setSavedJobsSet] = useState<Set<string>>(new Set());
+    // console.log(savedJobsSet);
 
     const [selectedJob, setSelectedJob] = useState<any | null>(null);
     const [selectedApplicantsCount, setSelectedApplicantsCount] =
@@ -365,7 +457,7 @@ const BeyondResumeJobs = () => {
         );
 
         await Promise.all(promises);
-        setSavedJobs(savedSet);
+        setSavedJobsSet(savedSet);
       };
 
       fetchSavedJobs();
@@ -396,7 +488,7 @@ const BeyondResumeJobs = () => {
     const handleSaveJob = async (job: any) => {
       const jobId = job?.brJobId;
       const userId = getUserId();
-      const isAlreadySaved = savedJobs.has(jobId);
+      const isAlreadySaved = savedJobsSet.has(jobId);
 
       // setSavingJobId(jobId);
 
@@ -426,7 +518,7 @@ const BeyondResumeJobs = () => {
           "brJobId"
         );
 
-        setSavedJobs((prev) => {
+        setSavedJobsSet((prev) => {
           const updated = new Set(prev);
           if (isAlreadySaved) {
             updated.delete(jobId);
@@ -445,7 +537,6 @@ const BeyondResumeJobs = () => {
     const [detailsHeight, setDetailsHeight] = useState<number>(0);
     const detailsWrapperRef = useRef<HTMLDivElement | null>(null);
 
-    // Reliable ResizeObserver on stable wrapper
     useEffect(() => {
       const node = detailsWrapperRef.current;
       if (!node) return;
@@ -473,15 +564,50 @@ const BeyondResumeJobs = () => {
         <Box
           className="custom-scrollbar"
           sx={{
-            p:1,
-            width: "35vw",
+            p: 1,
+            width: jobs.length > 0 ? "35vw" : "100%",
             height: detailsHeight || "auto",
+            minHeight: "100vh",
             overflow: "auto",
             transition: "height 0.3s ease",
             flexShrink: 0,
+            borderRadius: 4,
           }}
         >
-          <Grid container spacing={4}>
+          {title === "Recommended Jobs" && showRecommendedJobs && (
+            <>
+              {showRecommendedJobs && jobs.length > 0 ? (
+                <Typography
+                  sx={{
+                    fontFamily: "montserrat-regular",
+                    fontSize: "14px",
+                    mb: 1,
+                  }}
+                >
+                  We found {jobs.length} job{jobs.length > 1 ? "s" : ""} based
+                  on your profile.
+                </Typography>
+              ) : (
+                <Typography
+                  sx={{
+                    fontFamily: "montserrat-regular",
+                    fontSize: "16px",
+                    mb: 1,
+                    hyphens: "auto",
+                    textAlign: "center",
+                  }}
+                >
+                  Sorry, we couldn't find any jobs based on your profile. If you
+                  haven't updated it yet, please do so to get better matches.
+                  <br />
+                  You can also explore other jobs on our platform by clicking
+                  the button below.
+                </Typography>
+              )}
+            </>
+          )}
+
+          <Grid sx={{ minHeight: "30px" }} container spacing={4}>
             {jobs.map((job, index) => (
               <Grid item xs={12} key={index}>
                 <JobCard
@@ -491,7 +617,7 @@ const BeyondResumeJobs = () => {
                   theme={theme}
                   color={color}
                   savingJobId={savingJobId}
-                  savedJobs={savedJobs}
+                  savedJobs={savedJobsSet}
                   applicantsMap={applicantsMap}
                   loadingApplicants={loadingApplicants}
                   getUserRole={getUserRole}
@@ -504,31 +630,44 @@ const BeyondResumeJobs = () => {
               </Grid>
             ))}
           </Grid>
+
+          {title === "Recommended Jobs" && showRecommendedJobs && (
+            <BeyondResumeButton
+              sx={{ mt: 2, width: "90%", mx: "auto", display: "block" }}
+              onClick={() => {
+                setRecommendedJobs(seekerJobs);
+                setShowRecommendedJobs(false);
+              }}
+            >
+              Browse Other Jobs
+            </BeyondResumeButton>
+          )}
         </Box>
 
-        {/* RIGHT BOX */}
-        <Box ref={detailsWrapperRef} sx={{ flexGrow: 1 }}>
-          <AnimatePresence mode="wait">
-            {selectedJob && (
-              <motion.div
-                key={selectedJob.brJobId}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-                variants={slideLeftVariants}
-              >
-                <BeyondResumeJobDetails
-                  job={selectedJob}
-                  applicantsCount={selectedApplicantsCount}
-                  onBack={() => setSelectedJob(null)}
-                  setPopupOpen={setPopupOpen}
-                  setSelectedJobIdC={setSelectedJobId}
-                  selectedTab={selectedTab}
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </Box>
+        {jobs.length > 0 && (
+          <Box ref={detailsWrapperRef} sx={{ flexGrow: 1 }}>
+            <AnimatePresence mode="wait">
+              {selectedJob && (
+                <motion.div
+                  key={selectedJob.brJobId}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  variants={slideLeftVariants}
+                >
+                  <BeyondResumeJobDetails
+                    job={selectedJob}
+                    applicantsCount={selectedApplicantsCount}
+                    onBack={() => setSelectedJob(null)}
+                    setPopupOpen={setPopupOpen}
+                    setSelectedJobIdC={setSelectedJobId}
+                    selectedTab={selectedTab}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </Box>
+        )}
       </Box>
     );
   };
@@ -561,6 +700,7 @@ const BeyondResumeJobs = () => {
   };
 
   const currentSection = jobSections[selectedTab];
+
   const [tabFilteredJobs, setTabFilteredJobs] = useState<Job[]>([]);
 
   const filterAndSearchJobs = (jobs: Job[]) => {
@@ -586,11 +726,10 @@ const BeyondResumeJobs = () => {
   };
 
   useEffect(() => {
-    if (isJobPage) {
-      const filtered = filterAndSearchJobs(currentSection.jobs);
-      setTabFilteredJobs(filtered);
-    }
-  }, [filters, searchTerm, isJobPage, selectedTab]);
+    const filtered = filterAndSearchJobs(currentSection.jobs);
+
+    setTabFilteredJobs(filtered);
+  }, [filters, searchTerm, selectedTab, currentSection.jobs]);
 
   return (
     <Box className="full-screen-div">
@@ -604,7 +743,7 @@ const BeyondResumeJobs = () => {
         }}
       >
         <Typography variant="h4">Hi</Typography>
-        <GradientText text={getUserFirstName()} variant="h4" />
+        <GradientText text={userData?.firstName} variant="h4" />
       </Box>
 
       <Typography
@@ -615,7 +754,7 @@ const BeyondResumeJobs = () => {
         }}
       >
         {getUserRole() === "CAREER SEEKER"
-          ? "Here are roles that match your profile!"
+          ? "Here are our recommended jobs for you!"
           : "Track, edit, and manage your job listings here."}
       </Typography>
 
@@ -654,9 +793,9 @@ const BeyondResumeJobs = () => {
               fullWidth
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              onKeyPress={(e) => {
-                if (e.key === "Enter") handleSearch();
-              }}
+              // onKeyPress={(e) => {
+              //   if (e.key === "Enter") handleSearch();
+              // }}
               sx={{
                 "& .MuiOutlinedInput-root": {
                   height: "40px",
@@ -679,6 +818,34 @@ const BeyondResumeJobs = () => {
           setFilters={setFilters}
           filterOptions={filterOptions}
         />
+
+        {getUserRole() === "CAREER SEEKER" && (
+          <BeyondResumeButton
+            sx={{
+              px: 3,
+              py: 1,
+              background: showSavedJobs ? color.activeButtonBg : "white",
+              color: showSavedJobs ? "white" : "black",
+              boxShadow: "0px 0px 10px rgba(90, 128, 253, 0.49)",
+              ml: 1,
+              fontSize: "14px",
+              fontFamily: "custom-regular",
+              border: "none",
+              "&:hover": {
+                transform: "scale(1)",
+              },
+            }}
+            variant="outlined"
+            onClick={() => setShowSavedJobs((prev) => !prev)}
+          >
+            {" "}
+            Saved Jobs
+            {/* <FontAwesomeIcon
+              style={{ marginLeft: "4px" }}
+              icon={faBookmark}
+            ></FontAwesomeIcon>{" "} */}
+          </BeyondResumeButton>
+        )}
       </Box>
 
       {loading ? (
@@ -704,32 +871,6 @@ const BeyondResumeJobs = () => {
         </Box>
       ) : (
         <Box px={2} mb={4} position={"relative"}>
-          <Box
-            sx={{
-              position: "absolute",
-              right: 10,
-              top: 15,
-            }}
-          >
-            {/* {getUserRole() === "CAREER SEEKER" && (
-              <BeyondResumeButton
-                sx={{
-                  px: 1,
-                  mr: 1,
-                  background: showSavedJobs ? color.background : "grey",
-                  border: "none",
-                }}
-                variant="outlined"
-                onClick={() => setShowSavedJobs((prev) => !prev)}
-              >
-                <FontAwesomeIcon
-                  style={{ marginRight: "2px" }}
-                  icon={faBookmark}
-                ></FontAwesomeIcon>{" "}
-              </BeyondResumeButton>
-            )} */}
-          </Box>
-
           <AnimatePresence mode="wait">
             {showSavedJobs ? (
               <motion.div
@@ -739,7 +880,7 @@ const BeyondResumeJobs = () => {
                 animate="visible"
                 exit="exit"
               >
-                <JobsSection title="Saved Jobs" jobs={savedJobs} />
+                <JobsSection title="Saved Jobs" jobs={searchedSavedJobs} />
               </motion.div>
             ) : isJobPage ? (
               <motion.div
@@ -781,7 +922,7 @@ const BeyondResumeJobs = () => {
             ) : (
               <motion.div
                 key={
-                  filteredJobs.length > 0
+                  seekerJobs.length > 0
                     ? "recommendedJobs"
                     : "noRecommendedJobs"
                 }
@@ -790,8 +931,11 @@ const BeyondResumeJobs = () => {
                 animate="visible"
                 exit="exit"
               >
-                {filteredJobs.length > 0 ? (
-                  <JobsSection title="Recommended Jobs" jobs={filteredJobs} />
+                {seekerJobs.length > 0 ? (
+                  <JobsSection
+                    title="Recommended Jobs"
+                    jobs={showRecommendedJobs ? recommendedJobs : seekerJobs}
+                  />
                 ) : (
                   <Typography
                     variant="body1"

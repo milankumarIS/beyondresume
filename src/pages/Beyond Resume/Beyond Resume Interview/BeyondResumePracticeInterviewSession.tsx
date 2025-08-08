@@ -7,9 +7,6 @@ import ExamSession from "../ExamSession";
 const BeyondResumePracticeInterviewSession = () => {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
-
-  const micStatus = queryParams.get("mic") === "true";
-  const videoStatus = queryParams.get("video") === "true";
   const sessionType = queryParams.get("sessionType") ?? undefined;
   const { brJobId } = useParams<any>();
   const [jobsData, setJobsData] = useState<any>([]);
@@ -31,8 +28,6 @@ const BeyondResumePracticeInterviewSession = () => {
           brInterviewId={brJobId}
           sessionType={sessionType}
           response={jobsData[0]?.jobInterviewQuestions}
-          videoStatus={videoStatus}
-          micStatus={micStatus}
         />
       )}
     </Box>

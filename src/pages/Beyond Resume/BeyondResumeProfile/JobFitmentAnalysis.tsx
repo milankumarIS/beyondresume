@@ -9,13 +9,11 @@ import {
   UploadAuthFile,
 } from "../../../services/services";
 
-import { useLocation } from "react-router";
+import { safeParseAiJson } from "../../../components/util/CommonFunctions";
 import {
-  extractCleanFileName,
-  safeParseAiJson,
-} from "../../../components/util/CommonFunctions";
-import { BeyondResumeButton } from "../../../components/util/CommonStyle";
-import color from "../../../theme/color";
+  BeyondResumeButton,
+  StyledTypography,
+} from "../../../components/util/CommonStyle";
 import FileUpload from "../Beyond Resume Components/FileUpload";
 
 interface JobFitmentPageProps {
@@ -27,6 +25,9 @@ const JobFitmentPage: React.FC<JobFitmentPageProps> = ({ jobId }) => {
   const [resume, setResume] = useState<File | string | null>(null);
   const [fitmentSummary, setFitmentSummary] = useState<string>("");
   const [fitmentDetail, setFitmentDetail] = useState<string>("");
+  const [fitmentPercentage, setFitmentPercentage] = useState<string>("");
+  const [recommendation, setRecommendation] = useState<string>("");
+
   const [loading, setLoading] = useState(false);
   const resultRef = useRef<HTMLDivElement>(null);
 
@@ -75,6 +76,7 @@ const JobFitmentPage: React.FC<JobFitmentPageProps> = ({ jobId }) => {
         const formData = new FormData();
         formData.append("file", resume);
         const result = await UploadAuthFile(formData);
+        e;
 
         resumeLink = result?.data?.data?.location;
         if (!resumeLink)
@@ -93,42 +95,76 @@ const JobFitmentPage: React.FC<JobFitmentPageProps> = ({ jobId }) => {
         question: prompt1,
         urls: [resumeLink],
       });
-
       const resumeText = response?.data?.data;
 
+      // console.log(response);
+
+      // console.log(resumeText);
+
       const prompt = `
-You are an AI career fitment evaluator. Given a job description and a resume link, return a JSON object with the following structure only:
+You are an AI career fitment evaluator. Given a job description and a resume (text or link), return a **strictly valid JSON object** with the following structure only:
 
 {
-  "summary": "<short fitment summary in HTML>",
-  "detail": "<detailed gap analysis, gap resolution resources, timeline and 30-day action plan, all in HTML>"
+  "fitmentPercentage": "<numeric percentage string (e.g. '87%') showing how much the resume matches the JD, formatted in HTML>",
+  "recommendations": "<Recommendation based on fitment logic below>",
+  "summary": "<HTML summary with color-coded analysis — Green for fully matched, Yellow for partial match, Red for not matched>",
+  "detail": "<Comprehensive HTML section broken into: 1. Gaps & Explanations, 2. Upskilling Resources, 3. GAP Bridging Plan with timeline>"
 }
 
-- The response should be in the exact valid json format only as mentioned above. 
+Important Output Guidelines:
+- Only return the JSON. No explanations, markdown, or wrapping characters.
+- The output must be well-formatted and **valid JSON**.
 
-Important:
-•⁠  ⁠Only return the JSON. No commentary, explanation, or markdown backticks.
-•⁠  ⁠For Summary HTML use 3 different categories such as green tick for meets fitment, dark yellow tilde for partial meet and red cross for no fitment. Add colour elements so that overall summary looks good
-•⁠  ⁠For detailed HTML  keep three distinct sections 1. GAPs and its explanations, 2. Gaps and the resources where I can upskill myself 3. My GAP bridging planning with mile stones 
-•⁠  ⁠Make sure both "summary" and "detail" fields contain valid HTML (headings, tables, lists) along with Green, Yellow and red colour styles to distinguish between fully fits, partial fit and no fit.
-•⁠  ⁠Do not wrap the response in \⁠ \ ⁠\` or include text like "Here's the result:"
-•⁠  ⁠Avoid writing any greeting or closing statement.
+Recommendation Logic (Only one should apply):
+- "Top Contender" → if fitmentPercentage ≥ 95% AND all mandatory requirements (education, certification, experience) are met
+- "Close Contender" → if 85% ≤ fitmentPercentage < 95% AND all mandatory requirements are met
+- "Average Candidacy" → if fitmentPercentage < 85% AND all mandatory requirements are met
+- "Non Qualified Candidate" → if even one mandatory requirement is missing that cannot be quickly fulfilled
 
+Summary Formatting:
+- Present a color-coded summary using:
+  - **Green Tick** for fully matched
+  - **Yellow Tilde** for partial match
+  - **Red Cross** for not matched
+- Use clean, styled HTML list to make it visually scannable.
+
+Detail Section Formatting (must be structured in HTML):
+1. **Gaps & Explanations** — explain where the candidate falls short
+2. **Upskilling Resources** — list recommended courses, certifications, platforms, etc.
+3. **GAP Bridging Plan** — provide a timeline with specific  goals and milestones
+
+Positive Tone for Disqualification:
+- If candidate lacks **required academic qualifications** (e.g., BTech, Graduation), say:
+  “You're currently not eligible to apply. Please pursue the necessary educational qualifications to become eligible.”
+- If **certifications** (e.g., CISSP, PMP) are **explicitly mandatory**:
+  - If missing: “Please obtain the required certification before applying.”
+  - If optional: “You can still apply now, but getting certified will improve your profile.”
+- If **domain experience** is missing:
+  - If required: “You're currently not eligible. Gaining domain-specific experience is essential.”
+  - If optional: “You can apply, but adding such experience will strengthen your fitment.”
 
 Here is the job description:
 ${jobDescription}
 
-${resumeLink ? `Here is the resume Text: ${resumeText}` : ""}
+${resumeLink ? `Here is the resume text: ${resumeText}` : ""}
 `.replace(/\s+/g, " ");
 
+      // console.log(prompt);
+
       const res = await getUserAnswerFromAi({ question: prompt });
+
       const rawText =
         res?.data?.data?.candidates?.[0]?.content?.parts?.[0]?.text;
 
       const parsed = safeParseAiJson(rawText);
+
+      // console.log(parsed);
+
       if (parsed) {
-        setFitmentSummary(parsed.summary);
-        setFitmentDetail(parsed.detail);
+        setFitmentPercentage(parsed.fitmentPercentage || "");
+        setRecommendation(parsed.recommendations || "");
+        setFitmentSummary(parsed.summary || "");
+        setFitmentDetail(parsed.detail || "");
 
         setTimeout(() => {
           resultRef.current?.scrollIntoView({
@@ -158,6 +194,11 @@ ${resumeLink ? `Here is the resume Text: ${resumeText}` : ""}
       }
     }
   }, [jobDescription]);
+
+  const size = 120;
+  const strokeWidth = 24;
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
 
   return (
     <Box
@@ -227,26 +268,124 @@ ${resumeLink ? `Here is the resume Text: ${resumeText}` : ""}
         </motion.div>
 
         <Box ref={resultRef}>
+          {fitmentPercentage &&
+            (() => {
+              const extractPercentage = (text: string): number => {
+                const match = text.match(/(\d+(?:\.\d+)?)/);
+                return match ? parseFloat(match[1]) : 0;
+              };
+
+              const matchPercent = extractPercentage(fitmentPercentage);
+              const color =
+                matchPercent >= 70
+                  ? "green"
+                  : matchPercent >= 40
+                  ? "orange"
+                  : "red";
+
+              return (
+                <Box position={"relative"} width={"fit-content"} mt={4}>
+                  {/* <Typography  mb={2}>
+                    Fitment Percentage
+                  </Typography> */}
+
+                  <Box
+                    sx={{
+                      display: "flex",
+                      gap: 1,
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <div style={{ position: "relative", width: "fit-content" }}>
+                      <svg width={size} height={size}>
+                        <circle
+                          stroke="#2A2D3E"
+                          fill="transparent"
+                          strokeWidth={strokeWidth}
+                          r={radius}
+                          cx={size / 2}
+                          cy={size / 2}
+                        />
+                        <circle
+                          stroke={color}
+                          fill="transparent"
+                          strokeWidth={strokeWidth}
+                          strokeLinecap="round"
+                          strokeDasharray={circumference}
+                          strokeDashoffset={
+                            circumference * (1 - matchPercent / 100)
+                          }
+                          r={radius}
+                          cx={size / 2}
+                          cy={size / 2}
+                          transform={`rotate(-90 ${size / 2} ${size / 2})`}
+                        />
+                      </svg>
+
+                      <Typography
+                        sx={{
+                          position: "absolute",
+                          top: 0,
+                          left: "50%",
+                          transform: "translate(-50%, 0%)",
+                          width: size,
+                          height: size,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          textAlign: "center",
+                          fontSize: 16,
+                          fontWeight: 600,
+                        }}
+                      >
+                        {matchPercent}%
+                      </Typography>
+                    </div>
+
+                    <Typography>
+                      You're {matchPercent}% fit and a{" "}
+                     <span style={{fontFamily:'custom-bold', color:color}}> {recommendation} </span> for the job
+                    </Typography>
+
+                    {/* {recommendation && (
+            <StyledTypography
+              sx={{
+                display: "-webkit-box",
+              }}
+              dangerouslySetInnerHTML={{
+                __html: recommendation,
+              }}
+            />
+          )} */}
+                  </Box>
+                </Box>
+              );
+            })()}
+
           {fitmentSummary && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5 }}
             >
-              <Typography variant="h5" mt={4}>
+              {/* <Typography variant="h5" mt={4}>
                 Quick Summary
-              </Typography>
+              </Typography> */}
               <Paper
                 elevation={2}
                 sx={{
-                  mt: 2,
+                  mt: 0,
                   borderRadius: 4,
                   background: "transparent",
                   color: "inherit",
                   fontFamily: "montserrat-regular",
+                  boxShadow: "none",
                 }}
                 dangerouslySetInnerHTML={{ __html: fitmentSummary }}
               />
+
+             
             </motion.div>
           )}
 
@@ -256,9 +395,9 @@ ${resumeLink ? `Here is the resume Text: ${resumeText}` : ""}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.7 }}
             >
-              <Typography variant="h5" mt={4}>
+              {/* <Typography variant="h5" mt={4}>
                 Detailed Gap Plan
-              </Typography>
+              </Typography> */}
               <Paper
                 elevation={2}
                 sx={{
@@ -268,6 +407,7 @@ ${resumeLink ? `Here is the resume Text: ${resumeText}` : ""}
                   background: "transparent",
                   color: "inherit",
                   fontFamily: "montserrat-regular",
+                  boxShadow: "none",
                 }}
                 dangerouslySetInnerHTML={{ __html: fitmentDetail }}
               />

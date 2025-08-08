@@ -1,9 +1,8 @@
 import { Box, Typography } from "@mui/material";
+import { useEffect, useState } from "react";
 import { useLocation, useParams } from "react-router";
-import JobDescriptionResponse from "./JobDescriptionResponse";
-import { useState, useEffect } from "react";
+import { shuffleArray } from "../../components/util/CommonFunctions";
 import { searchListDataFromTable } from "../../services/services";
-import ExamSession from "./ExamSession";
 import ExamSessionWritten from "./ExamSessionWritten";
 
 const BeyondResumeJobInterviewSessionWritten = () => {
@@ -12,17 +11,19 @@ const BeyondResumeJobInterviewSessionWritten = () => {
   const { brJobId } = useParams<any>();
   const [jobsData, setJobsData] = useState<any>([]);
   const [loading, setLoading] = useState(true);
+  const [isAdaptive, setIsAdaptive] = useState(false);
 
   useEffect(() => {
     searchListDataFromTable("brJobApplicant", {
       brJobApplicantId: brJobId,
     }).then((result: any) => {
       setJobsData(result?.data?.data);
+      if (result?.data?.data[0]?.examMode === "Adaptive") {
+        setIsAdaptive(true);
+      }
       setLoading(false);
     });
   }, []);
-
-    // console.log(jobsData);
 
   return (
     <Box>
@@ -48,9 +49,11 @@ const BeyondResumeJobInterviewSessionWritten = () => {
         </Box>
       ) : (
         <ExamSessionWritten
+          jobsData={jobsData}
           brJobId={brJobId}
           response={jobsData[0]?.jobInterviewQuestions}
           interviewDuration={jobsData[0]?.interviewDuration}
+          isAdaptive={isAdaptive}
         />
       )}
     </Box>

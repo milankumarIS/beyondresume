@@ -55,8 +55,23 @@ export default function ExperienceForm({
     setValue("jobTitle", selectedJobTitle);
   }, [selectedJobTitle, setValue]);
 
+  console.log(defaultValues);
+  
+  useEffect(() => {
+  if (disableCurrentCheckbox) {
+    setValue("current", false); // Or true, based on your logic
+  }
+}, [disableCurrentCheckbox, setValue]);
+
+
   return (
-    <form onSubmit={handleSubmit(onSave)}>
+   <form
+  onSubmit={handleSubmit((data) => {
+    console.log("Submitted Experience Data:", data);
+    onSave(data);
+  })}
+>
+
       <Stack spacing={2}>
         <FormAutocomplete2
           label="Job Title"
@@ -90,6 +105,8 @@ export default function ExperienceForm({
           sx={commonFormTextFieldSx}
         />
 
+        
+
         <FormSelect
           options={jobType}
           label="Employment Type"
@@ -107,19 +124,20 @@ export default function ExperienceForm({
           }}
         >
           <FormControlLabel
+                disabled={disableCurrentCheckbox}
+          
             sx={commonFormTextFieldSx}
             style={{
               margin: "auto",
               marginBottom: "-4px",
-              marginTop: "14px",
-              padding: "6px 0px",
+              marginTop: "18px",
+              padding: "12px 18px",
               width: "90%",
               alignItems: "center",
-              justifyContent: "center",
+              justifyContent: "flex-start",
             }}
             control={
               <Checkbox
-                disabled={disableCurrentCheckbox}
                 icon={<FontAwesomeIcon icon={faCircle} />}
                 checkedIcon={<FontAwesomeIcon icon={faCircleCheck} />}
                 sx={{
@@ -133,7 +151,7 @@ export default function ExperienceForm({
                   },
                 }}
                 {...register("current")}
-                defaultChecked={defaultValues?.current}
+                defaultChecked={defaultValues?.current || false}
               />
             }
             label="Currently working here"

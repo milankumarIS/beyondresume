@@ -24,9 +24,8 @@ import GradientText, {
 } from "../../components/util/CommonStyle";
 import { useTheme } from "../../components/util/ThemeContext";
 import {
-  getUserFirstName,
   getUserId,
-  getUserRole,
+  getUserRole
 } from "../../services/axiosClient";
 import {
   searchDataFromTable,
@@ -34,12 +33,15 @@ import {
   syncDataInTable,
 } from "../../services/services";
 import color from "../../theme/color";
+import { useUserData } from "../../components/util/UserDataContext";
 
 const BeyondResumePracticeJobs = () => {
   const [activeJobs, setActiveJobs] = useState<any[]>([]);
   const isJobPage = location.pathname.startsWith("/beyond-resume-myjobs");
   const history = useHistory();
   const [loading, setLoading] = useState(true);
+   const { userData } = useUserData();
+
   const fadeVariant = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
@@ -121,6 +123,7 @@ const BeyondResumePracticeJobs = () => {
     type?: string;
   }) => {
     const { theme } = useTheme();
+
     return (
       <Box mt={4} mb={4}>
         <Grid container spacing={4}>
@@ -175,7 +178,7 @@ const BeyondResumePracticeJobs = () => {
                                 ? color.jobCardBg
                                 : color.jobCardBgLight,
                             padding: "4px",
-                            borderRadius:'50%'
+                            borderRadius: "50%",
                           }}
                         />
                       ) : null
@@ -240,21 +243,37 @@ const BeyondResumePracticeJobs = () => {
                           />{" "}
                           {job.jobLevel} Level
                         </Typography>
-                        <Typography
-                          variant="body2"
-                          mb={1}
-                          sx={{ fontFamily: "montserrat-regular" }}
-                        >
-                          <FontAwesomeIcon
-                            style={{ marginRight: "6px" }}
-                            icon={faLayerGroup}
-                          />{" "}
-                          {
-                            job.percentageList?.filter((cat) => cat.percent > 0)
-                              .length
-                          }{" "}
-                          Categories
-                        </Typography>
+
+                        {job.percentageList && (
+                          <Typography
+                            variant="body2"
+                            mb={1}
+                            sx={{ fontFamily: "montserrat-regular" }}
+                          >
+                            <FontAwesomeIcon
+                              style={{ marginRight: "6px" }}
+                              icon={faLayerGroup}
+                            />
+                            {(() => {
+                              try {
+                                const parsedList = JSON.parse(
+                                  job.percentageList
+                                );
+                                return Array.isArray(parsedList)
+                                  ? parsedList.filter((cat) => cat.percent > 0)
+                                      .length
+                                  : 0;
+                              } catch (e) {
+                                console.error(
+                                  "Invalid JSON in job.percentageList",
+                                  e
+                                );
+                                return 0;
+                              }
+                            })()}{" "}
+                            Categories
+                          </Typography>
+                        )}
                       </Grid2>
                     </Grid2>
 
@@ -295,7 +314,7 @@ const BeyondResumePracticeJobs = () => {
         }}
       >
         <Typography variant="h4">Hi</Typography>
-        <GradientText text={getUserFirstName()} variant="h4" />
+        <GradientText text={userData?.firstName} variant="h4" />
       </Box>
 
       <Typography

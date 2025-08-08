@@ -79,7 +79,7 @@ const JobCard = ({
         color: "inherit",
         "&:hover": {
           transform: "scale(1.02)",
-          boxShadow: "0px 2px 36px rgba(0, 0, 0, 0.25)",
+          // boxShadow: "0px 2px 36px rgba(0, 0, 0, 0.25)",
           background: theme === "dark" ? color.jobCardBg : color.jobCardBgLight,
         },
       }}
@@ -170,6 +170,7 @@ const JobCard = ({
                 cursor: "pointer",
                 color:
                   theme === "dark" ? color.titleColor : color.titleLightColor,
+                pr: 3,
               }}
               onClick={() => handleViewMore(job)}
             >

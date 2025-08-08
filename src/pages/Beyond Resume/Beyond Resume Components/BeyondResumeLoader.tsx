@@ -6,7 +6,7 @@ const BeyondResumeLoader = ({
   progress,
 }: {
   open: boolean;
-  progress: number;
+  progress?: number;
 }) => {
   return (
     <Modal open={open}>

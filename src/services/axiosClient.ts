@@ -1,8 +1,10 @@
 import { createAxiosClient } from "./axiosConfig";
 import { jwtDecode } from "jwt-decode";
 
-const BASE_URL = 'https://mydailylives.com/api/v2/'
+// const BASE_URL = 'https://mydailylives.com/api/v2/'
 // const BASE_URL = 'http://localhost:4000/api/v2/'
+const BASE_URL = 'https://br.skillablers.com//api/v2/'
+
 
 
 export function getCurrentAccessToken() {

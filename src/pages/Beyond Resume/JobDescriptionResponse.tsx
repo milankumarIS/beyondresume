@@ -46,6 +46,7 @@ import CustomEvaluationDriver from "./Beyond Resume Components/CustomEvaluationD
 import FileUpload from "./Beyond Resume Components/FileUpload";
 import GeneratedAiQnaResponse from "./GeneratedAiQnaResponse";
 import color from "../../theme/color";
+import BeyondResumeAdaptiveEvaluation from "./BeyondResumeAdaptiveEvaluation";
 
 interface JobDescriptionResponseProps {
   response: string;
@@ -286,10 +287,10 @@ const JobDescriptionResponse: React.FC<JobDescriptionResponseProps> = ({
   
         3. For each category:
            - Generate the exact number of questions based on the "estimatedQuestions" value.
-           - Include a mix of complexity levels: "Low", "Moderate", and "High".
+           - Include a mix of complexity levels: "Beginner", "Intermediate", "Advance" and 'Complex.
            - Each question must have:
              - "question"
-             - "complexity" ("Low", "Moderate", or "High")
+             - "complexity" ("Beginner", "Intermediate", "Advance" or "Complex)
              - "suggestedAnswer"
            - Add a "qualifyingCriteria" field for each category explaining how to evaluate responses.
   
@@ -305,7 +306,7 @@ const JobDescriptionResponse: React.FC<JobDescriptionResponseProps> = ({
               "questions": [
                 {
                   "question": "Your question text here",
-                  "complexity": "Low | Moderate | High",
+                  "complexity": "Beginner | Intermediate | Advance | Complex",
                   "suggestedAnswer": "Expected or acceptable answer points"
                 }
               ]
@@ -322,10 +323,9 @@ const JobDescriptionResponse: React.FC<JobDescriptionResponseProps> = ({
         `.trim();
 
         const aiRes = await getUserAnswerFromAi({ question: fullCommand });
+        // console.log(aiRes);
         const generatedText =
           aiRes.data.data.candidates[0].content.parts[0].text;
-
-        // console.log(aiRes)
 
         setQnResponse(generatedText);
 
@@ -349,9 +349,6 @@ const JobDescriptionResponse: React.FC<JobDescriptionResponseProps> = ({
       }
     } catch (error: any) {
       console.error("Error generating interview questions:", error);
-      openSnackBar(
-        error?.response?.data?.msg || error?.message || "Something went wrong."
-      );
     } finally {
       setLoading(false);
       // if (onJobUpdate) {
@@ -386,7 +383,18 @@ const JobDescriptionResponse: React.FC<JobDescriptionResponseProps> = ({
         // console.log(rawText);
         setGeneratedJd(rawText);
 
-        handleSave();
+        const cleaned = editorContent
+          .replace(/^```html\s*|\s*```$/g, "")
+          .replace(/<p><br><\/p>/g, "")
+          .replace(/<p>\s*<\/p>/g, "")
+          .trim();
+
+        updateByIdDataInTable(
+          "brJobs",
+          jobId,
+          { jobDescriptions: cleaned },
+          "brJobId"
+        );
 
         setTimeout(() => {
           document
@@ -673,7 +681,16 @@ const JobDescriptionResponse: React.FC<JobDescriptionResponseProps> = ({
             </Tabs>
           </Box>
 
-          {!addQuestionFile && (
+          {simulatorMode === "adaptive" && (
+            <>
+              <BeyondResumeAdaptiveEvaluation
+                jobId={jobId}
+                duration={durationTabs[selectedTab]}
+              />
+            </>
+          )}
+
+          {!addQuestionFile && simulatorMode !== "adaptive" && (
             <CustomEvaluationDriver
               selectedTabIndex={selectedTab}
               percentages={percentages}
@@ -720,42 +737,49 @@ const JobDescriptionResponse: React.FC<JobDescriptionResponseProps> = ({
             </Box>
           )}
 
-          <BeyondResumeButton
-            onClick={handleClick}
-            variant="contained"
-            disabled={!isTotalValid}
-            color="primary"
-            sx={{
-              m: "auto",
-              display: "flex",
-              my:4,
-              alignItems:'center'
-            }}
-          >
-            {loading ? (
-              <>
-                Analyzing <CircularProgress color="inherit" size={18} style={{marginLeft:'4px'}} />
-              </>
-            ) : (
-              <>
-                Generate Interview Questions
-                {/* <FontAwesomeIcon
+          {simulatorMode !== "adaptive" && (
+            <BeyondResumeButton
+              onClick={handleClick}
+              variant="contained"
+              disabled={!isTotalValid}
+              color="primary"
+              sx={{
+                m: "auto",
+                display: "flex",
+                my: 4,
+                alignItems: "center",
+              }}
+            >
+              {loading ? (
+                <>
+                  Analyzing{" "}
+                  <CircularProgress
+                    color="inherit"
+                    size={18}
+                    style={{ marginLeft: "4px" }}
+                  />
+                </>
+              ) : (
+                <>
+                  Generate Interview Questions
+                  {/* <FontAwesomeIcon
                   style={{ marginLeft: "6px" }}
                   icon={faArrowCircleRight}
                 /> */}
-              </>
-            )}
-          </BeyondResumeButton>
+                </>
+              )}
+            </BeyondResumeButton>
+          )}
         </>
       )}
 
-      {qnResponse && (
+      {qnResponse && simulatorMode !== "adaptive" && (
         <GeneratedAiQnaResponse response={qnResponse} jobId={jobId} />
       )}
 
-      {getUserRole() === "TALENT PARTNER" && !isJobPage && (
+      {/* {getUserRole() === "TALENT PARTNER" && !isJobPage && (
         <BeyondResumeUpgradeRequiredModal open={showModal} />
-      )}
+      )} */}
     </Box>
   );
 };

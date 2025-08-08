@@ -1,18 +1,26 @@
+import {
+  faDownload,
+  faEnvelope,
+  faPhone,
+  faUserTie,
+} from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Box, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router";
+import {
+  generateInterviewReportExcel,
+  getFormattedDateKey,
+} from "../../components/util/CommonFunctions";
+import {
+  commonPillStyle,
+  GradientFontAwesomeIcon,
+} from "../../components/util/CommonStyle";
+import { useTheme } from "../../components/util/ThemeContext";
 import { searchListDataFromTable } from "../../services/services";
-import BeyondResumeInterviewOverviewQA from "./Beyond Resume Components/BeyondResumeInterviewOverviewQA";
-import { faFileExcel } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { BeyondResumeButton } from "../../components/util/CommonStyle";
-import { generateInterviewReportExcel } from "../../components/util/CommonFunctions";
 import color from "../../theme/color";
-
-type Question = {
-  isCorrect: boolean;
-  userAnswer?: string;
-};
+import BeyondResumeInterviewOverviewQA from "./Beyond Resume Components/BeyondResumeInterviewOverviewQA";
+import HtmlToPdfViewer from "./Beyond Resume Components/HtmlToPdfViewer";
 
 interface QuestionItem {
   categoryName: string;
@@ -39,6 +47,12 @@ interface InterviewData {
   previousCompany: string;
   linkedIn: string;
   companyName: string;
+  createdAt: string;
+  updatedAt: string;
+  interviewVideo: string;
+  examMode: string;
+  generatedResume: string;
+  generatedCoverLetter: string;
   interviewQuestionAnswer: QuestionItem[];
 }
 
@@ -56,10 +70,12 @@ const BeyondResumeInterviewOverview = () => {
 
     searchListDataFromTable(tableName, params).then((result: any) => {
       setData(result?.data?.data[0]);
-      // console.log(result?.data?.data[0]);
+      console.log(result?.data?.data[0]);
       setLoading(false);
     });
   }, [type, id]);
+
+  // console.log(data);
 
   if (loading || !data) {
     return (
@@ -90,14 +106,28 @@ const BeyondResumeInterviewOverview = () => {
   const score = data.interviewScore;
   const { remark, bgcolor } = getRemark(score);
 
-  const groupedQuestions = data.interviewQuestionAnswer.reduce(
-    (acc: Record<string, QuestionItem[]>, curr) => {
-      if (!acc[curr.categoryName]) acc[curr.categoryName] = [];
-      acc[curr.categoryName].push(curr);
-      return acc;
-    },
-    {}
-  );
+  // console.log(Array.isArray(data.interviewQuestionAnswer), data.interviewQuestionAnswer);
+
+  const parsedAnswers =
+    typeof data.interviewQuestionAnswer === "string"
+      ? JSON.parse(data.interviewQuestionAnswer)
+      : data.interviewQuestionAnswer;
+
+  const groupedQuestions = (
+    Array.isArray(parsedAnswers) ? parsedAnswers : []
+  ).reduce((acc: Record<string, QuestionItem[]>, curr) => {
+    if (!acc[curr.categoryName]) acc[curr.categoryName] = [];
+    acc[curr.categoryName].push(curr);
+    return acc;
+  }, {});
+
+  const size = 140;
+  const progress = score / 100;
+  const strokeWidth = 32;
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference * (1 - progress);
+  const { theme } = useTheme();
 
   return (
     <Box
@@ -122,106 +152,6 @@ const BeyondResumeInterviewOverview = () => {
         Interview Summary
       </Typography>
 
-      <BeyondResumeButton
-        sx={{
-          mt: 4,
-          position: "absolute",
-          top: 10,
-          right: 30,
-        }}
-        onClick={() => generateInterviewReportExcel(data)}
-      >
-        Export Report 
-        <FontAwesomeIcon
-          style={{ marginLeft: "8px" }}
-          icon={faFileExcel}
-        ></FontAwesomeIcon>
-      </BeyondResumeButton>
-
-      {/* <Box >
-      {data?.companyName && (
-          <>
-            <Box
-              sx={{
-                display: "flex",
-                gap: 1,
-                alignItems: "center",
-                justifyContent: "flex-start",
-                mt: 4,
-              }}
-            >
-              <FontAwesomeIcon
-                style={{
-                  height: "40px",
-                  background: "linear-gradient(145deg, #0d0d0d, #2D3436)",
-                  padding: "6px",
-                  borderRadius: "4px",
-                  // border: "solid 1px white",
-                }}
-                icon={faBuilding}
-              ></FontAwesomeIcon>
-              <div style={{ textAlign: "left" }}>
-                <Typography variant="h5" fontWeight="bold">{data?.companyName}</Typography>
-                <Typography
-                  sx={{
-                    fontFamily: "Montserrat-Regular",
-                  }}
-                  mt={0}
-                >
-                  {data?.jobTitle}
-                </Typography>
-              </div>
-            </Box>
-
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                mt: 2,
-                // width: "90%",
-                textAlign: "left",
-              }}
-            >
-              <Typography
-                sx={{
-                  fontSize: "14px",
-                  fontFamily: "Montserrat-Regular",
-                  width: "50%",
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1,
-                }}
-              >
-                <FontAwesomeIcon icon={faLocationDot} />
-                {data?.location}
-              </Typography>
-
-              <Typography
-                sx={{
-                  fontSize: "14px",
-                  fontFamily: "Montserrat-Regular",
-                  width: "50%",
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1,
-                  justifyContent: "flex-end",
-                }}
-              >
-                <FontAwesomeIcon icon={faBriefcase} />
-                {data?.jobType}
-              </Typography>
-            </Box>
-          </>
-        )}
-      </Box> */}
-
       <Box
         sx={{
           display: "flex",
@@ -229,96 +159,330 @@ const BeyondResumeInterviewOverview = () => {
           alignItems: "center",
           mt: 4,
           p: type === "candidateResult" ? 2 : 0,
-          px: 4,
-          flexDirection: type === "candidateResult" ? "row-reverse" : "row",
+          px: 0,
+          flexDirection:
+            type === "candidateResult" ? "row-reverse" : "row-reverse",
           justifyContent:
             type === "candidateResult" ? "space-between" : "-moz-initial",
-          background:
-            type === "candidateResult"
-              ? color.cardBg
-              : "transparent",
+          // background: type === "candidateResult" ? color.cardBg : "transparent",
           borderRadius: 4,
-          border: type === "candidateResult" ? "solid 1px white" : "none",
         }}
       >
         <Box
           sx={{
-            background: bgcolor,
-            border: "solid 1px white",
-            borderRadius: "999px",
-            width: 120,
-            height: 120,
+            borderRadius: 4,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            boxShadow: "0 0 35px 2px rgba(0, 0, 0, 0.32)",
           }}
         >
-          <Box textAlign="center">
-            <Typography variant="h4" fontWeight="bold">
-              {score}
-            </Typography>
-            <Typography variant="body2">of 100</Typography>
-          </Box>
-        </Box>
-        {type !== "candidateResult" && (
-          <Typography color="inherit" variant="h5">{remark}</Typography>
-        )}
-        {type === "candidateResult" && (
-          <Box display={"flex"} flexDirection={"column"}>
-            <Typography mb={1} variant="h6">
-              Candidate Details
+          <Box
+            width={"300px"}
+            textAlign={"left"}
+            sx={{
+              borderRadius: 4,
+              p: 2,
+              background:
+                theme === "dark" ? color.jobCardBg : color.jobCardBgLight,
+            }}
+          >
+            <Typography
+              variant="h6"
+              mb={2}
+              sx={{
+                color:
+                  theme === "dark" ? color.titleColor : color.titleLightColor,
+              }}
+            >
+              Interview Score
             </Typography>
 
-            <Typography sx={{ fontFamily: "Montserrat-Regular" }}>
-              Name: {""}
-              {data.fullName}
-            </Typography>
-            <Typography sx={{ fontFamily: "Montserrat-Regular" }}>
-              Phone: {""}
-              {data.phone}
-            </Typography>
-            <Typography sx={{ fontFamily: "Montserrat-Regular" }}>
-              E-mail: {""}
-              {data.email}
+            <Box
+              sx={{
+                m: "auto",
+                mt: 2,
+                position: "relative",
+                width: size,
+                height: size,
+              }}
+            >
+              <svg width={size} height={size}>
+                <circle
+                  stroke="#2A2D3E"
+                  fill="transparent"
+                  strokeWidth={strokeWidth}
+                  r={radius}
+                  cx={size / 2}
+                  cy={size / 2}
+                />
+                <circle
+                  stroke={bgcolor}
+                  fill="transparent"
+                  strokeWidth={strokeWidth}
+                  strokeLinecap="round"
+                  strokeDasharray={circumference}
+                  strokeDashoffset={offset}
+                  r={radius}
+                  cx={size / 2}
+                  cy={size / 2}
+                  transform={`rotate(-90 ${size / 2} ${size / 2})`}
+                />
+              </svg>
+              <Typography
+                sx={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: size,
+                  height: size,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  textAlign: "center",
+                  fontSize: 16,
+                  fontWeight: 600,
+                }}
+              >
+                {score}%
+              </Typography>
+            </Box>
+
+            <Typography
+              my={2}
+              textAlign={"center"}
+              onClick={() => generateInterviewReportExcel(data)}
+              sx={{
+                color:
+                  theme === "dark" ? color.titleColor : color.titleLightColor,
+                cursor: "pointer",
+              }}
+            >
+              Download Report
+              <FontAwesomeIcon
+                style={{ marginLeft: "4px" }}
+                icon={faDownload}
+              ></FontAwesomeIcon>
             </Typography>
           </Box>
-        )}
+        </Box>
+
+        <Box
+          sx={{
+            background:
+              theme === "dark" ? color.jobCardBg : color.jobCardBgLight,
+            p: 2,
+            borderRadius: 4,
+          }}
+        >
+          {type !== "practice" && (
+            <>
+              {type === "candidateResult" ? (
+                <Box
+                  display={"flex"}
+                  flexDirection={"column"}
+                  sx={{
+                    background:
+                      theme === "dark" ? color.jobCardBg : color.jobCardBgLight,
+                    borderRadius: 4,
+                    width: "fit-content",
+                    mb: 1,
+                  }}
+                >
+                  <Typography
+                    mb={0.8}
+                    variant="h5"
+                    sx={{
+                      display: "flex",
+                      gap: 1,
+                      alignItems: "center",
+                      cursor: "pointer",
+                      color:
+                        theme === "dark"
+                          ? color.titleColor
+                          : color.titleLightColor,
+                      pr: 3,
+                    }}
+                  >
+                    <GradientFontAwesomeIcon size={18} icon={faUserTie} />{" "}
+                    {data.fullName}
+                  </Typography>
+
+                  <Box display={"flex"} gap={1}>
+                    <Typography
+                      sx={{ ...commonPillStyle, pl: 0, fontSize: "14px" }}
+                    >
+                      <GradientFontAwesomeIcon size={14} icon={faEnvelope} />{" "}
+                      {data.email}
+                    </Typography>
+                    <Typography
+                      sx={{ ...commonPillStyle, pl: 0, fontSize: "14px" }}
+                    >
+                      <GradientFontAwesomeIcon size={14} icon={faPhone} />{" "}
+                      {data.phone}
+                    </Typography>
+                  </Box>
+
+                  {/* 
+              <Typography
+                fontSize={"14px"}
+                mt={-0.5}
+                sx={{ fontFamily: "Custom-Regular" }}
+              >
+                {data.email} <br />
+                {data.phone}
+              </Typography> */}
+                </Box>
+              ) : (
+                <div>
+                  <Typography
+                    mb={0.5}
+                    variant="h6"
+                    sx={{
+                      display: "-webkit-box",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      WebkitLineClamp: 1,
+                      WebkitBoxOrient: "vertical",
+                      cursor: "pointer",
+                      color:
+                        theme === "dark"
+                          ? color.titleColor
+                          : color.titleLightColor,
+                      pr: 3,
+                    }}
+                  >
+                    {data.jobTitle} ({data.jobType})
+                  </Typography>
+
+                  <Typography
+                    fontSize={"16px"}
+                    mt={-0.5}
+                    mb={0.5}
+                    sx={{ fontFamily: "Custom-Regular" }}
+                  >
+                    {data.companyName}, {""}
+                    {data.location}
+                  </Typography>
+                </div>
+              )}
+        
+
+          <Box
+            sx={{
+              display: "flex",
+              gap: 1,
+              flexWrap: "wrap",
+              mb: 2,
+            }}
+          >
+            <Typography sx={{ ...commonPillStyle, pl: 0, fontSize: "14px" }}>
+              Applied (on) {""}
+              {getFormattedDateKey(data.createdAt)}
+            </Typography>
+          </Box>
+
+              </>
+          )}
+
+          {/* {type !== "candidateResult" && (
+          <Typography color="inherit" variant="h5">
+            {remark}
+          </Typography>
+        )} */}
+
+          {type === "candidateResult" ? (
+            <Box
+              sx={{
+                background: bgcolor,
+                // border: "solid 1px white",
+                p: 2,
+                borderRadius: 4,
+                color: getTextColor(bgcolor),
+                mt: 2,
+                boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.38)",
+              }}
+            >
+              <Typography fontSize={"16px"} variant="h6">
+                Overview
+              </Typography>
+              <Typography
+                variant="body1"
+                sx={{ fontFamily: "Montserrat-Regular" }}
+              >
+                {data.interviewOverview}
+              </Typography>
+            </Box>
+          ) : (
+            <Box
+              sx={{
+                border: "solid 1px",
+                p: 2,
+                py: 1,
+                borderRadius: 4,
+              }}
+            >
+              <Typography fontSize={"18px"} variant="h6">
+                {" "}
+                {remark}
+              </Typography>
+              <Typography
+                variant="body1"
+                sx={{ fontFamily: "Montserrat-Regular" }}
+              >
+                {data.interviewSuggestion}
+              </Typography>
+            </Box>
+          )}
+        </Box>
       </Box>
 
-      {type === "candidateResult" ? (
+      <BeyondResumeInterviewOverviewQA
+        examMode={data?.examMode}
+        groupedQuestions={groupedQuestions}
+      />
+
+      {type === "candidateResult" && (
         <Box
           sx={{
-            background: bgcolor,
-            border: "solid 1px white",
-            p: 2,
-            borderRadius: 4,
+            display: "flex",
+            gap: 2,
+            alignItems: "center",
+            justifyContent: "space-around",
             mt: 4,
           }}
         >
-          <Typography variant="h6">Overview</Typography>
-          <Typography variant="body1" sx={{ fontFamily: "Montserrat-Regular" }}>
-            {data.interviewOverview}
-          </Typography>
-        </Box>
-      ) : (
-        <Box
-          sx={{
-            background: color.cardBg,
-            border: "solid 1px white",
-            p: 2,
-            borderRadius: 4,
-            mt: 4,
-          }}
-        >
-          <Typography variant="h6">Suggestion</Typography>
-          <Typography variant="body1" sx={{ fontFamily: "Montserrat-Regular" }}>
-            {data.interviewSuggestion}
-          </Typography>
+          <HtmlToPdfViewer
+            heading={`${data.fullName}'s Resume`}
+            htmlText={data?.generatedResume}
+          />
+
+          <HtmlToPdfViewer
+            heading={`${data.fullName}'s Cover Letter`}
+            htmlText={data?.generatedCoverLetter}
+          />
         </Box>
       )}
 
-      <BeyondResumeInterviewOverviewQA groupedQuestions={groupedQuestions} />
+      {data.interviewVideo && (
+        <Box p={2}>
+          <Typography variant="h6" mb={2}>
+            Interview Video
+          </Typography>
+          <video
+            controls
+            autoPlay={false}
+            style={{
+              borderRadius: 8,
+              width: "100%",
+              maxWidth: "600px",
+              aspectRatio: "16 / 9",
+            }}
+          >
+            <source src={data.interviewVideo} type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
+        </Box>
+      )}
     </Box>
   );
 };
@@ -330,29 +494,45 @@ const getRemark = (score: number) => {
     return {
       remark: "Excellent",
       comparison: "You scored higher than 90% of the people.",
-      bgcolor: "linear-gradient(0deg, #4CAF50, #81C784)",
+      bgcolor: "#4CAF50",
     };
   if (score >= 70)
     return {
       remark: "Great",
       comparison: "You scored higher than 65% of the people.",
-      bgcolor: "linear-gradient(0deg, #8BC34A, #AED581)",
+      bgcolor: "#8BC34A",
     };
   if (score >= 50)
     return {
       remark: "Good",
       comparison: "You scored higher than 40% of the people.",
-      bgcolor: "linear-gradient(0deg, #FFC107, #FFD54F)",
+      bgcolor: "#FFC107",
     };
   if (score >= 35)
     return {
       remark: "Fair",
       comparison: "You scored higher than 25% of the people.",
-      bgcolor: "linear-gradient(0deg, #FF9800, #FFB74D)",
+      bgcolor: "#FF9800",
     };
   return {
     remark: "Needs Improvement",
     comparison: "Keep practicing to improve your score.",
-    bgcolor: "linear-gradient(0deg, #F44336,rgb(186, 39, 39))",
+    bgcolor: "#F44336",
   };
+};
+
+const getTextColor = (bgcolor: string) => {
+  switch (bgcolor) {
+    case "#4CAF50": // Excellent (green - dark)
+    case "#FF9800": // Fair (orange - dark)
+    case "#F44336": // Needs Improvement (red - dark)
+      return "white";
+
+    case "#8BC34A": // Great (lime - medium)
+    case "#FFC107": // Good (yellow - light)
+      return "black";
+
+    default:
+      return "black";
+  }
 };

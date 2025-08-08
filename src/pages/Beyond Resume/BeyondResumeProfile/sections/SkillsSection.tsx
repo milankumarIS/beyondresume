@@ -1,4 +1,4 @@
-import { Stack, Typography } from "@mui/material";
+import { Box, Stack, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import { BeyondResumeButton } from "../../../../components/util/CommonStyle";
 import ProfileSectionCard from "../../Beyond Resume Components/ProfileSectionCard";
@@ -8,11 +8,16 @@ import {
   searchDataFromTable,
   updateByIdDataInTable,
 } from "../../../../services/services";
+import { useTheme } from "../../../../components/util/ThemeContext";
+import color from "../../../../theme/color";
+import { faEdit } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-export default function SkillsSection() {
+export default function SkillsSection({ hideSensitive }: any) {
   const [skills, setSkills] = useState<string[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const { theme } = useTheme();
 
   const fetchSkills = async () => {
     setLoading(true);
@@ -83,28 +88,64 @@ export default function SkillsSection() {
   }
 
   return (
-    <ProfileSectionCard title="Skills" onEdit={() => setIsEditing(true)}>
-      <Stack
-        spacing={1}
-        style={{
+    <Box position={"relative"} p={3} pr={2}>
+      <Box
+        sx={{
           position: "relative",
           overflow: "hidden",
-          boxShadow: "0px 4px 10px rgba(90, 128, 253, 0.49)",
+          background: theme === "dark" ? color.jobCardBg : color.jobCardBgLight,
         }}
         borderRadius={4}
         p={2}
-        pt={3}
-        pb={2.5}
         minWidth={"200px"}
       >
-        {loading ? (
-          <Typography>Loading...</Typography>
-        ) : (
-          skills.map((skill: string, idx: number) => (
-            <Typography key={idx}>• {skill}</Typography>
-          ))
+        <Typography sx={{ fontFamily: "custom-bold", mb: 2 }}>
+          Skills
+        </Typography>
+
+        {!hideSensitive && (
+          <FontAwesomeIcon
+            style={{
+              fontSize: "12px",
+              background: color.activeButtonBg,
+              padding: "6px",
+              borderRadius: "4px",
+              color: "white",
+              position: "absolute",
+              top: 15,
+              right: 15,
+              zIndex: 2,
+            }}
+            icon={faEdit}
+            onClick={() => setIsEditing(true)}
+          ></FontAwesomeIcon>
         )}
-      </Stack>
-    </ProfileSectionCard>
+
+        <Box flexWrap={"wrap"} display={"flex"} gap={1}>
+          {loading ? (
+            <Typography>Loading...</Typography>
+          ) : (
+            skills.map((skill: string, idx: number) => (
+              <Typography
+                sx={{
+                  fontSize:'14px',
+                  width: "fit-content",
+                  px: 2,
+                  borderRadius: "44px",
+                  py: 0.5,
+                  background: "#ebebeb",
+                  color: "black",
+                  // border: "solid 1px grey",
+                }}
+                key={idx}
+              >
+                {" "}
+                {skill}
+              </Typography>
+            ))
+          )}
+        </Box>
+      </Box>
+    </Box>
   );
 }

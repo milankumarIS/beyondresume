@@ -88,10 +88,9 @@ const handleClick = async () => {
       { brJobStatus: "ACTIVE" },
       "brJobId"
     );
-    console.log(jobId);
-    console.log(result);
+    // console.log(jobId);
+    // console.log(result);
     
-    // Only redirect after success
     window.location.href = "/beyond-resume-myjobs";
   } catch (error: any) {
     console.error("Error updating job status:", error);
