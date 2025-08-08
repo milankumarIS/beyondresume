@@ -1,11 +1,9 @@
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 
-const REGION = "ap-south-1";
-const BUCKET_NAME = "mydailylives";
-
-const ACCESS_KEY_ID = "AKIAYQYUBFDX2MZBLIXU";
-const SECRET_ACCESS_KEY = "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";
-
+const REGION = import.meta.env.VITE_AWS_REGION;
+const BUCKET_NAME = import.meta.env.VITE_AWS_BUCKET_NAME;
+const ACCESS_KEY_ID = import.meta.env.VITE_AWS_ACCESS_KEY_ID;
+const SECRET_ACCESS_KEY = import.meta.env.VITE_AWS_SECRET_ACCESS_KEY;
 
 export async function s3FileUpload(file: File | Blob) {
   const s3 = new S3Client({
@@ -19,7 +17,7 @@ export async function s3FileUpload(file: File | Blob) {
   const key = `uploads/${Date.now()}-${file instanceof File ? file.name : "video.webm"}`;
 
   const putCommand = new PutObjectCommand({
-    Bucket:BUCKET_NAME,
+    Bucket: BUCKET_NAME,
     Key: key,
     Body: file,
     ACL: "public-read",
@@ -28,6 +26,6 @@ export async function s3FileUpload(file: File | Blob) {
 
   await s3.send(putCommand);
 
-  const s3Url = `https://mydailylives.s3.ap-south-1.amazonaws.com/${key}`;
+  const s3Url = `https://${BUCKET_NAME}.s3.${REGION}.amazonaws.com/${key}`;
   return s3Url;
 }
