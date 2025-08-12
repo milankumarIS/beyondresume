@@ -41,6 +41,7 @@ import BeyondResumePricing from './pages/Beyond Resume/BeyondResumePricing';
 import CandidateProfilePage from './pages/Beyond Resume/BeyondResumeProfile/CandidateProfilePage';
 import JobFitmentPage from './pages/Beyond Resume/BeyondResumeProfile/JobFitmentAnalysis';
 import BeyondResumeQuestionBankForm from './pages/Beyond Resume/BeyondResumeQuestionBankForm';
+import { CompanyProfilePage } from './pages/Beyond Resume/BeyondResumeCompanyProfile/CompanyProfilePage';
 // import { AvatarProvider } from './pages/Daily Education/Components/AvatarContext';
 // import DailyEducationRegister from './pages/Daily Education/DailyEducationRegister';
 // import MyTeamPerformance from './pages/MyTeamPerformance';
@@ -121,6 +122,7 @@ const App: React.FC = () => {
                   <ProtectedRoute path="/beyond-resume-candidate-list" component={BeyondResumeCandidateList} />
                   <ProtectedRoute path="/beyond-resume-interview-overview/:id" component={BeyondResumeInterviewOverview} />
                   <ProtectedRoute path="/beyond-resume-candidate-profile" component={CandidateProfilePage} />
+                  <ProtectedRoute path="/beyond-resume-company-profile" component={CompanyProfilePage} />
                   <ProtectedRoute path="/beyond-resume-pricing" component={BeyondResumePricing} /> 
                   <ProtectedRoute path="/beyond-resume-payment" component={BeyondResumePayment} /> 
                   <ProtectedRoute path="/beyond-resume-questionBankForm" component={BeyondResumeQuestionBankForm} /> 

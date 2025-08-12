@@ -95,6 +95,7 @@ export default function CandidateProfilePage() {
           right: "5%",
           textTransform: "none",
           fontSize: "10px",
+          zIndex: 2,
         }}
         onClick={generatePDF}
       >

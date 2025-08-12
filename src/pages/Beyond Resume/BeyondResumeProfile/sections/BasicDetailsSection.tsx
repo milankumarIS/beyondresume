@@ -118,6 +118,7 @@ export default function BasicDetailsSection({
           alignItems={"flex-start"}
           p={2}
           pr={4}
+          width={'100%'}
         >
           <Box
             sx={{ display: "flex", mb: 2, width: "100%" }}

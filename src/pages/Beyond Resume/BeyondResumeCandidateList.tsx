@@ -141,7 +141,7 @@ const BeyondResumeCandidateList = () => {
 
     paginateDataFromTable("brJobApplicant", {
       page: page - 1,
-      pageSize: 10,
+      pageSize: 12,
       data: {
         brJobApplicantStatus: "CONFIRMED",
         brJobId: brJobId,
@@ -557,7 +557,7 @@ const BeyondResumeCandidateList = () => {
         </Grid>
       )}
 
-      <Box sx={{ maxWidth: "200px", ml: "auto" }}>
+      <Box sx={{ ml: "auto" }}>
         {interviewList.length !== 0 ? (
           <PaginationControlled
             page={page}

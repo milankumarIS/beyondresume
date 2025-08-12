@@ -1,12 +1,8 @@
-import {
-  faBookmark,
-  faInfoCircle,
-  faSearch,
-} from "@fortawesome/free-solid-svg-icons";
+import { faSearch } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Box, Grid, TextField, Typography } from "@mui/material";
-import { AnimatePresence, motion, Variants } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import React, { useEffect, useRef, useState } from "react";
 import { useHistory } from "react-router";
 import {
   jobFunctions,
@@ -24,12 +20,10 @@ import GradientText, {
 } from "../../components/util/CommonStyle";
 import ConfirmationPopup from "../../components/util/ConfirmationPopup";
 import { useTheme } from "../../components/util/ThemeContext";
+import { useUserData } from "../../components/util/UserDataContext";
+import { getUserId, getUserRole } from "../../services/axiosClient";
 import {
-  getUserFirstName,
-  getUserId,
-  getUserRole,
-} from "../../services/axiosClient";
-import {
+  paginateDataFromTable,
   searchDataFromTable,
   searchListDataFromTable,
   syncByTwoUniqueKeyData,
@@ -41,8 +35,7 @@ import BeyondResumeAvatar from "./Beyond Resume Components/BeyondResumeAvatar";
 import BeyondResumeJobFilterComponent from "./Beyond Resume Components/BeyondResumeJobFilterComponent";
 import JobCard from "./Beyond Resume Components/JobCard";
 import BeyondResumeJobDetails from "./BeyondResumeJobDetails";
-import React from "react";
-import { useUserData } from "../../components/util/UserDataContext";
+import PaginationControlled from "../../components/shared/Pagination";
 
 type Job = {
   brJobId: string;
@@ -259,6 +252,13 @@ const BeyondResumeJobs = () => {
     setRecommendedJobs(matched);
   }, [userSkills, seekerJobs]);
 
+  const [page1, setPage1] = useState(1);
+  const [page2, setPage2] = useState(1);
+  const [page3, setPage3] = useState(1);
+  const [totalCount1, setTotalCount1] = useState(0);
+  const [totalCount2, setTotalCount2] = useState(0);
+  const [totalCount3, setTotalCount3] = useState(0);
+
   const fetchJobs = async () => {
     setLoading(true);
     const now = new Date();
@@ -266,7 +266,53 @@ const BeyondResumeJobs = () => {
 
     try {
       if (isJobPage) {
-        const [activeResult, pendingResult] = await Promise.all([
+        // const [activeResult, pendingResult, closedResult] = await Promise.all([
+        //   paginateDataFromTable("brJobs", {
+        //     page: page1 - 1,
+        //     pageSize: 10,
+        //     data: {
+        //       brJobStatus: "ACTIVE",
+        //       createdBy,
+        //       filter: "",
+        //       fields: [],
+        //     },
+        //   }),
+        //   paginateDataFromTable("brJobs", {
+        //     page: page2 - 1,
+        //     pageSize: 10,
+        //     data: {
+        //       brJobStatus: "INPROGRESS",
+        //       createdBy,
+        //       filter: "",
+        //       fields: [],
+        //     },
+        //   }),
+        //   paginateDataFromTable("brJobs", {
+        //     page: page3 - 1,
+        //     pageSize: 10,
+        //     data: {
+        //       brJobStatus: "CLOSED",
+        //       createdBy,
+        //       filter: "",
+        //       fields: [],
+        //     },
+        //   }),
+        // ]);
+
+        // setTotalCount1(activeResult?.data?.data?.count);
+        // setTotalCount2(pendingResult?.data?.data?.count);
+        // setTotalCount3(closedResult?.data?.data?.count);
+
+        // const allActiveJobs = activeResult?.data?.data?.rows || [];
+        // const allPendingJobs = pendingResult?.data?.data?.rows || [];
+        // const allExpiredJobs = closedResult?.data?.data?.rows || [];
+
+
+        // setActiveJobs(sortByNewest(allActiveJobs));
+        // setPendingJobs(sortByNewest(allPendingJobs));
+        // setCompletedJobs(sortByNewest(allExpiredJobs));
+     
+       const [activeResult, pendingResult] = await Promise.all([
           searchListDataFromTable("brJobs", { createdBy }),
           searchListDataFromTable("brJobs", {
             brJobStatus: "INPROGRESS",
@@ -295,6 +341,7 @@ const BeyondResumeJobs = () => {
         setActiveJobs(sortByNewest(allActiveJobs));
         setPendingJobs(sortByNewest(pendingResult?.data?.data || []));
         setCompletedJobs(sortByNewest(allExpiredJobs));
+    
       } else {
         const [result, userAppliedJobs, userSavedJobs] = await Promise.all([
           searchListDataFromTable("brJobs", { brJobStatus: "ACTIVE" }),
@@ -349,7 +396,7 @@ const BeyondResumeJobs = () => {
 
   useEffect(() => {
     fetchJobs();
-  }, [isJobPage, showSavedJobs, filters]);
+  }, [isJobPage, showSavedJobs, filters, page1, page2, page3]);
 
   // useEffect(() => {
   //   if (!isJobPage) {
@@ -629,6 +676,30 @@ const BeyondResumeJobs = () => {
                 />
               </Grid>
             ))}
+
+            {/* {jobs.length > 0 && (
+              <Box sx={{ width: "100%" }}>
+                {title === "Posted Jobs" ? (
+                  <PaginationControlled
+                    page={page1}
+                    setPage={setPage1}
+                    count={totalCount1}
+                  ></PaginationControlled>
+                ) : title === "Pending Jobs" ? (
+                  <PaginationControlled
+                    page={page2}
+                    setPage={setPage2}
+                    count={totalCount2}
+                  ></PaginationControlled>
+                ) : (
+                  <PaginationControlled
+                    page={page3}
+                    setPage={setPage3}
+                    count={totalCount3}
+                  ></PaginationControlled>
+                )}
+              </Box>
+            )} */}
           </Grid>
 
           {title === "Recommended Jobs" && showRecommendedJobs && (

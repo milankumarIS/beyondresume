@@ -1,4 +1,5 @@
 import {
+  faBuilding,
   faCloudMoon,
   faCloudSun,
   faSignOut,
@@ -9,10 +10,10 @@ import { Box } from "@mui/material";
 import React, { useState } from "react";
 import { useHistory, useLocation } from "react-router-dom";
 
+import { getUserRole } from "../../services/axiosClient";
 import { GradientFontAwesomeIcon } from "../util/CommonStyle";
 import ConfirmationPopup from "../util/ConfirmationPopup";
 import { useTheme } from "../util/ThemeContext";
-import { getUserRole } from "../../services/axiosClient";
 
 const Header: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
@@ -21,13 +22,15 @@ const Header: React.FC = () => {
   const locationurl = useLocation();
 
   const isOnProfilePage =
-    location.pathname === "/beyond-resume-candidate-profile";
+    location.pathname === "/beyond-resume-candidate-profile" || location.pathname === "/beyond-resume-company-profile";
 
   const handleClick = () => {
     if (isOnProfilePage) {
       history.goBack();
     } else {
-      history.push("/beyond-resume-candidate-profile");
+      getUserRole() === "CAREER SEEKER"
+        ? history.push("/beyond-resume-candidate-profile")
+        : history.push("/beyond-resume-company-profile");
     }
   };
 
@@ -74,14 +77,27 @@ const Header: React.FC = () => {
           onClick={() => history.push("/beyond-resume-candidate-profile")}
           icon={faUserCircle}
         /> */}
-        {getUserRole() === "CAREER SEEKER"}
-        <Box style={{ cursor: "pointer" }} onClick={handleClick}>
-          {isOnProfilePage ? (
-            <GradientFontAwesomeIcon size={20} icon={faUserCircle} />
-          ) : (
-            <FontAwesomeIcon icon={faUserCircle} />
-          )}
-        </Box>
+        {getUserRole() === "CAREER SEEKER" ? (
+          <Box style={{ cursor: "pointer" }} onClick={handleClick}>
+            {isOnProfilePage ? (
+              <GradientFontAwesomeIcon size={20} icon={faUserCircle} />
+            ) : (
+              <FontAwesomeIcon icon={faUserCircle} />
+            )}
+          </Box>
+        ) : (
+
+          <></>
+          // <Box style={{ cursor: "pointer" }} 
+          // onClick={handleClick}
+          // >
+          //   {isOnProfilePage ? (
+          //     <GradientFontAwesomeIcon size={20} icon={faBuilding} />
+          //   ) : (
+          //     <FontAwesomeIcon icon={faBuilding} />
+          //   )}
+          // </Box>
+        )}
 
         <FontAwesomeIcon
           title="Sign out"
@@ -101,6 +117,12 @@ const Header: React.FC = () => {
         onConfirm={() => {
           localStorage.clear();
           window.close();
+          setPopupOpen1(false);
+          setTimeout(() => {
+            if (!window.closed) {
+              window.location.href = "https://indi.skillablers.com/indi-login";
+            }
+          }, 100);
         }}
         color="#50bcf6"
         message="Are you sure you want to log out?"

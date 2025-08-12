@@ -1,5 +1,6 @@
 import {
   faBriefcase,
+  faBuilding,
   faChartSimple,
   faCirclePlus,
   faComments,
@@ -74,6 +75,12 @@ const buttonsArray: any[] = [
     icon: faCrown,
     role: "CAREER SEEKER, TALENT PARTNER",
   },
+  // {
+  //   title: "Profile",
+  //   url: "/beyond-resume-pricing",
+  //   icon: faBuilding,
+  //   role: "TALENT PARTNER",
+  // },
   // {
   //   title: "Qn Bank",
   //   url: "/beyond-resume-questionBankForm",
