@@ -95,11 +95,11 @@ const JobFitmentPage: React.FC<JobFitmentPageProps> = ({ jobId }) => {
         question: prompt1,
         urls: [resumeLink],
       });
-      const resumeText = response?.data?.data;
+      console.log(response);
+      const resumeText = response?.data?.data?.candidates[0]?.content?.parts[0].text || "";
 
-      // console.log(response);
 
-      // console.log(resumeText);
+      console.log(resumeText);
 
       const prompt = `
 You are an AI career fitment evaluator. Given a job description and a resume (text or link), return a **strictly valid JSON object** with the following structure only:
@@ -149,9 +149,12 @@ ${jobDescription}
 ${resumeLink ? `Here is the resume text: ${resumeText}` : ""}
 `.replace(/\s+/g, " ");
 
-      // console.log(prompt);
+      console.log(prompt);
 
       const res = await getUserAnswerFromAi({ question: prompt });
+
+      console.log(res);
+      
 
       const rawText =
         res?.data?.data?.candidates?.[0]?.content?.parts?.[0]?.text;

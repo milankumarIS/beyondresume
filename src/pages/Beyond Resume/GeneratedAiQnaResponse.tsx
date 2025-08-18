@@ -32,6 +32,8 @@ const GeneratedAiQnaResponse: React.FC<GeneratedAiQnaResponseProps> = ({
     .replace(/\*\*(.*?)\*\*/g, "")
     .replace(/^```html\s*|\s*```$/g, "")
     .replace(/^```json\s*|\s*```$/g, "")
+    .replace(/^\n```json\s*|\s*```$/g, "")
+    .replace(/^\n```json\n\s*|\s*```$/g, "")
     .trim()
     .replace(/(?<!\*)\*(?!\*)/g, "<br/>");
 

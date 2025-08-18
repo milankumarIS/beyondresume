@@ -32,7 +32,7 @@ const PaginationControlled: React.FC<PaginationControlledProps> = ({
       sx={{
         marginTop: "2rem",
         alignItems: "center",
-        background: "white",
+        background: "inherit",
         borderRadius: "52px",
         py: 0.5,
         width: "100%",
@@ -73,7 +73,7 @@ const PaginationControlled: React.FC<PaginationControlledProps> = ({
             minWidth: 36,
             height: 36,
             fontWeight: 500,
-            color: "#000",
+            color: "inherit",
             border: "solid 1.5px",
             borderColor: "#0C83B7",
             "&:hover": {

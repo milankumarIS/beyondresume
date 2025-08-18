@@ -58,7 +58,7 @@ export const evaluateInterviewResponses = async ({
     let generatedResume: string | null = null;
     let generatedCoverLetter: string | null = null;
 
-    if (jobsData) {
+    if (jobsData[0]?.candidateResume) {
       const resumePrompt = `
 I have found a job opportunity for the role of "${
         jobsData[0]?.jobTitle
@@ -88,27 +88,27 @@ ${JSON.stringify(output)}
 
 {
   "generatedResume": "Generate a fully formatted and polished HTML version of my resume, tailored especially to the job description and my simulation responses. Ensure it is refined, visually structured, and ready to render on a webpage, preserving all original formatting including headings, bullet points, and line breaks.",
-  "generatedCoverLetter": "Write a fully polished and ready-to-use HTML cover letter addressed to the hiring manager at ${jobsData[0]?.companyName}. Ensure it is fully personalized with no placeholders or dummy content. 
+  "generatedCoverLetter": "Write a fully polished and ready-to-use HTML cover letter addressed to the hiring manager at ${
+    jobsData[0]?.companyName
+  }. Ensure it is fully personalized with no placeholders or dummy content. 
    Highlight how my skills align with the specific requirements of the job and explain how I can contribute to the company’s success. Include a real-life example where I overcame a challenging task, resolved it effectively, and what I learned from the experience. The final output should be professional, tailored, and suitable for direct submission without further edits."
 
 }
 `;
 
-      const resumeRes = await getUserAnswerFromAi({ question: resumePrompt });
-      const rawResumeText =
-        resumeRes?.data?.data?.candidates?.[0]?.content?.parts?.[0]?.text;
-
       try {
-        const cleanedText = rawResumeText.replace(/```json|```/g, "").trim();
+        const resumeRes = await getUserAnswerFromAi({ question: resumePrompt });
+        const rawResumeText =
+          resumeRes?.data?.data?.candidates?.[0]?.content?.parts?.[0]?.text;
 
-        // console.log(cleanedText);
-        const parsed = JSON.parse(cleanedText);
-        // console.log(parsed);
-
-        generatedResume = parsed.generatedResume;
-        generatedCoverLetter = parsed.generatedCoverLetter;
+        if (rawResumeText) {
+          const cleanedText = rawResumeText.replace(/```json|```/g, "").trim();
+          const parsed = JSON.parse(cleanedText);
+          generatedResume = parsed.generatedResume || null;
+          generatedCoverLetter = parsed.generatedCoverLetter || null;
+        }
       } catch (error) {
-        console.error("Failed to parse AI response:", error);
+        console.error("Failed to parse AI resume/cover letter:", error);
       }
     }
     // console.log(generatedResume);

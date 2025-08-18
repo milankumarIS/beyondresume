@@ -7,10 +7,10 @@ import {
   faEdit,
   faShareNodes,
   faUserTie,
-  faXmarkCircle
+  faXmarkCircle,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Avatar, Box, Button, Typography } from "@mui/material";
+import { Box, Button, Typography } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 import { useHistory, useLocation, useParams } from "react-router-dom";
 import { copyToClipboard } from "../../components/shared/Clipboard";
@@ -28,12 +28,16 @@ import { useTheme } from "../../components/util/ThemeContext";
 import { getUserRole } from "../../services/axiosClient";
 import {
   searchDataFromTable,
-  searchListDataFromTable,
+  updateByIdDataInTable,
 } from "../../services/services";
 import color from "../../theme/color";
+import MatchingUserCard from "./Beyond Resume Components/MatchingUserCard";
+import { fetchMatchingUsers } from "./Beyond Resume Components/MatchingUsersList";
 import JobFitmentPage from "./BeyondResumeProfile/JobFitmentAnalysis";
 import GeneratedAiQnaResponse from "./GeneratedAiQnaResponse";
-
+import { Capacitor } from "@capacitor/core";
+import { Share } from "@capacitor/share";
+import ConfirmationPopup from "../../components/util/ConfirmationPopup";
 type Props = {
   job: any;
   applicantsCount: number;
@@ -61,9 +65,7 @@ const BeyondResumeJobDetails = ({
   const location = useLocation();
   const { brJobId } = useParams<{ brJobId: string }>();
 
-  const [showFullDescription, setShowFullDescription] = useState(
-    () => getUserRole() === "CAREER SEEKER"
-  );
+  const [showFullDescription, setShowFullDescription] = useState(true);
 
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [displayContent, setDisplayContent] = useState("");
@@ -71,6 +73,7 @@ const BeyondResumeJobDetails = ({
   const isJobPage = location.pathname.startsWith("/beyond-resume-myjobs");
   const [jobUsername, setjobUsername] = useState("");
   const { snackbarProps, showSnackbar } = useNewSnackbar();
+  const [popupOpen, setPopupOpen1] = useState(false);
 
   useEffect(() => {
     const fetchJob = async () => {
@@ -130,95 +133,16 @@ const BeyondResumeJobDetails = ({
   >([]);
 
   useEffect(() => {
-    const fetchAndCalculateMatches = async () => {
-      try {
-        const userRes = await searchListDataFromTable("userPersonalInfo", {});
-        const users = userRes?.data?.data || [];
+    if (!job) return;
 
-        const jobSkillsArray = Array.isArray(job.skills)
-          ? job.skills
-          : typeof job.skills === "string"
-          ? job.skills.split(",").map((s) => s.trim())
-          : [];
-
-        const jobSkills = jobSkillsArray.map((s: string) => s.toLowerCase());
-
-        const matchedUserList = users.map((user: any) => {
-          const userSkillsArray = Array.isArray(user.skills)
-            ? user.skills
-            : typeof user.skills === "string"
-            ? user.skills.split(",").map((s: string) => s.trim())
-            : [];
-
-          const userSkills = userSkillsArray.map((s: string) =>
-            s.toLowerCase()
-          );
-
-          const matchedSkills = jobSkills.filter((skill) =>
-            userSkills.includes(skill)
-          );
-
-          const matchPercent =
-            jobSkills.length > 0
-              ? Math.round((matchedSkills.length / jobSkills.length) * 100)
-              : 0;
-
-          const fullName = [user.firstName, user.middleName, user.lastName]
-            .filter(Boolean)
-            .join(" ");
-
-          return {
-            userId: user.userId,
-            fullName,
-            matchPercent,
-            matchedSkills,
-            userImage: user.userImage,
-          };
-        });
-
-        matchedUserList.sort((a, b) => b.matchPercent - a.matchPercent);
-
-        setMatchingUsers(matchedUserList.filter((u) => u.matchPercent > 0));
-      } catch (err) {
-        console.error("Error fetching users or matching skills:", err);
-      }
-    };
-    const fetchJobUsername = async () => {
-      try {
-        const userRes = await searchDataFromTable("user", {
-          userId: job?.createdBy,
-        });
-        const userName = userRes?.data?.data?.userName || [];
-        setjobUsername(userName);
-      } catch (err) {
-        console.error("Error fetching users or matching skills:", err);
-      }
-    };
-
-    if (job) {
-      fetchAndCalculateMatches();
-      fetchJobUsername();
-    }
+    (async () => {
+      const { matches, jobUsername } = await fetchMatchingUsers(job);
+      setMatchingUsers(matches);
+      setjobUsername(jobUsername);
+    })();
   }, [job]);
 
-  const size = 80;
-  const strokeWidth = 20;
-  const radius = (size - strokeWidth) / 2;
-  const circumference = 2 * Math.PI * radius;
-
-  //   const handleCopyLink = async () => {
-  //   try {
-  //     await copyToClipboard(referralLink);
-  //     setIsCopied(true);
-  //     setTimeout(() => setIsCopied(false), 2000);
-  //     openSnackBar("Link copied to clipboard!");
-  //   } catch (error) {
-  //     console.error(error);
-  //     openSnackBar("Failed to copy link. Please try again.");
-  //   }
-  // };
-
-  const handleCopyLink = () => {
+  const handleCopyLink = async () => {
     const payload = {
       ServiceTypeID: 1020,
       userName: jobUsername,
@@ -229,11 +153,44 @@ const BeyondResumeJobDetails = ({
     const fullLink = `https://indi.skillablers.com/indi-registration?${base64Payload}`;
 
     try {
-      copyToClipboard(fullLink);
-      showSnackbar("Link Copied To Clipboard", "info");
+      await copyToClipboard(fullLink);
+      showSnackbar("Link Copied To Clipboard", "success");
+
+      if (Capacitor.isNativePlatform()) {
+        await Share.share({
+          title: "Share Job Link",
+          text: "Check out this job link:",
+          url: fullLink,
+          dialogTitle: "Share via",
+        });
+      } else if (navigator.share) {
+        await navigator.share({
+          title: "Share Job Link",
+          text: "Check out this job link:",
+          url: fullLink,
+        });
+      }
     } catch (error) {
       console.error(error);
-      showSnackbar("Failed to copy link. Please try again.", "error");
+      showSnackbar("Failed to share link. Please try again.", "error");
+    }
+  };
+
+  const toggleStatus = async () => {
+    try {
+      await updateByIdDataInTable(
+        "brJobs",
+        job.brJobId,
+        { brJobStatus: "CLOSED" },
+        "brJobId"
+      );
+      showSnackbar("Job Deleted Successfully", "success");
+    } catch (error) {
+      console.error("Error updating status:", error);
+      showSnackbar("Failed to update status. Please try again.", "success");
+    } finally {
+      setPopupOpen1(false);
+      window.location.reload();
     }
   };
 
@@ -286,6 +243,11 @@ const BeyondResumeJobDetails = ({
     );
   }
 
+
+  const canCloseJob =
+  (job.brJobStatus === "ACTIVE" ||
+  job.brJobStatus === "INPROGRESS") &&
+  (!!job.endDate && new Date(job.endDate) >= new Date());
   return (
     <Box
       p={2}
@@ -390,23 +352,21 @@ const BeyondResumeJobDetails = ({
                     gap: 2,
                   }}
                 >
-                  {selectedTab !== 2 && (
-                    <BeyondResumeButton2
-                      sx={{ fontSize: "12px" }}
-                      onClick={() => {
-                        setSelectedJobIdC(job.brJobId);
-                        setPopupOpen(true);
-                      }}
-                    >
-                      Close Job
-                      <FontAwesomeIcon
-                        style={{ marginLeft: "6px" }}
-                        icon={faXmarkCircle}
-                      />
-                    </BeyondResumeButton2>
-                  )}
+{canCloseJob && (
+  <BeyondResumeButton2
+    sx={{ fontSize: "12px" }}
+    onClick={() => {
+      setPopupOpen1(true);
+      setSelectedJobIdC(job.brJobId);
+      setPopupOpen(true);
+    }}
+  >
+    Close Job
+    <FontAwesomeIcon style={{ marginLeft: "6px" }} icon={faXmarkCircle} />
+  </BeyondResumeButton2>
+)}
 
-                  {selectedTab === 1 ? (
+                  {selectedTab === 1 || job.brJobStatus === "INPROGRESS" ? (
                     <BeyondResumeButton
                       onClick={() => {
                         history.push(`/beyond-resume-jobedit/${job.brJobId}`);
@@ -591,7 +551,7 @@ const BeyondResumeJobDetails = ({
             </Button>
           )}
 
-          {getUserRole() !== "CAREER SEEKER" &&
+          {getUserRole() === "TALENT PARTNER" &&
             job?.examMode !== "Adaptive" && (
               <BeyondResumeButton2
                 sx={{ mt: 0, fontSize: "12px" }}
@@ -646,105 +606,13 @@ const BeyondResumeJobDetails = ({
                   Top Matching Candidates
                 </Typography>
                 {matchingUsers.slice(0, 5).map((user) => (
-                  <Box
+                  <MatchingUserCard
                     key={user.userId}
-                    sx={{
-                      fontSize: "14px",
-                      mb: 3,
-                      display: "flex",
-                      alignItems: "flex-start",
-                      justifyContent: "space-between",
-                      gap: 2,
-                      p: 2,
-                      minWidth: "60%",
-                      width: "fit-content",
-                      background: color.cardBg,
-                      borderRadius: 4,
-                    }}
-                  >
-                    <Box display={"flex"} alignItems={"center"} gap={1} mt={2}>
-                      <Avatar
-                        src={user.userImage}
-                        alt="Avatar"
-                        sx={{
-                          width: 50,
-                          height: 50,
-                          mx: "auto",
-                          alignSelf: "center",
-                        }}
-                      />
-                      <div>
-                        <Typography>{user.fullName}</Typography>
-                        <Typography fontSize="12px" color="gray">
-                          Skills matched: {user.matchedSkills.join(", ")}
-                        </Typography>
-                      </div>
-                    </Box>
-
-                    <Box
-                      position={"relative"}
-                      display={"flex"}
-                      flexDirection={"column"}
-                      alignItems={"center"}
-                      gap={2}
-                    >
-                      <svg width={size} height={size}>
-                        <circle
-                          stroke="#2A2D3E"
-                          fill="transparent"
-                          strokeWidth={strokeWidth}
-                          r={radius}
-                          cx={size / 2}
-                          cy={size / 2}
-                        />
-                        <circle
-                          stroke={
-                            user.matchPercent >= 70
-                              ? "green"
-                              : user.matchPercent >= 40
-                              ? "orange"
-                              : "red"
-                          }
-                          fill="transparent"
-                          strokeWidth={strokeWidth}
-                          strokeLinecap="round"
-                          strokeDasharray={circumference}
-                          strokeDashoffset={
-                            circumference * (1 - user.matchPercent / 100)
-                          }
-                          r={radius}
-                          cx={size / 2}
-                          cy={size / 2}
-                          transform={`rotate(-90 ${size / 2} ${size / 2})`}
-                        />
-                      </svg>
-
-                      <Typography
-                        sx={{
-                          position: "absolute",
-                          top: 0,
-                          left: "50%",
-                          transform: "translate(-50%, 0%)",
-                          width: size,
-                          height: size,
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          textAlign: "center",
-                          fontSize: 12,
-                          fontWeight: 600,
-                        }}
-                      >
-                        {user.matchPercent}%
-                      </Typography>
-
-                      <BeyondResumeButton2
-                        sx={{ fontSize: "10px", px: 2, py: 0.4 }}
-                      >
-                        See Profile
-                      </BeyondResumeButton2>
-                    </Box>
-                  </Box>
+                    user={user}
+                    color={color}
+                    size={60}
+                    strokeWidth={4}
+                  />
                 ))}
               </Box>
             )}
@@ -756,6 +624,16 @@ const BeyondResumeJobDetails = ({
       </>
 
       <CustomSnackbar {...snackbarProps} />
+
+      <ConfirmationPopup
+        open={popupOpen}
+        onClose={() => setPopupOpen1(false)}
+        onConfirm={toggleStatus}
+        actionText={"close"}
+        color={"#5a81fd"}
+        warningMessage={`This action can't be undone.`}
+        message={"Are you sure you want to close this job?"}
+      />
     </Box>
   );
 };

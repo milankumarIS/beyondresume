@@ -449,6 +449,7 @@ const BeyondResumeInterviewOverview = () => {
             alignItems: "center",
             justifyContent: "space-around",
             mt: 4,
+            overflowX:'hidden'
           }}
         >
           <HtmlToPdfViewer

@@ -1,6 +1,6 @@
 import { faSearch } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Box, Grid, TextField, Typography } from "@mui/material";
+import { Box, Card, Grid, TextField, Typography } from "@mui/material";
 import { AnimatePresence, motion } from "framer-motion";
 import React, { useEffect, useRef, useState } from "react";
 import { useHistory } from "react-router";
@@ -10,7 +10,9 @@ import {
   JobSeekerScriptLines,
   jobType,
   payroll,
+  STATUS_CONFIG,
 } from "../../components/form/data";
+import PaginationControlled from "../../components/shared/Pagination";
 import { useSnackbar } from "../../components/shared/SnackbarProvider";
 import { commonFormTextFieldSx } from "../../components/util/CommonFunctions";
 import GradientText, {
@@ -31,11 +33,15 @@ import {
   updateByIdDataInTable,
 } from "../../services/services";
 import color from "../../theme/color";
+import AssessedApplicants from "./Beyond Resume Components/AssessedApplicants";
 import BeyondResumeAvatar from "./Beyond Resume Components/BeyondResumeAvatar";
 import BeyondResumeJobFilterComponent from "./Beyond Resume Components/BeyondResumeJobFilterComponent";
 import JobCard from "./Beyond Resume Components/JobCard";
+import { fetchMatchingUsers } from "./Beyond Resume Components/MatchingUsersList";
 import BeyondResumeJobDetails from "./BeyondResumeJobDetails";
-import PaginationControlled from "../../components/shared/Pagination";
+import MatchingUserCard from "./Beyond Resume Components/MatchingUserCard";
+import { useNewSnackbar } from "../../components/shared/useSnackbar";
+import CustomSnackbar from "../../components/util/CustomSnackbar";
 
 type Job = {
   brJobId: string;
@@ -75,6 +81,7 @@ const BeyondResumeJobs = () => {
     exit: { opacity: 0, y: -20, transition: { duration: 0.3 } },
   };
   const { theme } = useTheme();
+  const { snackbarProps, showSnackbar } = useNewSnackbar();
 
   type Filters = {
     payroll: string[];
@@ -266,82 +273,58 @@ const BeyondResumeJobs = () => {
 
     try {
       if (isJobPage) {
-        // const [activeResult, pendingResult, closedResult] = await Promise.all([
-        //   paginateDataFromTable("brJobs", {
-        //     page: page1 - 1,
-        //     pageSize: 10,
-        //     data: {
-        //       brJobStatus: "ACTIVE",
-        //       createdBy,
-        //       filter: "",
-        //       fields: [],
-        //     },
-        //   }),
-        //   paginateDataFromTable("brJobs", {
-        //     page: page2 - 1,
-        //     pageSize: 10,
-        //     data: {
-        //       brJobStatus: "INPROGRESS",
-        //       createdBy,
-        //       filter: "",
-        //       fields: [],
-        //     },
-        //   }),
-        //   paginateDataFromTable("brJobs", {
-        //     page: page3 - 1,
-        //     pageSize: 10,
-        //     data: {
-        //       brJobStatus: "CLOSED",
-        //       createdBy,
-        //       filter: "",
-        //       fields: [],
-        //     },
-        //   }),
-        // ]);
-
-        // setTotalCount1(activeResult?.data?.data?.count);
-        // setTotalCount2(pendingResult?.data?.data?.count);
-        // setTotalCount3(closedResult?.data?.data?.count);
-
-        // const allActiveJobs = activeResult?.data?.data?.rows || [];
-        // const allPendingJobs = pendingResult?.data?.data?.rows || [];
-        // const allExpiredJobs = closedResult?.data?.data?.rows || [];
-
-
-        // setActiveJobs(sortByNewest(allActiveJobs));
-        // setPendingJobs(sortByNewest(allPendingJobs));
-        // setCompletedJobs(sortByNewest(allExpiredJobs));
-     
-       const [activeResult, pendingResult] = await Promise.all([
-          searchListDataFromTable("brJobs", { createdBy }),
-          searchListDataFromTable("brJobs", {
-            brJobStatus: "INPROGRESS",
-            createdBy,
+        const [activeResult, pendingResult, closedResult] = await Promise.all([
+          paginateDataFromTable("brJobs", {
+            page: page1 - 1,
+            pageSize: 10,
+            data: {
+              brJobStatus: "ACTIVE",
+              createdBy,
+              fieldName: "endDate",
+              fieldValue: new Date().toISOString(),
+              filter: "",
+              fields: [],
+            },
+          }),
+          paginateDataFromTable("brJobs", {
+            page: page2 - 1,
+            pageSize: 10,
+            data: {
+              brJobStatus: "INPROGRESS",
+              createdBy,
+              filter: "",
+              fields: [],
+            },
+          }),
+          paginateDataFromTable("brJobs", {
+            page: page3 - 1,
+            pageSize: 10,
+            data: {
+              brJobStatus: "CLOSED",
+                  fieldName: "endDate",
+              fieldValue: new Date().toISOString(),
+              createdBy,
+              filter: "",
+              fields: [],
+            },
           }),
         ]);
 
-        const allJobs = activeResult?.data?.data || [];
+        // console.log(activeResult);
+        // console.log(pendingResult);
+        // console.log(closedResult);
 
-        const allActiveJobs = allJobs.filter(
-          (job) =>
-            job.brJobStatus === "ACTIVE" &&
-            (!job.endDate || new Date(job.endDate) > now)
-        );
+        setTotalCount1(activeResult?.data?.data?.count);
+        setTotalCount2(pendingResult?.data?.data?.count);
+        setTotalCount3(closedResult?.data?.data?.count);
 
-        const allExpiredJobs = allJobs.filter(
-          (job) =>
-            (job.brJobStatus === "ACTIVE" &&
-              job.endDate &&
-              new Date(job.endDate) <= now) ||
-            job.brJobStatus === "CLOSED"
-        );
-
-        // console.log(allActiveJobs);
+        const allActiveJobs = activeResult?.data?.data?.rows || [];
+        const allPendingJobs = pendingResult?.data?.data?.rows || [];
+        const allExpiredJobs = closedResult?.data?.data?.rows || [];
 
         setActiveJobs(sortByNewest(allActiveJobs));
-        setPendingJobs(sortByNewest(pendingResult?.data?.data || []));
+        setPendingJobs(sortByNewest(allPendingJobs));
         setCompletedJobs(sortByNewest(allExpiredJobs));
-    
       } else {
         const [result, userAppliedJobs, userSavedJobs] = await Promise.all([
           searchListDataFromTable("brJobs", { brJobStatus: "ACTIVE" }),
@@ -396,14 +379,7 @@ const BeyondResumeJobs = () => {
 
   useEffect(() => {
     fetchJobs();
-  }, [isJobPage, showSavedJobs, filters, page1, page2, page3]);
-
-  // useEffect(() => {
-  //   if (!isJobPage) {
-  //     const filtered = applyFilters(filteredJobs);
-  //     setFilteredJobs(filtered);
-  //   }
-  // }, [filters, activeJobs]);
+  }, [isJobPage, showSavedJobs, page1, page2, page3]);
 
   const toggleStatus = async () => {
     try {
@@ -413,18 +389,17 @@ const BeyondResumeJobs = () => {
         { brJobStatus: "CLOSED" },
         "brJobId"
       );
+      showSnackbar("Job Deleted Successfully", "success");
 
-      openSnackBar(`Job Deleted Successfully`);
       await fetchJobs();
     } catch (error) {
       console.error("Error updating status:", error);
-      openSnackBar("Failed to update status. Please try again.");
+      showSnackbar("Failed to update status. Please try again.", "success");
+
     } finally {
       setPopupOpen(false);
     }
   };
-
-  // console.log(searchTerm);
 
   useEffect(() => {
     if (!isJobPage) {
@@ -463,13 +438,24 @@ const BeyondResumeJobs = () => {
     const [applicantsMap, setApplicantsMap] = useState<Record<string, any[]>>(
       {}
     );
-    const [loadingApplicants, setLoadingApplicants] = useState<boolean>(false);
+    const [statusCountsMap, setStatusCountsMap] = useState<
+      Record<string, { label: string; count: number; color: string }[]>
+    >({});
     const [savedJobsSet, setSavedJobsSet] = useState<Set<string>>(new Set());
-    // console.log(savedJobsSet);
-
+    const [loadingApplicants, setLoadingApplicants] = useState<boolean>(true);
     const [selectedJob, setSelectedJob] = useState<any | null>(null);
     const [selectedApplicantsCount, setSelectedApplicantsCount] =
       useState<number>(0);
+    const [matchingUsers, setMatchingUsers] = useState<
+      {
+        userId: number;
+        fullName: string;
+        matchPercent: number;
+        matchedSkills: string[];
+        userImage: string;
+        jobId: string;
+      }[]
+    >([]);
 
     useEffect(() => {
       if (jobs.length > 0 && !selectedJob) {
@@ -511,33 +497,78 @@ const BeyondResumeJobs = () => {
     }, []);
 
     useEffect(() => {
-      const fetchApplicantsMap = async () => {
-        setLoadingApplicants(true);
-        const map: Record<string, any[]> = {};
+      (async () => {
+        const allMatches: {
+          jobId: string;
+          userId: number;
+          fullName: string;
+          matchPercent: number;
+          matchedSkills: string[];
+          userImage: string;
+        }[] = [];
 
-        const promises = jobs.map((job) =>
-          searchListDataFromTable("brJobApplicant", {
-            brJobApplicantStatus: ["CONFIRMED"],
-            brJobId: job.brJobId,
-          }).then((res) => {
-            map[job.brJobId] = res.data.data || [];
-          })
-        );
+        for (const job of jobs) {
+          const { matches } = await fetchMatchingUsers(job);
+          allMatches.push(
+            ...matches.map((m) => ({
+              ...m,
+              jobId: job.brJobId,
+            }))
+          );
+        }
 
-        await Promise.all(promises);
-        setApplicantsMap(map);
-        setLoadingApplicants(false);
-      };
+        setMatchingUsers(allMatches);
 
-      fetchApplicantsMap();
+        const fetchApplicantsMap = async () => {
+          setLoadingApplicants(true);
+          const map: Record<string, any[]> = {};
+          const statusMap: Record<
+            string,
+            { label: string; count: number; color: string }[]
+          > = {};
+
+          const promises = jobs.map(async (job) => {
+            const res = await searchListDataFromTable("brJobApplicant", {
+              brJobId: job.brJobId,
+            });
+
+            const applicants = res.data.data || [];
+            map[job.brJobId] = applicants;
+
+            const counts: Record<string, number> = {};
+
+            counts["APPLIED"] = applicants.length;
+            counts["PENDING ASSESSMENT"] = applicants.filter(
+              (a) => a.brJobApplicantStatus === "APPLIED"
+            ).length;
+            counts["ASSESSED"] = applicants.filter(
+              (a) => a.brJobApplicantStatus === "CONFIRMED"
+            ).length;
+
+            counts["SUGGESTED"] = allMatches.filter(
+              (m) => m.jobId === job.brJobId
+            ).length;
+
+            statusMap[job.brJobId] = STATUS_CONFIG.map((status) => ({
+              ...status,
+              count: counts[status.label] ?? 0,
+            }));
+          });
+
+          await Promise.all(promises);
+          setApplicantsMap(map);
+          setStatusCountsMap(statusMap);
+          setLoadingApplicants(false);
+        };
+
+        await fetchApplicantsMap();
+      })();
     }, []);
 
     const handleSaveJob = async (job: any) => {
       const jobId = job?.brJobId;
       const userId = getUserId();
       const isAlreadySaved = savedJobsSet.has(jobId);
-
-      // setSavingJobId(jobId);
 
       const payload = {
         brJobId: jobId,
@@ -606,6 +637,10 @@ const BeyondResumeJobs = () => {
       return () => clearTimeout(timeout);
     }, [selectedJob]);
 
+    const [activeTab, setActiveTab] = useState<"SUGGESTED" | "ASSESSED">(
+      "ASSESSED"
+    );
+
     return (
       <Box mt={4} mb={4} display="flex" gap={2} alignItems="flex-start">
         <Box
@@ -666,6 +701,7 @@ const BeyondResumeJobs = () => {
                   savingJobId={savingJobId}
                   savedJobs={savedJobsSet}
                   applicantsMap={applicantsMap}
+                  statusCounts={statusCountsMap[job.brJobId] || []}
                   loadingApplicants={loadingApplicants}
                   getUserRole={getUserRole}
                   handleSaveJob={handleSaveJob}
@@ -673,11 +709,12 @@ const BeyondResumeJobs = () => {
                   setSelectedJobId={setSelectedJobId}
                   setPopupOpen={setPopupOpen}
                   selected={selectedJob?.brJobId === job.brJobId}
+                  showStatus={title !== "Pending Jobs"}
                 />
               </Grid>
             ))}
 
-            {/* {jobs.length > 0 && (
+            {jobs.length > 0 && (
               <Box sx={{ width: "100%" }}>
                 {title === "Posted Jobs" ? (
                   <PaginationControlled
@@ -699,7 +736,7 @@ const BeyondResumeJobs = () => {
                   ></PaginationControlled>
                 )}
               </Box>
-            )} */}
+            )}
           </Grid>
 
           {title === "Recommended Jobs" && showRecommendedJobs && (
@@ -726,14 +763,126 @@ const BeyondResumeJobs = () => {
                   exit="exit"
                   variants={slideLeftVariants}
                 >
-                  <BeyondResumeJobDetails
-                    job={selectedJob}
-                    applicantsCount={selectedApplicantsCount}
-                    onBack={() => setSelectedJob(null)}
-                    setPopupOpen={setPopupOpen}
-                    setSelectedJobIdC={setSelectedJobId}
-                    selectedTab={selectedTab}
-                  />
+                  {isJobPage &&
+                  (title === "Posted Jobs" || title === "Completed Jobs") ? (
+                    <Box>
+                      <Box
+                        display="flex"
+                        alignItems={"center"}
+                        width={"100%"}
+                        justifyContent={"center"}
+                        gap={2}
+                        mb={2}
+                        p={2}
+                      >
+                        <div
+                          onClick={() => setActiveTab("SUGGESTED")}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            background:
+                              activeTab === "SUGGESTED" ? "#16a34a" : "grey",
+                            borderRadius: "6px",
+                            padding: "6px 10px",
+                            color: "#fff",
+                            fontWeight: "bold",
+                            fontSize: "14px",
+                            cursor: "pointer",
+                          }}
+                        >
+                          <span
+                            style={{
+                              background: "rgba(255, 255, 255, 0.2)",
+                              padding: "4px 8px",
+                              borderRadius: "4px",
+                              marginRight: "6px",
+                            }}
+                          >
+                            {
+                              matchingUsers.filter(
+                                (m) => m.jobId === selectedJob.brJobId
+                              ).length
+                            }
+                          </span>
+                          Suggested Candidates
+                        </div>
+
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            background:
+                              activeTab === "ASSESSED" ? "#16a34a" : "grey",
+                            borderRadius: "6px",
+                            padding: "6px 10px",
+                            color: "#fff",
+                            fontWeight: "bold",
+                            fontSize: "14px",
+                            cursor: "pointer",
+                          }}
+                          onClick={() => setActiveTab("ASSESSED")}
+                        >
+                          <span
+                            style={{
+                              background: "rgba(255, 255, 255, 0.2)",
+                              padding: "4px 8px",
+                              borderRadius: "4px",
+                              marginRight: "6px",
+                            }}
+                          >
+                            {statusCountsMap[selectedJob.brJobId]?.find(
+                              (s) => s.label === "ASSESSED"
+                            )?.count ?? 0}
+                          </span>
+                          Assessed Applicants
+                        </div>
+                      </Box>
+
+                      {activeTab === "SUGGESTED" ? (
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 2,
+                            flexWrap: "wrap",
+                            justifyContent: "center",
+                          }}
+                        >
+                          {matchingUsers.filter(
+                            (m) => m.jobId === selectedJob.brJobId
+                          ).length > 0 ? (
+                            matchingUsers
+                              .filter((m) => m.jobId === selectedJob.brJobId)
+                              .map((applicant, idx) => (
+                                <MatchingUserCard
+                                  key={idx}
+                                  user={applicant}
+                                  color={color}
+                                />
+                              ))
+                          ) : (
+                            <Typography width={"100%"} textAlign={"center"}>
+                              No suggested candidates found.
+                            </Typography>
+                          )}
+                        </Box>
+                      ) : (
+                        <AssessedApplicants
+                          brJobId={selectedJob.brJobId}
+                          color={color}
+                        />
+                      )}
+                    </Box>
+                  ) : (
+                    <BeyondResumeJobDetails
+                      job={selectedJob}
+                      applicantsCount={selectedApplicantsCount}
+                      onBack={() => setSelectedJob(null)}
+                      setPopupOpen={setPopupOpen}
+                      setSelectedJobIdC={setSelectedJobId}
+                      selectedTab={selectedTab}
+                    />
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>
@@ -951,7 +1100,16 @@ const BeyondResumeJobs = () => {
                 animate="visible"
                 exit="exit"
               >
-                <JobsSection title="Saved Jobs" jobs={searchedSavedJobs} />
+                {searchedSavedJobs.length > 0 ? (
+                  <JobsSection title="Saved Jobs" jobs={searchedSavedJobs} />
+                ) : (
+                  <Typography
+                    variant="body1"
+                    sx={{ textAlign: "center", mt: 4 }}
+                  >
+                    No saved jobs yet!
+                  </Typography>
+                )}
               </motion.div>
             ) : isJobPage ? (
               <motion.div
@@ -1030,6 +1188,8 @@ const BeyondResumeJobs = () => {
         warningMessage={`This action can't be undone.`}
         message={"Are you sure you want to close this job?"}
       />
+
+      <CustomSnackbar {...snackbarProps} />
 
       {avatarStatus !== null &&
         getUserRole() === "CAREER SEEKER" &&

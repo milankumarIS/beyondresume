@@ -20,7 +20,7 @@ import {
 import React, { JSX, useEffect, useState } from "react";
 import { useHistory, useLocation } from "react-router";
 import PaginationControlled from "../../components/shared/Pagination";
-import { generateInterviewReportExcel } from "../../components/util/CommonFunctions";
+import { CustomToggleButton1, CustomToggleButtonGroup1, formatDateWithSuffix, generateInterviewReportExcel, getRemark, getTextColor } from "../../components/util/CommonFunctions";
 import { BeyondResumeButton } from "../../components/util/CommonStyle";
 import { paginateDataFromTable } from "../../services/services";
 import color from "../../theme/color";
@@ -200,13 +200,13 @@ const BeyondResumeCandidateList = () => {
           mb: 3,
         }}
       >
-        <CustomToggleButtonGroup
+        <CustomToggleButtonGroup1
           exclusive
           sx={{
             background:color.cardBg
           }}
         >
-          <CustomToggleButton
+          <CustomToggleButton1
             value="yes"
             sx={{
               // background: color.activeButtonBg,
@@ -215,8 +215,8 @@ const BeyondResumeCandidateList = () => {
             }}
           >
             Candidate List
-          </CustomToggleButton>
-        </CustomToggleButtonGroup>
+          </CustomToggleButton1>
+        </CustomToggleButtonGroup1>
       </Box>
       {/* <Typography
         variant="h5"
@@ -574,88 +574,3 @@ const BeyondResumeCandidateList = () => {
 
 export default BeyondResumeCandidateList;
 
-const getRemark = (score: number) => {
-  if (score >= 85)
-    return {
-      remark: "Excellent",
-      comparison: "You scored higher than 90% of the people.",
-      bgcolor: "linear-gradient(0deg, #4CAF50, #81C784)",
-    };
-  if (score >= 70)
-    return {
-      remark: "Great",
-      comparison: "You scored higher than 65% of the people.",
-      bgcolor: "linear-gradient(0deg, #8BC34A, #AED581)",
-    };
-  if (score >= 50)
-    return {
-      remark: "Good",
-      comparison: "You scored higher than 40% of the people.",
-      bgcolor: "linear-gradient(0deg, #FFC107, #FFD54F)",
-    };
-  if (score >= 35)
-    return {
-      remark: "Fair",
-      comparison: "You scored higher than 25% of the people.",
-      bgcolor: "linear-gradient(0deg, #FF9800, #FFB74D)",
-    };
-  return {
-    remark: "Needs Improvement",
-    comparison: "Keep practicing to improve your score.",
-    bgcolor: "linear-gradient(0deg, #F44336,rgb(186, 39, 39))",
-  };
-};
-
-function formatDateWithSuffix(dateString: string) {
-  const date = new Date(dateString);
-  const day = date.getDate();
-  const month = date.toLocaleString("default", { month: "long" });
-
-  const suffix =
-    day % 10 === 1 && day !== 11
-      ? "st"
-      : day % 10 === 2 && day !== 12
-      ? "nd"
-      : day % 10 === 3 && day !== 13
-      ? "rd"
-      : "th";
-
-  return `${day}${suffix} ${month}`;
-}
-
-const CustomToggleButtonGroup = styled(ToggleButtonGroup)(({ theme }) => ({
-  backgroundColor: "#f0f2f7",
-  borderRadius: "999px",
-  padding: "8px",
-}));
-
-const CustomToggleButton = styled(ToggleButton)(({ theme }) => ({
-  border: "none",
-  borderRadius: "999px !important",
-  padding: "6px 16px",
-  fontWeight: 600,
-  fontSize: "18px",
-  textTransform: "none",
-  color: "grey",
-
-  "&.Mui-selected": {
-    background: "linear-gradient(180deg, #50bcf6, #5a81fd)",
-    color: "#fff",
-    boxShadow: "0px 4px 10px rgba(90, 128, 253, 0.49)",
-  },
-}));
-
-const getTextColor = (bgcolor: string) => {
-  if (bgcolor.includes("#4CAF50") || bgcolor.includes("#81C784"))
-    return "white"; // Excellent - green
-  if (bgcolor.includes("#8BC34A") || bgcolor.includes("#AED581"))
-    return "black"; // Great - lime
-  if (bgcolor.includes("#FFC107") || bgcolor.includes("#FFD54F"))
-    return "black"; // Good - yellow
-  if (bgcolor.includes("#FF9800") || bgcolor.includes("#FFB74D"))
-    return "white"; // Fair - orange
-  if (bgcolor.includes("#F44336") || bgcolor.includes("186, 39, 39"))
-    return "white"; // Needs Improvement - red
-
-  return "black"; // Default fallback
-};

@@ -353,6 +353,45 @@ export const IconTextRow1 = ({
   </Box>
 );
 
+
+export const SocialIcon = ({
+  icon,
+  link,
+}: {
+  icon: any;
+  link: string;
+}) => (
+  <Box
+    component="a"
+    href={link}
+    target="_blank"
+    rel="noopener noreferrer"
+    sx={{
+      cursor:'pointer',
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center",
+      background: "#ebebeb",
+      padding: "2px",
+      height: "20px",
+      width: "20px",
+      borderRadius: "4px",
+      color: "#5b5e66",
+      textDecoration: "none",
+      transition: "all 0.3s ease",
+      "&:hover": {
+        background: color.activeColor,
+        color: "#fff",
+        transform: "translateY(-4px) scale(1.05)",
+        boxShadow: "0 6px 12px rgba(0,0,0,0.15)",
+      },
+    }}
+  >
+    <FontAwesomeIcon icon={icon}  />
+  </Box>
+);
+
+
 export const commonPillStyle = {
   borderRadius: "999px",
   // background: color.newFirstColor,

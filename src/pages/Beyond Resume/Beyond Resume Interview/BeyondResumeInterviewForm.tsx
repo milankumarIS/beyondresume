@@ -230,7 +230,7 @@ const BeyondResumeInterviewForm = () => {
             "Extract the exact text from the attached pdf and give me plain html text.",
           urls: [resumeLink],
         });
-        resumeText = res?.data?.data || "";
+        resumeText = res?.data?.data?.candidates[0]?.content?.parts[0].text || "";
       }
 
       let baseCommand = `

@@ -1,5 +1,13 @@
-import { Box, Typography, Avatar } from "@mui/material";
+import {
+  faFacebook,
+  faInstagram,
+  faLinkedin,
+  faTwitter,
+  faXTwitter,
+} from "@fortawesome/free-brands-svg-icons";
+import { Avatar, Box, Typography } from "@mui/material";
 import React from "react";
+import { SocialIcon } from "../../../../components/util/CommonStyle";
 
 interface Props {
   companyInfo: any;
@@ -8,25 +16,41 @@ interface Props {
 export const CompanyHeaderSection: React.FC<Props> = ({ companyInfo }) => {
   return (
     <Box>
-      {/* <Box
+      <Box
         sx={{
-          height: 200,
-          backgroundImage: `url(${companyInfo.bannerUrl})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
         }}
-      /> */}
-      <Box sx={{ display: "flex", alignItems: "center", p: 2 }}>
-        <Avatar
-          src={companyInfo.logoUrl}
-          sx={{ width: 100, height: 100, mr: 2, border: "2px solid white" }}
-        />
-        <Box>
-          <Typography variant="h5">{companyInfo.industryName}</Typography>
-          <Typography variant="body2" color="text.secondary">
-            {companyInfo.headquarters.city}, {companyInfo.headquarters.state},{" "}
-            {companyInfo.headquarters.country}
-          </Typography>
+      >
+        <Box sx={{ display: "flex", alignItems: "center", p: 2 }}>
+          <Avatar
+            src={companyInfo.logoUrl}
+            sx={{ width: 100, height: 100, mr: 2, border: "2px solid white" }}
+          />
+          <Box>
+            <Typography variant="h5">{companyInfo.industryName}</Typography>
+            {/* <Typography variant="body1" sx={{ fontFamily: "montserrat-regular" }}>
+            {companyInfo.description}
+          </Typography> */}
+
+            <Typography
+              variant="body2"
+              //   color="text.secondary"
+              sx={{ fontFamily: "montserrat-regular", opacity: 0.6, color:'inherit' }}
+            >
+              {companyInfo.industryCategory} | {companyInfo.headquarters.city},{" "}
+              {companyInfo.headquarters.state},{" "}
+              {companyInfo.headquarters.country}
+            </Typography>
+            <Box sx={{ display: "flex", gap: 1.2, mt: 1 }}>
+              <SocialIcon icon={faInstagram} link={companyInfo.socialLinks?.instagram} />
+              <SocialIcon icon={faFacebook} link={companyInfo.socialLinks?.facebook} />
+              <SocialIcon icon={faXTwitter} link={companyInfo.socialLinks?.twitter} />
+              <SocialIcon icon={faLinkedin} link={companyInfo.socialLinks?.linkedin} />
+              <SocialIcon icon={faTwitter} link={companyInfo.socialLinks?.instagram} />
+            </Box>
+          </Box>
         </Box>
       </Box>
     </Box>

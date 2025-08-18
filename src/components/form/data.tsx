@@ -120,8 +120,6 @@ const jobTypeArray = [
 
 const durationPeriodArray = ["SHORT", "MEDIUM", "LONG", "ADHOC"];
 
-
-
 const jobType = [
   "Full-Time",
   "Part-Time",
@@ -134,8 +132,6 @@ const jobMode = ["Hybrid", "Onsite", "Work From Home"];
 const jobShift = ["Day", "Night", "Flexible"];
 
 const payroll = ["Company Payroll", "3rd Party Payroll", "No Payroll"];
-
-
 
 const addressType = ["Permanent", "Temporary"];
 
@@ -222,8 +218,6 @@ const purposeofUse = ["Passenger Transport", "Goods Transport"];
 
 const puc = ["Yes", "No"];
 
-
-
 const buttons = [
   { label: "Driving Licence", url: "/mylicense" },
   { label: "National Id", url: "/national-id" },
@@ -244,10 +238,6 @@ const buttons3 = [
   { label: "Prescription Reports", url: "/prescriptionReports" },
   { label: "Lab Reports", url: "/labReports" },
 ];
-
-
-
-
 
 const units = ["Piece", "Plate", "Kg", "Gram", "Litre", "Ml", "Dozen"];
 const productDisplayType = ["VEG", "NON-VEG"];
@@ -289,8 +279,6 @@ const vehicleBodies = [
   "TRAILER",
   "TANKER",
 ];
-
-
 
 const orderFilter = [
   {
@@ -348,8 +336,6 @@ const appointmentTypes = [
   "By Doctor",
 ];
 
-
-
 const levels = [
   "Novice Explorer",
   "Curious Seeker",
@@ -368,8 +354,6 @@ const genderArray1 = [
   { label: "Female", value: "2" },
   { label: "Other", value: "3" },
 ];
-
-
 
 const relations = [
   { label: "Father", value: "father" },
@@ -714,9 +698,9 @@ const jobFunctions = [
   "Application DevOps Engineer",
   "Data Management Specialist",
   "Internship",
-  'IoT (Internet of Things) Development',
-  'IoT Solution Architect',
-   'MLOps Engineer'
+  "IoT (Internet of Things) Development",
+  "IoT Solution Architect",
+  "MLOps Engineer",
 ];
 
 const pricingPlans = [
@@ -724,8 +708,8 @@ const pricingPlans = [
     title: "Free",
     description: "Get started with basic access to job posting or applying.",
     features: [
-      { label: "1 Job Post / Month", highlight: true }, 
-      { label: "2 Mock Interview / Month", highlight: true }, 
+      { label: "1 Job Post / Month", highlight: true },
+      { label: "2 Mock Interview / Month", highlight: true },
       { label: "Basic JD & Question Generator", highlight: true },
       { label: "Limited Analytics Access", highlight: false },
       { label: "No Voice Interview Access", highlight: false },
@@ -791,73 +775,96 @@ const pricingPlans = [
 
 const experienceLevels = ["Fresher", "Junior", "Mid-Level", "Lead", "Director"];
 
+const evaluationCategories = [
+  "Technical Competence",
+  "Cognitive Ability",
+  "Communication & Collaboration",
+  "Leadership & Initiative",
+  "Cultural Fit & Integrity",
+];
 
-  const evaluationCategories = [
-    "Technical Competence",
-    "Cognitive Ability",
-    "Communication & Collaboration",
-    "Leadership & Initiative",
-    "Cultural Fit & Integrity",
-  ];
+const JobSeekerScriptLines = [
+  "Hey future superstar! I’m your Career Coach from Beyond Resume. Forget LinkedIn’s resume spam—we help you land roles by showing your skills, not just stating them. Ready for a job hunt that actually works? Let’s go!",
+  "Say, ‘Find me remote marketing jobs,’ and boom! Our AI scans thousands of openings instantly. No more typing filters. See a match? Click ‘Apply’—and here’s where magic happens",
+  "Option 1: Traditional written assessment.",
+  "Option 2 (our favorite!): An AI-powered voice interview. Chat naturally for an hour—no cameras, no nerves. Our AI adapts to your answers, making it feel like practice with a mentor!",
+  "Post-interview, get instant feedback: ‘Your Python skills shined, but practice cloud concepts—here’s a free module!’ Plus, use our ‘Fitment Analyzer’ to test your match for any job. Low fit? We’ll suggest skills to learn",
+  "Try preloaded tests for top companies (yes, Google’s included!). Or build custom practice drills—like ‘5 data questions + 2 leadership scenarios.’ Nail weaknesses before the real deal!",
+  "No more ‘apply and pray.’ We turn interviews into growth moments. Ready to stand out? Click ‘Find Jobs’ and use your voice—or test your fitment for that dream role right now. Your next career leap starts today!",
+];
 
-  
-  const JobSeekerScriptLines = [
-    "Hey future superstar! I’m your Career Coach from Beyond Resume. Forget LinkedIn’s resume spam—we help you land roles by showing your skills, not just stating them. Ready for a job hunt that actually works? Let’s go!",
-    "Say, ‘Find me remote marketing jobs,’ and boom! Our AI scans thousands of openings instantly. No more typing filters. See a match? Click ‘Apply’—and here’s where magic happens",
-    "Option 1: Traditional written assessment.",
-    "Option 2 (our favorite!): An AI-powered voice interview. Chat naturally for an hour—no cameras, no nerves. Our AI adapts to your answers, making it feel like practice with a mentor!",
-    "Post-interview, get instant feedback: ‘Your Python skills shined, but practice cloud concepts—here’s a free module!’ Plus, use our ‘Fitment Analyzer’ to test your match for any job. Low fit? We’ll suggest skills to learn",
-    "Try preloaded tests for top companies (yes, Google’s included!). Or build custom practice drills—like ‘5 data questions + 2 leadership scenarios.’ Nail weaknesses before the real deal!",
-    "No more ‘apply and pray.’ We turn interviews into growth moments. Ready to stand out? Click ‘Find Jobs’ and use your voice—or test your fitment for that dream role right now. Your next career leap starts today!",
-  ];
+const TalentPartnerScriptLines = [
+  "Welcome, visionary! I’m your AI Talent Guide from Beyond Resume. Tired of sifting through endless resumes on LinkedIn or Naukri? Let me show you how we revolutionize hiring—saving you time while finding perfect-fit candidates.",
+  "Imagine describing a role in plain English—say, ‘Need a data scientist with Python and leadership skills’—and poof! Our AI crafts a full job description and tailored interview questions. Or upload your own. Either way, your job goes live in 30 seconds. No more template headaches!",
+  "Here’s the game-changer: Candidates choose how they’re assessed. Traditional hour-long written tests? Or an interactive AI voice interview that feels like a live chat? You get the same rich insights either way. Watch as candidates solve real problems—not just polish resumes.",
+  "See every applicant at a glance. Filter by ‘shortlisted,’ ‘rejected,’ or ‘needs review.’ Love a candidate? Shortlist them instantly. Best part? Grab a cumulative report—one PDF with every applicant’s skills, scores, and interview highlights. No more juggling spreadsheets!",
+  "Picture this: 70% less screening time, 50% deeper candidate insights, and zero ‘resume fluff.’ Our AI even flags hidden gems you might miss. Ready to hire smarter, not harder? Click ‘Post a Job’ now—or explore your dashboard. Let’s build your dream team together!",
+];
 
+// statusConfig.ts
+const STATUS_CONFIG = [
+  { label: "SUGGESTED", color: "#16a34a" },
+  { label: "APPLIED", color: "#14b8a6" },
+  { label: "PENDING ASSESSMENT", color: "#f97316" },
+  { label: "ASSESSED", color: "#16a34a" },
 
-  
-  const TalentPartnerScriptLines = [
-    "Welcome, visionary! I’m your AI Talent Guide from Beyond Resume. Tired of sifting through endless resumes on LinkedIn or Naukri? Let me show you how we revolutionize hiring—saving you time while finding perfect-fit candidates.",
-    "Imagine describing a role in plain English—say, ‘Need a data scientist with Python and leadership skills’—and poof! Our AI crafts a full job description and tailored interview questions. Or upload your own. Either way, your job goes live in 30 seconds. No more template headaches!",
-    "Here’s the game-changer: Candidates choose how they’re assessed. Traditional hour-long written tests? Or an interactive AI voice interview that feels like a live chat? You get the same rich insights either way. Watch as candidates solve real problems—not just polish resumes.",
-    "See every applicant at a glance. Filter by ‘shortlisted,’ ‘rejected,’ or ‘needs review.’ Love a candidate? Shortlist them instantly. Best part? Grab a cumulative report—one PDF with every applicant’s skills, scores, and interview highlights. No more juggling spreadsheets!",
-    "Picture this: 70% less screening time, 50% deeper candidate insights, and zero ‘resume fluff.’ Our AI even flags hidden gems you might miss. Ready to hire smarter, not harder? Click ‘Post a Job’ now—or explore your dashboard. Let’s build your dream team together!",
-  ];
+  { label: "NOTIFIED", color: "#06b6d4" },
+  { label: "SHORTLISTED", color: "#0f766e" },
+  { label: "SCHEDULED", color: "#0284c7" },
+  { label: "WAIT LIST", color: "#86efac" },
+  { label: "REJECTED", color: "#f87171" },
+  { label: "SELECTED", color: "#4ade80" },
+  { label: "OFFER INITIATED", color: "#facc15" },
+  { label: "OFFER ACCEPTED", color: "#65a30d" },
+  { label: "OFFER DECLINED", color: "#fda4af" },
+  { label: "JOINED", color: "#166534" },
+  { label: "NOT JOINED", color: "#b45309" },
+  // { label: "Emerging Talent", color: "#93c5fd" },
+  // { label: "Proven Performer", color: "#60a5fa" },
+  // { label: "Seasoned Professional", color: "#2563eb" },
+  // { label: "Elite Specialist", color: "#1e3a8a" },
+];
+
 export {
   addressType,
-
+  STATUS_CONFIG,
   appointmentTypes,
   BrandsList,
   buttons,
   buttons1,
   buttons2,
   buttons3,
-
   categories,
   categoryArray,
   compCategory,
   compSubject,
-
   contactStatusType,
-
   criticalityArray,
-
-  durationPeriodArray, evaluationCategories, experienceLevels,
-
+  durationPeriodArray,
+  evaluationCategories,
+  experienceLevels,
   foodType,
   fuels,
-  genderArray, genderArray1, healthEntityType, jobFunctions,
-  jobMode, jobShift, jobType,
+  genderArray,
+  genderArray1,
+  healthEntityType,
+  jobFunctions,
+  jobMode,
+  jobShift,
+  jobType,
   jobTypeArray,
-
   levels,
-
-  orderFilter, payroll, permitType,
-  platformFee, pricingPlans, priorityArray,
+  orderFilter,
+  payroll,
+  permitType,
+  platformFee,
+  pricingPlans,
+  priorityArray,
   productDisplayType,
   puc,
   purposeofUse,
-
   relations,
   shippingFee,
-
   storeType,
   strokes,
   subCategoryArray,
@@ -870,8 +877,6 @@ export {
   vehicleType,
   weekDays,
   workTypeArray,
-
   JobSeekerScriptLines,
-  TalentPartnerScriptLines
+  TalentPartnerScriptLines,
 };
-

@@ -107,6 +107,7 @@ const App: React.FC = () => {
                   <ProtectedRoute path="/beyond-resume-jobs" component={BeyondResumeJobs} />
                   <ProtectedRoute path="/beyond-resume-myjobs" component={BeyondResumeJobs} />
                   <ProtectedRoute path="/beyond-resume-practicePools" component={BeyondResumePracticeJobs} />
+                  <ProtectedRoute path="/beyond-resume-myjobs-jobdetails/:brJobId" component={BeyondResumeJobDetails} />
                   <ProtectedRoute path="/beyond-resume-jobdetails/:brJobId" component={BeyondResumeJobDetails} />
                   <ProtectedRoute path="/beyond-resume-jobedit/:brJobId" component={BeyondResumePartnerJobDetails} />
                   <ProtectedRoute path="/beyond-resume-interviews" component={BeyondResumeInterview} />

@@ -110,7 +110,7 @@ const BeyondResumeQuestionBankForm: React.FC = ({}) => {
 
         // console.log(aiRes)
         const generatedText =
-          aiRes.data.data.candidates[0].content.parts[0].text;
+          aiRes.data.data.data.candidates[0].content.parts[0].text;
 
         setTimeout(() => {
           document

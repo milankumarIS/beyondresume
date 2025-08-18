@@ -423,7 +423,7 @@ const BeyondResumeInterviewList = () => {
         </Grid>
       )}
 
-      <Box sx={{ maxWidth: "200px", ml: "auto" }}>
+      <Box sx={{ maxWidth: "100%", ml: "auto" }}>
         {Object.keys(interviewList).length !== 0 ? (
           <PaginationControlled
             page={page}

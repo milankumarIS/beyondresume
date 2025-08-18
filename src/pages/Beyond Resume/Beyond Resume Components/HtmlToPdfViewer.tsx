@@ -53,7 +53,7 @@ const HtmlToPdfViewer: React.FC<HtmlToPdfViewerProps> = ({
 
   const { theme } = useTheme();
   return (
-    <Box>
+    <Box >
       <Typography variant="h5" mb={2}>
         {" "}
         {heading}

@@ -297,9 +297,7 @@ const JobDescriptionResponse: React.FC<JobDescriptionResponseProps> = ({
         4. Return your response as a static JSON wrapped in a single <pre> tag, and format it like this:
   
         \`\`\`json
-        <pre>
-        {
-          "categories": [
+        <pre>{"categories": [
             {
               "name": "CategoryName",
               "qualifyingCriteria": "Short evaluation guideline here",
@@ -312,9 +310,7 @@ const JobDescriptionResponse: React.FC<JobDescriptionResponseProps> = ({
               ]
             }
           ]
-        }
-        </pre>
-        \`\`\`
+        }</pre>\`\`\`
   
         Do not include any explanation or extra formatting outside the <pre> block.
   
@@ -323,7 +319,7 @@ const JobDescriptionResponse: React.FC<JobDescriptionResponseProps> = ({
         `.trim();
 
         const aiRes = await getUserAnswerFromAi({ question: fullCommand });
-        // console.log(aiRes);
+        console.log(aiRes);
         const generatedText =
           aiRes.data.data.candidates[0].content.parts[0].text;
 
@@ -378,7 +374,7 @@ const JobDescriptionResponse: React.FC<JobDescriptionResponseProps> = ({
           question: prompt,
           urls: [jdLink],
         });
-        const rawText = res?.data?.data;
+        const rawText =  res?.data?.data?.candidates[0]?.content?.parts[0].text || "";
         // console.log(res);
         // console.log(rawText);
         setGeneratedJd(rawText);

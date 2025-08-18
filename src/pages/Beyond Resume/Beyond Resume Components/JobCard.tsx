@@ -25,6 +25,7 @@ import {
   GradientFontAwesomeIcon,
 } from "../../../components/util/CommonStyle";
 import color from "../../../theme/color";
+import { useHistory } from "react-router-dom";
 
 interface JobCardProps {
   job: any;
@@ -35,6 +36,7 @@ interface JobCardProps {
   savingJobId: any;
   savedJobs: Set<string>;
   applicantsMap: Record<string, any[]>;
+  statusCounts: { label: string; count: number; color: string }[];
   loadingApplicants: boolean;
   getUserRole: () => string;
   handleSaveJob: (job: any) => void;
@@ -42,6 +44,7 @@ interface JobCardProps {
   setSelectedJobId?: (id: any) => void;
   setPopupOpen?: (open: boolean) => void;
   selected?: boolean;
+  showStatus?: boolean;
 }
 
 const JobCard = ({
@@ -50,6 +53,7 @@ const JobCard = ({
   title,
   theme,
   savingJobId,
+  statusCounts,
   savedJobs,
   applicantsMap,
   loadingApplicants,
@@ -59,9 +63,10 @@ const JobCard = ({
   selected,
   setSelectedJobId,
   setPopupOpen,
+  showStatus,
 }: JobCardProps) => {
   const applicantCount = applicantsMap[job.brJobId]?.length || 0;
-
+  const history = useHistory();
   return (
     <Card
       onClick={() => handleViewMore(job)}
@@ -171,8 +176,16 @@ const JobCard = ({
                 color:
                   theme === "dark" ? color.titleColor : color.titleLightColor,
                 pr: 3,
+                position:'relative', zIndex:10000,
+                '&:hover':{
+                  textDecoration:'underline'
+                }
               }}
-              onClick={() => handleViewMore(job)}
+              // onClick={() => handleViewMore(job)}
+
+              onClick={() => {
+                history.push(`/beyond-resume-myjobs-jobdetails/${job.brJobId}`);
+              }}
             >
               {job.jobTitle}
             </Typography>
@@ -223,30 +236,24 @@ const JobCard = ({
                   alignItems: "flex-start",
                 }}
               >
-                {loadingApplicants ? (
-                  <Typography sx={commonPillStyle}>
-                    <CircularProgress size={16} /> Loading applicants...
-                  </Typography>
-                ) : (
-                  <Typography sx={commonPillStyle}>
-                    <GradientFontAwesomeIcon size={14} icon={faUserTie} />{" "}
-                    <AnimatePresence mode="wait">
-                      <motion.span
-                        key={applicantCount}
-                        initial={{ opacity: 0, y: -5 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 5 }}
-                        transition={{ duration: 0.3 }}
-                      >
-                        {applicantCount > 100
-                          ? "100+ Applicants"
-                          : `${applicantCount} Applicant${
-                              applicantCount !== 1 ? "s" : ""
-                            }`}
-                      </motion.span>
-                    </AnimatePresence>
-                  </Typography>
-                )}
+                <Typography sx={commonPillStyle}>
+                  <GradientFontAwesomeIcon size={14} icon={faUserTie} />{" "}
+                  <AnimatePresence mode="wait">
+                    <motion.span
+                      key={applicantCount}
+                      initial={{ opacity: 0, y: -5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 5 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      {applicantCount > 100
+                        ? "100+ Applicants"
+                        : `${applicantCount} Applicant${
+                            applicantCount !== 1 ? "s" : ""
+                          }`}
+                    </motion.span>
+                  </AnimatePresence>
+                </Typography>
               </Grid2>
             ) : (
               <Typography sx={commonPillStyle}>
@@ -256,6 +263,66 @@ const JobCard = ({
             )}
           </Box>
         </Box>
+
+        {getUserRole() === "TALENT PARTNER" &&
+          showStatus &&
+          (loadingApplicants ? (
+            <Typography
+              m={2}
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 1,
+              }}
+            >
+              <CircularProgress
+                style={{ color: color.activeColor }}
+                size={16}
+              />{" "}
+              Loading Statuses
+            </Typography>
+          ) : (
+            <div>
+              {/* <h4 style={{ marginBottom: "10px" }}>Candidate Status</h4> */}
+              <div
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: "8px",
+                  marginTop: "26px",
+                }}
+              >
+                {statusCounts.map((status, index) => (
+                  <div
+                    key={index}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      backgroundColor: status.color,
+                      borderRadius: "6px",
+                      padding: "6px 10px",
+                      color: "#fff",
+                      fontWeight: "bold",
+                      fontSize: "14px",
+                    }}
+                  >
+                    <span
+                      style={{
+                        background: "rgba(255, 255, 255, 0.2)",
+                        padding: "4px 8px",
+                        borderRadius: "4px",
+                        marginRight: "6px",
+                      }}
+                    >
+                      {status.count}
+                    </span>
+                    {status.label}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
       </CardContent>
     </Card>
   );

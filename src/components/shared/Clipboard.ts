@@ -7,7 +7,7 @@ export const copyToClipboard = async (text: string) => {
       await Clipboard.write({ string: text });
     } else if (navigator.clipboard) {
       await navigator.clipboard.writeText(text);
-    } else {      
+    } else {
       const textarea = document.createElement("textarea");
       textarea.value = text;
       document.body.appendChild(textarea);

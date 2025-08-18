@@ -128,6 +128,9 @@ const BeyondResumeJobInterviewForm = () => {
         resumeLink = resume;
       }
 
+      // console.log(resumeLink);
+      
+
       let extractedResumeText: string = "";
 
       try {
@@ -142,10 +145,13 @@ const BeyondResumeJobInterviewForm = () => {
           urls: [resumeLink],
         });
 
-        extractedResumeText = response?.data?.data || "";
+        console.log(response);
+        extractedResumeText = response?.data?.data?.candidates[0]?.content?.parts[0].text || "";
       } catch (err) {
         console.error("Resume Fetch failed", err);
       }
+
+      
 
       const result: any = await searchDataFromTable("brJobs", { brJobId });
       const rawJobData = result?.data?.data || {};
