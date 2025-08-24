@@ -149,18 +149,41 @@ const JobCard = ({
         )} */}
 
         <Box display={"flex"} alignItems={"center"} gap={2} mb={2}>
-          <Box>
-            <FontAwesomeIcon
-              icon={faBuilding}
-              style={{
-                fontSize: "44px",
+          {job.companyName === "Translab.io" ? (
+            <Box
+              sx={{
                 background: "white",
+                padding: "8px",
                 borderRadius: "8px",
-                padding: "12px",
-                color: color.newbg,
+                // height: "56px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
               }}
-            />
-          </Box>
+            >
+              <img
+                style={{
+                  width: "40px",
+                  borderRadius: "4px",
+                }}
+                src="/assets/translab.png"
+                alt=""
+              />
+            </Box>
+          ) : (
+            <Box>
+              <FontAwesomeIcon
+                icon={faBuilding}
+                style={{
+                  fontSize: "44px",
+                  background: "white",
+                  borderRadius: "8px",
+                  padding: "12px",
+                  color: color.newbg,
+                }}
+              />
+            </Box>
+          )}
 
           <div>
             <Typography
@@ -176,15 +199,19 @@ const JobCard = ({
                 color:
                   theme === "dark" ? color.titleColor : color.titleLightColor,
                 pr: 3,
-                position:'relative', zIndex:10000,
-                '&:hover':{
-                  textDecoration:'underline'
-                }
+
+                "&:hover": {
+                  textDecoration:
+                    getUserRole() === "TALENT PARTNER" ? "underline" : "none",
+                },
               }}
               // onClick={() => handleViewMore(job)}
 
               onClick={() => {
-                history.push(`/beyond-resume-myjobs-jobdetails/${job.brJobId}`);
+                if (getUserRole() === "TALENT PARTNER")
+                  history.push(
+                    `/beyond-resume-myjobs-jobdetails/${job.brJobId}`
+                  );
               }}
             >
               {job.jobTitle}
@@ -219,7 +246,7 @@ const JobCard = ({
         >
           <Typography sx={commonPillStyle}>
             <GradientFontAwesomeIcon size={14} icon={faClock} />{" "}
-            {timeAgo(job.createdAt)}
+            Posted {timeAgo(job.createdAt)}
           </Typography>
           <Typography sx={commonPillStyle}>
             <GradientFontAwesomeIcon size={14} icon={faBriefcase} />{" "}

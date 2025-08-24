@@ -18,16 +18,17 @@ export const BeyondResumeButton = styled((props: ButtonProps) => (
   paddingLeft: theme.spacing(5),
   paddingRight: theme.spacing(5),
   color: "white",
-  textTransform: "none",
-  background: "linear-gradient(180deg, #06B0BF, #1353AE)",
-  borderRadius: "999px",
+  // textTransform: "none",
+  background: color.activeButtonBg,
+  borderRadius: "8px",
   height: "fit-content",
-  fontFamily: "Custom-bold",
-  paddingTop: theme.spacing(1),
-  paddingBottom: theme.spacing(1),
+  fontFamily: "custom-regular",
+  paddingTop: theme.spacing(0.5),
+  paddingBottom: theme.spacing(0.5),
   marginTop: "auto",
   marginBottom: "auto",
   boxShadow: "none",
+  fontSize:'12px',
   transition: "all 0.3s",
   "&:hover": {
     transform: "scale(1.08)",
@@ -40,16 +41,17 @@ export const BeyondResumeButton2 = styled((props: ButtonProps) => (
 ))(({ theme }) => ({
   color: "inherit",
   boxShadow: "none",
-  paddingLeft: theme.spacing(4),
-  paddingRight: theme.spacing(4),
-  textTransform: "none",
+  paddingLeft: theme.spacing(5),
+  paddingRight: theme.spacing(5),
+  // textTransform: "none",
+  fontSize:'12px',
   background: "transparent",
   border: "solid 2px #0C83B7",
-  borderRadius: "999px",
+  borderRadius: "8px",
   fontFamily: "Custom-Regular",
   height: "fit-content",
-  paddingTop: theme.spacing(0.8),
-  paddingBottom: theme.spacing(0.8),
+  paddingTop: theme.spacing(0.5),
+  paddingBottom: theme.spacing(0.5),
   marginTop: "auto",
   marginBottom: "auto",
   transition: "all 0.3s",
@@ -485,7 +487,7 @@ import { TypographyProps } from "@mui/material";
 import { Variants } from "framer-motion";
 
 interface GradientTextProps extends TypographyProps {
-  text: string;
+  text: string | null;
   gradient?: string;
 }
 

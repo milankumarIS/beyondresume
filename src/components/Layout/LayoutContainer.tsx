@@ -14,7 +14,7 @@ const LayoutContainer: React.FC<{ children: React.ReactNode }> = ({
       className="layout-wrapper"
       style={{
         display: "flex",
-        background: theme === "dark" ? color.newbg : "white",
+        background: theme === "dark" ? color.newbg : "#e3ecf5",
         color: theme === "dark" ? "white" : "black",
         maxWidth: "100vw",
       }}

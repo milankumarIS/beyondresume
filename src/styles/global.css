@@ -59,7 +59,7 @@ html, body {
   }
 } */
 .gradient-icon {
-  background: linear-gradient(45deg, #FF6B6B, #FFD93D, #6BCB77);
+  background: linear-gradient(45deg, #ff6b6b, #ffd93d, #6bcb77);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -69,7 +69,7 @@ html, body {
   padding: 16px;
   min-height: 100vh;
   position: relative;
-  background-color: 'transparent';
+  background-color: "transparent";
   box-sizing: border-box;
 }
 
@@ -778,7 +778,7 @@ ion-loading.custom-loading {
 .newtons-cradle {
   --uib-size: 50px;
   --uib-speed: 1.2s;
-  --uib-color: #50bcf6;
+  --uib-color: #0c83b7;
   position: relative;
   display: flex;
   align-items: center;

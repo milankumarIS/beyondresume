@@ -34,7 +34,7 @@ const FILTER_LABELS: Record<keyof Filters, string> = {
   payroll: "Payroll",
   jobType: "Job Type",
   jobTitle: "Job Title",
-  jobMode: "Job Mode",
+  jobMode: "Work Mode",
 };
 
 const BeyondResumeJobFilterComponent: React.FC<Props> = ({
@@ -129,6 +129,8 @@ const BeyondResumeJobFilterComponent: React.FC<Props> = ({
                       //   }))
                       // }
                       sx={{
+                        fontSize:'12px',
+                        height:'24px',
                         "& .MuiChip-deleteIcon": {
                           color: color.newFirstColor,
                         },
@@ -140,14 +142,14 @@ const BeyondResumeJobFilterComponent: React.FC<Props> = ({
             }}
             sx={{
               ...commonFormTextFieldSx,
-              height: "40px",
-              width:'180px',
-              "& .MuiSelect-select": {
-                padding: "6px 8px",
-                height: "28px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
+              // height: "40px",
+              width: "180px",
+              padding: "0px",
+              paddingTop: "0px",
+              "& .MuiInputBase-input": {
+                borderRadius: "999px",
+                paddingTop: "10px !important",
+                paddingBottom: "8px !important",
               },
             }}
           >

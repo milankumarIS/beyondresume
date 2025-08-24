@@ -1,69 +1,111 @@
-import React, { useState, useEffect } from "react";
 import {
-  Typography,
+  Autocomplete,
   Box,
   Slider,
-  Autocomplete,
-  TextField,
   Stack,
+  TextField,
+  Typography,
 } from "@mui/material";
+import React, { useEffect, useState } from "react";
 import { commonFormTextFieldSx } from "../../../components/util/CommonFunctions";
 import color from "../../../theme/color";
-import { CustomThumbComponent } from "../../../components/util/CommonStyle";
 
 const defaultCategories = [
-  "Technical Competence",
-  "Cognitive Ability",
-  "Communication & Collaboration",
-  "Leadership & Initiative",
-  "Cultural Fit & Integrity",
+  "Technical Mastery",
+  "Cognitive Excellence",
+  "Impactful Communication & Collaboration",
+  "Leadership & Drive",
+  "Cultural Alignment & Integrity",
+  "Expertise & Mastery",
+  "Strategic Thinking",
+  "Collaboration & Influence",
+  "Leadership Impact",
+  "Values & Integrity",
 ];
 
 const allPossibleCategories = [
   ...defaultCategories,
-  "Adaptability",
-  "Analytical Thinking",
-  "Problem Solving",
-  "Decision Making",
-  "Emotional Intelligence",
-  "Teamwork",
-  "Time Management",
-  "Creativity",
-  "Conflict Resolution",
-  "Productivity",
-  "Strategic Thinking",
-  "Motivation",
-  "Attention to Detail",
-  "Innovation",
-  "Ownership",
-  "Accountability",
-  "Mentoring",
-  "Technical Leadership",
-  "Stress Management",
-  "Customer Orientation",
-  "Vision",
-  "Learning Agility",
-  "Planning",
-  "Negotiation",
-  "Risk Management",
-  "Stakeholder Management",
-  "Result Orientation",
-  "Business Acumen",
-  "Ethical Judgement",
-  "Persuasiveness",
-  "Prioritization",
-  "Collaboration",
-  "Open-mindedness",
-  "Presentation Skills",
-  "Influence",
-  "Self-awareness",
-  "Drive for Results",
-  "Global Mindset",
-  "Execution Excellence",
-  "Passion for Quality",
-  "Process Orientation",
-];
+  "Agility & Resilience",
+  "Critical Insight",
 
+  "Solution Mindset",
+
+  "Decisive Judgment",
+
+  "People Intelligence",
+
+  "Collaborative Impact",
+
+  "Time Mastery",
+
+  "Creative Ingenuity",
+
+  "Constructive Resolution",
+
+  "Performance Efficiency",
+
+  "Strategic Visioning",
+
+  "Inspired Drive",
+
+  "Precision & Accuracy",
+
+  "Innovative Mindset",
+
+  "Accountability Mindset",
+
+  "Responsible Leadership",
+
+  "Talent Development",
+
+  "Tech Visionary Leadership",
+
+  "Composure Under Pressure",
+
+  "Customer-Centric Mindset",
+
+  "Future-Driven Vision",
+
+  "Continuous Learning Agility",
+
+  "Strategic Planning",
+
+  "Persuasive Negotiation",
+
+  "Risk Intelligence",
+
+  "Stakeholder Influence",
+
+  "Impact Orientation",
+
+  "Commercial Acumen",
+
+  "Integrity in Action",
+
+  "Influence & Conviction",
+
+  "Focused Prioritization",
+
+  "Synergistic Collaboration",
+
+  "Growth Mindset",
+
+  "Executive Presence",
+
+  "Strategic Influence",
+
+  "Reflective Awareness",
+
+  "Relentless Results Drive",
+
+  "Global Perspective",
+
+  "Operational Excellence",
+
+  "Quality Obsession",
+
+  "Process Excellence",
+];
 const durationTabs = [20, 40, 60] as const;
 
 const marks = [
@@ -145,7 +187,7 @@ export default function CustomEvaluationDriver({
       ? "The total weight is below 100%. Please allocate the remaining percentage across the selected evaluation categories."
       : totalPercentage > 100
       ? "The total weight exceeds 100%. Please reduce the allocation to maintain a valid distribution."
-      : "Weights are balanced, You're good to go";
+      : "Great balance! Candidates will be scored fairly across your chosen skills.";
 
   useEffect(() => {
     const total = selectedCategories.reduce(
@@ -172,8 +214,7 @@ export default function CustomEvaluationDriver({
         mt={4}
         fontFamily={"montserrat-regular"}
       >
-        Pick the areas our AI should focus on while evaluating candidates. (Max
-        10 selections)
+        Which skills and qualities matter most for this role? (Pick up to 10)
       </Typography>
 
       <Autocomplete
@@ -193,11 +234,12 @@ export default function CustomEvaluationDriver({
       />
 
       <Typography>
-        Here's the suggested weights for each evaluation category.
+        Here’s our recommended scoring split across categories.
       </Typography>
 
       <Typography gutterBottom fontFamily={"montserrat-regular"}>
-        You can adjust them as needed — just make sure the total adds up to 100%
+        Adjust freely to match your hiring priorities — just ensure the total
+        equals 100%.
       </Typography>
 
       <Box

@@ -33,11 +33,12 @@ import {
 import color from "../../theme/color";
 import MatchingUserCard from "./Beyond Resume Components/MatchingUserCard";
 import { fetchMatchingUsers } from "./Beyond Resume Components/MatchingUsersList";
-import JobFitmentPage from "./BeyondResumeProfile/JobFitmentAnalysis";
-import GeneratedAiQnaResponse from "./GeneratedAiQnaResponse";
+import JobFitmentPage from "./Beyond Resume Carrer Seeker/Beyond Resume Job Apply/JobFitmentAnalysis";
+import GeneratedAiQnaResponse from "./Beyond Resume Talent Partner/Beyond Resume Job Post/GeneratedAiQnaResponse";
 import { Capacitor } from "@capacitor/core";
 import { Share } from "@capacitor/share";
 import ConfirmationPopup from "../../components/util/ConfirmationPopup";
+import { useIndustry } from "../../components/util/IndustryContext";
 type Props = {
   job: any;
   applicantsCount: number;
@@ -64,6 +65,8 @@ const BeyondResumeJobDetails = ({
 
   const location = useLocation();
   const { brJobId } = useParams<{ brJobId: string }>();
+  const params = new URLSearchParams(location.search);
+  const source = params.get("source");
 
   const [showFullDescription, setShowFullDescription] = useState(true);
 
@@ -74,6 +77,7 @@ const BeyondResumeJobDetails = ({
   const [jobUsername, setjobUsername] = useState("");
   const { snackbarProps, showSnackbar } = useNewSnackbar();
   const [popupOpen, setPopupOpen1] = useState(false);
+  const { industryName, setIndustryName, setSpaceIndustryName } = useIndustry();
 
   useEffect(() => {
     const fetchJob = async () => {
@@ -101,6 +105,10 @@ const BeyondResumeJobDetails = ({
         .replace(/```(?:html)?/g, "")
         .trim();
       setDisplayContent(cleanedResponse);
+    }
+
+    if (source === "from-externalLink") {
+      setSpaceIndustryName(job?.companyName);
     }
   }, [job]);
 
@@ -219,7 +227,7 @@ const BeyondResumeJobDetails = ({
     );
   }
 
-  if (!job && brJobId) {
+  if (!job && !brJobId) {
     return (
       <Box
         sx={{
@@ -243,11 +251,10 @@ const BeyondResumeJobDetails = ({
     );
   }
 
-
   const canCloseJob =
-  (job.brJobStatus === "ACTIVE" ||
-  job.brJobStatus === "INPROGRESS") &&
-  (!!job.endDate && new Date(job.endDate) >= new Date());
+    (job.brJobStatus === "ACTIVE" || job.brJobStatus === "INPROGRESS") &&
+    !!job.endDate &&
+    new Date(job.endDate) >= new Date();
   return (
     <Box
       p={2}
@@ -267,18 +274,40 @@ const BeyondResumeJobDetails = ({
             }}
           >
             <Box display={"flex"} alignItems={"center"} gap={1} mb={0.5}>
-              <Box>
-                <FontAwesomeIcon
-                  icon={faBuilding}
-                  style={{
-                    fontSize: "16px",
+              {job.companyName === "Translab.io" ? (
+                <Box
+                  sx={{
                     background: "white",
-                    borderRadius: "4px",
                     padding: "4px",
-                    color: color.newbg,
+                    borderRadius: "8px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                   }}
-                />
-              </Box>
+                >
+                  <img
+                    style={{
+                      width: "30px",
+                      borderRadius: "4px",
+                    }}
+                    src="/assets/translab.png"
+                    alt=""
+                  />
+                </Box>
+              ) : (
+                <Box>
+                  <FontAwesomeIcon
+                    icon={faBuilding}
+                    style={{
+                      fontSize: "16px",
+                      background: "white",
+                      borderRadius: "4px",
+                      padding: "4px",
+                      color: color.newbg,
+                    }}
+                  />
+                </Box>
+              )}
 
               <Typography
                 fontSize={"20px"}
@@ -345,28 +374,55 @@ const BeyondResumeJobDetails = ({
                 <Box
                   sx={{
                     position: "absolute",
-                    top: "-20px",
+                    top: "-30px",
                     right: "0px",
                     display: "flex",
                     flexDirection: "column",
                     gap: 2,
                   }}
                 >
-{canCloseJob && (
-  <BeyondResumeButton2
-    sx={{ fontSize: "12px" }}
-    onClick={() => {
-      setPopupOpen1(true);
-      setSelectedJobIdC(job.brJobId);
-      setPopupOpen(true);
-    }}
-  >
-    Close Job
-    <FontAwesomeIcon style={{ marginLeft: "6px" }} icon={faXmarkCircle} />
-  </BeyondResumeButton2>
-)}
+                  {getUserRole() === "TALENT PARTNER" &&
+                    job.brJobStatus === "ACTIVE" &&
+                    !!job.endDate &&
+                    new Date(job.endDate) >= new Date() && (
+                      <BeyondResumeButton2
+                        onClick={() => {
+                          handleCopyLink();
+                        }}
+                        sx={{
+                          fontSize: "12px",
+                        }}
+                      >
+                        {" "}
+                        Share Job Link
+                        <FontAwesomeIcon
+                          style={{ marginLeft: "6px" }}
+                          icon={faShareNodes}
+                        />
+                      </BeyondResumeButton2>
+                    )}
 
-                  {selectedTab === 1 || job.brJobStatus === "INPROGRESS" ? (
+                  {canCloseJob && (
+                    <BeyondResumeButton2
+                      sx={{ fontSize: "12px" }}
+                      onClick={() => {
+                        setPopupOpen1(true);
+                        setSelectedJobIdC(job.brJobId);
+                        setPopupOpen(true);
+                      }}
+                    >
+                      Close Job
+                      <FontAwesomeIcon
+                        style={{ marginLeft: "6px" }}
+                        icon={faXmarkCircle}
+                      />
+                    </BeyondResumeButton2>
+                  )}
+
+                  {selectedTab === 1 ||
+                  (job.brJobStatus === "INPROGRESS" &&
+                    !!job.endDate &&
+                    new Date(job.endDate) >= new Date()) ? (
                     <BeyondResumeButton
                       onClick={() => {
                         history.push(`/beyond-resume-jobedit/${job.brJobId}`);

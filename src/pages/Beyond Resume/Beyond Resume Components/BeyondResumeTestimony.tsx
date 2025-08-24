@@ -34,7 +34,6 @@ const BeyondResumeTestimony = () => {
         variant="h3"
         sx={{
           fontFamily: "Custom-Bold",
-          color: "black",
           width: "fit-content",
           p: 2,
           borderRadius: "12px",
@@ -70,8 +69,8 @@ const BeyondResumeTestimony = () => {
                         transition: "all 0.6s",
                         boxShadow: "4px 4px 15px rgba(0, 0, 0, 0.11)",
                         "&:hover": {
-                          background: "black",
-                          color: "white",
+                          transform: "scale(1.05)",
+                          boxShadow: "0px 0px 15px rgba(80, 188, 246, 0.3)",
                         },
                       }}
                     >

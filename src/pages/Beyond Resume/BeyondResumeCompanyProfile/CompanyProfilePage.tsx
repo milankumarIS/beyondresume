@@ -131,7 +131,7 @@ export const CompanyProfilePage: React.FC = () => {
         >
           <Box
             sx={{
-              boxShadow: "0px 0px 10px #00000021",
+              // boxShadow: "0px 0px 10px #00000021",
             }}
           >
             <CompanyHeaderSection companyInfo={companyData} />

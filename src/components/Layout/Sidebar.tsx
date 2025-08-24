@@ -5,9 +5,10 @@ import {
   faCirclePlus,
   faComments,
   faCrown,
+  faFileLines,
   faHome,
   faUser,
-  faUserCircle
+  faUserCircle,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Box, Typography } from "@mui/material";
@@ -27,15 +28,15 @@ const navItems = [
 
 const buttonsArray: any[] = [
   {
-    title: "My Team",
-    url: "/my-team-performance",
-    icon: faUserCircle,
-    role: "SUPERVISOR,SEEKER",
+    title: "Home",
+    url: "/beyond-resume",
+    icon: faHome,
+    role: "CAREER SEEKER, TALENT PARTNER",
   },
 
   {
     title: "Post a Job",
-    url: "/beyond-resume",
+    url: "/beyond-resume-jobpost",
     icon: faCirclePlus,
     role: "TALENT PARTNER",
   },
@@ -53,7 +54,7 @@ const buttonsArray: any[] = [
   },
   {
     title: "Practice",
-    url: "/beyond-resume-interviews",
+    url: "/beyond-resume-practice",
     icon: faChartSimple,
     role: "CAREER SEEKER",
   },
@@ -61,6 +62,12 @@ const buttonsArray: any[] = [
     title: "My Interviews",
     url: "/beyond-resume-interview-list",
     icon: faComments,
+    role: "CAREER SEEKER",
+  },
+  {
+    title: "My Applications",
+    url: "/beyond-resume-jobApplications",
+    icon: faFileLines,
     role: "CAREER SEEKER",
   },
   // {
@@ -153,13 +160,13 @@ const Sidebar: React.FC = () => {
                   locationurl.pathname === item.url
                     ? color.newFirstColor
                     : color.iconColor,
-                background:
-                expanded?
-                  locationurl.pathname === item.url
+                background: expanded
+                  ? locationurl.pathname === item.url
                     ? theme === "dark"
                       ? "#171f2d"
                       : "#b1c4eb"
-                    : "transparent": "transparent",
+                    : "transparent"
+                  : "transparent",
                 transition: "all 0.3s ease",
                 height: "20px",
                 fontSize: "24px",

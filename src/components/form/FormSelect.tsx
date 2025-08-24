@@ -17,7 +17,7 @@ export default function FormSelect({
   errors,
   register,
   options,
-  defaultValue,
+  defaultValue = "",
   filteringFullOption,
   setFilteredOption,
   filtering,
@@ -29,18 +29,14 @@ export default function FormSelect({
   sx,
   withValidationClass = true,
 }: any) {
-  const [selectedOption, setSelectedOption] = useState({ ...defaultValue });
+  const [selectedOption, setSelectedOption] = useState(defaultValue);
 
   useEffect(() => {
-    if (defaultValue) {
-      setSelectedOption({ ...defaultValue });
-    }
+    setSelectedOption(defaultValue || "");
   }, [defaultValue]);
 
   const handleOption = (property: any, value: any) => {
-    const optionCopy: any = { ...selectedOption };
-    optionCopy[property] = value;
-    setSelectedOption(optionCopy);
+    setSelectedOption(value);
 
     if (filtering) {
       setFilteredOption([
@@ -62,45 +58,80 @@ export default function FormSelect({
             : ""
         }
       >
-        <InputLabel>{label}</InputLabel>
+        <InputLabel
+          shrink={Boolean(selectedOption)}
+          sx={{
+            fontSize: "11px !important",
+            color: "#7f7f7f",
+            textTransform: "uppercase",
+            fontFamily: "Montserrat-regular",
+            transform: "translate(14px, 14px)",
+
+            "&.Mui-focused, &.MuiInputLabel-shrink": {
+              transform: "translate(14px, 2px)",
+            },
+          }}
+        >
+          {label}
+        </InputLabel>
         <Select
           label={label}
-          value={selectedOption[valueProp] || ""}
+          value={selectedOption}
           onChange={(e) => handleOption(valueProp, e.target.value)}
           inputProps={{
             readOnly: readonly,
             ...register(valueProp),
           }}
-          sx={sx}
+          sx={{
+            fontFamily: "Montserrat-regular", // 👈 applied to Select
+            ...sx,
+          }}
         >
           {options?.map((item: any, index: any) => {
             if (item.label) {
               return (
-                <MenuItem value={item.value} key={index}>
+                <MenuItem
+                  value={item.value}
+                  key={index}
+                  sx={{ fontFamily: "Montserrat-regular" }}
+                >
                   {item.label}
                 </MenuItem>
               );
             } else if (labelProp && item[labelProp]) {
               return (
-                <MenuItem value={item[primeryKey]} key={index}>
+                <MenuItem
+                  value={item[primeryKey]}
+                  key={index}
+                  sx={{ fontFamily: "Montserrat-regular" }}
+                >
                   {item[labelProp]}
                 </MenuItem>
               );
             } else if (item.name) {
               return (
-                <MenuItem value={item.id} key={index}>
+                <MenuItem
+                  value={item.id}
+                  key={index}
+                  sx={{ fontFamily: "Montserrat-regular" }}
+                >
                   {item.name}
                 </MenuItem>
               );
             } else {
               return (
-                <MenuItem value={item} key={index}>
+                <MenuItem
+                  value={item}
+                  key={index}
+                  sx={{ fontFamily: "Montserrat-regular" }}
+                >
                   {item}
                 </MenuItem>
               );
             }
           })}
         </Select>
+
         {errors[valueProp] && (
           <FormHelperText
             sx={{

@@ -154,7 +154,7 @@ export default function BeyondResumeHero({ onScrollClick }) {
         >
           <BeyondResumeButton
             onClick={() => history.push("/beyond-resume-practicePools")}
-            sx={{ p: 2, px: 4 }}
+            sx={{ p: 1, px: 4 }}
           >
             Start Practicing Today
           </BeyondResumeButton>
@@ -162,7 +162,7 @@ export default function BeyondResumeHero({ onScrollClick }) {
           <BeyondResumeButton2
             onClick={onScrollClick}
             sx={{
-              p: 2,
+              // p: 2,
               px: 4,
             }}
           >

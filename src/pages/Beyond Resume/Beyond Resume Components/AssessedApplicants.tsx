@@ -1,18 +1,30 @@
 import React, { useEffect, useState } from "react";
 import { Grid, Card, Typography, Box } from "@mui/material";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faUser, faPhone, faEnvelope, faChevronCircleRight } from "@fortawesome/free-solid-svg-icons";
+import {
+  faUser,
+  faPhone,
+  faEnvelope,
+  faChevronCircleRight,
+} from "@fortawesome/free-solid-svg-icons";
 import { useHistory } from "react-router-dom";
 import { BeyondResumeButton } from "../../../components/util/CommonStyle";
 import { searchListDataFromTable } from "../../../services/services";
-import { formatDateWithSuffix, getRemark, getTextColor } from "../../../components/util/CommonFunctions";
+import {
+  formatDateWithSuffix,
+  getRemark,
+  getTextColor,
+} from "../../../components/util/CommonFunctions";
 
 interface AssessedApplicantsProps {
   brJobId: string;
   color: any;
 }
 
-const AssessedApplicants: React.FC<AssessedApplicantsProps> = ({ brJobId, color }) => {
+const AssessedApplicants: React.FC<AssessedApplicantsProps> = ({
+  brJobId,
+  color,
+}) => {
   const [interviews, setInterviews] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const history = useHistory();
@@ -24,7 +36,6 @@ const AssessedApplicants: React.FC<AssessedApplicantsProps> = ({ brJobId, color 
     searchListDataFromTable("brJobApplicant", {
       brJobApplicantStatus: "CONFIRMED",
       brJobId,
-
     }).then((result: any) => {
       const rows = result?.data?.data || [];
 
@@ -51,15 +62,20 @@ const AssessedApplicants: React.FC<AssessedApplicantsProps> = ({ brJobId, color 
     });
   }, [brJobId]);
 
-  if (loading) return <Typography mt={2} width={'100%'} textAlign={'center'}>Loading assessed applicants...</Typography>;
+  if (loading)
+    return (
+      <Typography mt={2} width={"100%"} textAlign={"center"}>
+        Loading assessed applicants...
+      </Typography>
+    );
 
   return (
     <Grid container spacing={3}>
       {interviews.length > 0 ? (
         interviews.map((interview, index) => {
-          const score = interview.interviewScore;
+         const score = interview.interviewScore || 0;
           const { remark, bgcolor } = getRemark(score);
-
+          // if (!interview?.interviewOverview) return null;
           return (
             <Grid item xs={12} sm={6} md={6} key={index} position="relative">
               <Card
@@ -72,10 +88,11 @@ const AssessedApplicants: React.FC<AssessedApplicantsProps> = ({ brJobId, color 
                   py: 3,
                   pb: 3,
                   maxWidth: "250px",
-                  minWidth:'250px',
+                  minWidth: "250px",
                   minHeight: "250px",
                   position: "relative",
                   m: "auto",
+                  opacity: interview.interviewOverview ? 1 : 0.6,
                 }}
               >
                 {/* Header */}
@@ -116,8 +133,12 @@ const AssessedApplicants: React.FC<AssessedApplicantsProps> = ({ brJobId, color 
                       {interview?.fullName}
                     </Typography>
 
-                    <Typography variant="caption" display="block" textAlign="left">
-                      {formatDateWithSuffix(interview.createdAt)},{" "}
+                    <Typography
+                      variant="caption"
+                      display="block"
+                      textAlign="left"
+                    >
+                     Submitted {formatDateWithSuffix(interview.createdAt)},{" "}
                       {new Date(interview.createdAt).toLocaleTimeString([], {
                         hour: "2-digit",
                         minute: "2-digit",
@@ -135,7 +156,10 @@ const AssessedApplicants: React.FC<AssessedApplicantsProps> = ({ brJobId, color 
                       fontFamily: "Montserrat-Regular",
                     }}
                   >
-                    <FontAwesomeIcon style={{ marginRight: "4px" }} icon={faPhone} />{" "}
+                    <FontAwesomeIcon
+                      style={{ marginRight: "4px" }}
+                      icon={faPhone}
+                    />{" "}
                     {interview?.phone}
                   </Typography>
                   <Typography
@@ -150,14 +174,17 @@ const AssessedApplicants: React.FC<AssessedApplicantsProps> = ({ brJobId, color 
                       textAlign: "left",
                     }}
                   >
-                    <FontAwesomeIcon style={{ marginRight: "4px" }} icon={faEnvelope} />
+                    <FontAwesomeIcon
+                      style={{ marginRight: "4px" }}
+                      icon={faEnvelope}
+                    />
                     {interview?.email}
                   </Typography>
                 </Box>
 
                 {/* Overview */}
                 <Typography textAlign="left" mt={1}>
-                  Overview:
+                  Summary:
                 </Typography>
                 <Typography
                   variant="body2"
@@ -174,30 +201,35 @@ const AssessedApplicants: React.FC<AssessedApplicantsProps> = ({ brJobId, color 
                     textAlign: "left",
                   }}
                 >
-                  {interview.interviewOverview}
+                  {interview.interviewOverview ||
+                    "Interview could not be finished. This might be due to a network failure or server error."}
                 </Typography>
 
-                {/* Action */}
-                <BeyondResumeButton
-                  onClick={() =>
-                    history.push(
-                      `/beyond-resume-interview-overview/${interview?.brJobApplicantId}?type=candidateResult`
-                    )
-                  }
-                  sx={{
-                    width: "100%",
-                    p: 0.5,
-                    px: 1.5,
-                    background: color.activeButtonBg,
-                    ml: "auto",
-                    display: "block",
-                  }}
-                >
-                  See Details
-                  <FontAwesomeIcon style={{ marginLeft: "5px" }} icon={faChevronCircleRight} />
-                </BeyondResumeButton>
+                {interview.interviewOverview && (
+                  <BeyondResumeButton
+                    onClick={() =>
+                      history.push(
+                        `/beyond-resume-interview-overview/${interview?.brJobApplicantId}?type=candidateResult`
+                      )
+                    }
+                    sx={{
+                      width: "100%",
+                      p: 0.5,
+                      px: 1.5,
+                      background: color.activeButtonBg,
+                      ml: "auto",
+                      display: "block",
+                    }}
+                  >
+                    Review Candidate
+                    <FontAwesomeIcon
+                      style={{ marginLeft: "5px" }}
+                      icon={faChevronCircleRight}
+                    />
+                  </BeyondResumeButton>
+                )}
 
-                {/* Score Badge */}
+                
                 <Box
                   sx={{
                     position: "absolute",
@@ -210,14 +242,18 @@ const AssessedApplicants: React.FC<AssessedApplicantsProps> = ({ brJobId, color 
                     borderRadius: "0px 0px 0px 8px",
                   }}
                 >
-                  <Typography sx={{ color: getTextColor(bgcolor) }}>{score}/100</Typography>
+                  <Typography sx={{ color: getTextColor(bgcolor) }}>
+                   Score: {score}/100
+                  </Typography>
                 </Box>
               </Card>
             </Grid>
           );
         })
       ) : (
-        <Typography mt={2} width={'100%'} textAlign={'center'}>No assessed applicants found.</Typography>
+        <Typography mt={2} width={"100%"} textAlign={"center"}>
+          No assessed applicants found.
+        </Typography>
       )}
     </Grid>
   );

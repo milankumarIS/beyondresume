@@ -41,7 +41,7 @@ const ConfirmationPopup: React.FC<ConfirmationPopupProps> = ({
   return (
     <Dialog
       open={open}
-        disableEscapeKeyDown={disableOutsideClose}
+      disableEscapeKeyDown={disableOutsideClose}
       onClose={(event, reason) => {
         if (
           disableOutsideClose &&

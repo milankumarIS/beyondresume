@@ -34,7 +34,7 @@ export const evaluateInterviewResponses = async ({
 }) => {
   setLoading?.(true);
 
-  console.log(jobsData);
+  // console.log(jobsData);
 
   try {
     if (speakText) {
@@ -42,6 +42,8 @@ export const evaluateInterviewResponses = async ({
         "Thank you for your time. This concludes your virtual interview."
       );
     }
+
+    
 
     const output = parsedData?.categories.flatMap(
       (category: any, catIndex: number) =>
@@ -58,7 +60,9 @@ export const evaluateInterviewResponses = async ({
     let generatedResume: string | null = null;
     let generatedCoverLetter: string | null = null;
 
-    if (jobsData[0]?.candidateResume) {
+
+
+    if  (jobsData?.[0]?.candidateResume) {
       const resumePrompt = `
 I have found a job opportunity for the role of "${
         jobsData[0]?.jobTitle
@@ -111,6 +115,8 @@ ${JSON.stringify(output)}
         console.error("Failed to parse AI resume/cover letter:", error);
       }
     }
+
+    
     // console.log(generatedResume);
     // console.log(generatedCoverLetter);
 
@@ -170,6 +176,8 @@ ${JSON.stringify(output)}
     const rawText = res?.data?.data?.candidates?.[0]?.content?.parts?.[0]?.text;
 
     // console.log(rawText);
+
+
 
     let interviewScore: number | null = null;
     let interviewOverview: string | null = null;

@@ -49,9 +49,9 @@ const QuillInputEditor: React.FC<QuillInputEditorProps> = ({
         overflowY: "scroll",
         height,
         minHeight: "200px",
-        borderRadius: "8px",
-        border: "solid 1px #0a5c6b",
-        boxShadow: "0px 0px 5px #0a5c6b",
+        borderRadius: "16px",
+        // border: "solid 1px #0a5c6b",
+        boxShadow: "0px 0px 20px #00000035",
         marginBottom: "20px",
         paddingBottom: "5px",
         ...sx

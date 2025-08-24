@@ -1245,6 +1245,7 @@ const beyondResumeSchema = z.object({
   payroll: z.string().nonempty("Job Mode is required"),
   compensation: z.string().nonempty("Compensation is required"),
   location: z.string().nonempty("Location is required"),
+
 });
 
 const interviewFormSchema = z.object({

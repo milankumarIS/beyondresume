@@ -42,8 +42,12 @@ import BeyondResumeJobDetails from "./BeyondResumeJobDetails";
 import MatchingUserCard from "./Beyond Resume Components/MatchingUserCard";
 import { useNewSnackbar } from "../../components/shared/useSnackbar";
 import CustomSnackbar from "../../components/util/CustomSnackbar";
+import PendingAssessmentApplicants from "./Beyond Resume Components/PendingAssessmentApplicants";
+import { useIndustry } from "../../components/util/IndustryContext";
 
 type Job = {
+  companyName: any;
+  location: any;
   brJobId: string;
   payroll: string;
   jobType: string;
@@ -53,6 +57,8 @@ type Job = {
 };
 
 const BeyondResumeJobs = () => {
+  const { industryName, spaceIndustryName } = useIndustry();
+
   const [searchTerm, setSearchTerm] = useState("");
 
   const [savedJobs, setSavedJobs] = useState<any[]>([]);
@@ -65,6 +71,7 @@ const BeyondResumeJobs = () => {
   const [filteredJobs, setFilteredJobs] = useState<any[]>([]);
   const [seekerJobs, setSeekerJobs] = useState<any[]>([]);
   const { userData } = useUserData();
+
   const isJobPage = location.pathname.startsWith("/beyond-resume-myjobs");
   const history = useHistory();
   const openSnackBar = useSnackbar();
@@ -301,7 +308,7 @@ const BeyondResumeJobs = () => {
             pageSize: 10,
             data: {
               brJobStatus: "CLOSED",
-                  fieldName: "endDate",
+              fieldName: "endDate",
               fieldValue: new Date().toISOString(),
               createdBy,
               filter: "",
@@ -326,25 +333,31 @@ const BeyondResumeJobs = () => {
         setPendingJobs(sortByNewest(allPendingJobs));
         setCompletedJobs(sortByNewest(allExpiredJobs));
       } else {
-        const [result, userAppliedJobs, userSavedJobs] = await Promise.all([
-          searchListDataFromTable("brJobs", { brJobStatus: "ACTIVE" }),
-          searchListDataFromTable("brJobApplicant", {
-            createdBy,
-            brJobApplicantStatus: "CONFIRMED",
-          }),
-          searchListDataFromTable("brJobApplicant", {
-            createdBy,
-            brJobApplicantStatus: "REQUESTED",
-          }),
-        ]);
+        const [result, confirmedJobs, appliedJobs, userSavedJobs] =
+          await Promise.all([
+            searchListDataFromTable("brJobs", { brJobStatus: "ACTIVE" }),
+            searchListDataFromTable("brJobApplicant", {
+              createdBy,
+              brJobApplicantStatus: "CONFIRMED",
+            }),
+            searchListDataFromTable("brJobApplicant", {
+              createdBy,
+              brJobApplicantStatus: "APPLIED",
+            }),
+            searchListDataFromTable("brJobApplicant", {
+              createdBy,
+              brJobApplicantStatus: "REQUESTED",
+            }),
+          ]);
 
         const allActiveJobs = result?.data?.data.filter(
           (job) => !job.endDate || new Date(job.endDate) > now
         );
 
-        const appliedJobIds = new Set(
-          (userAppliedJobs?.data?.data || []).map((app) => app.brJobId)
-        );
+        const appliedJobIds = new Set([
+          ...(confirmedJobs?.data?.data || []).map((app) => app.brJobId),
+          ...(appliedJobs?.data?.data || []).map((app) => app.brJobId),
+        ]);
 
         const jobsNotYetApplied = allActiveJobs.filter(
           (job) => !appliedJobIds.has(job.brJobId)
@@ -356,7 +369,7 @@ const BeyondResumeJobs = () => {
         const filtered = applyFilters(sortedActive);
         setFilteredJobs(filtered);
         setSeekerJobs(filtered);
-        // console.log(filtered);
+        console.log(filtered);
 
         const savedJobIds = new Set(
           (userSavedJobs?.data?.data || []).map((job) => job.brJobId)
@@ -379,6 +392,7 @@ const BeyondResumeJobs = () => {
 
   useEffect(() => {
     fetchJobs();
+    setSearchTerm(spaceIndustryName ?? "");
   }, [isJobPage, showSavedJobs, page1, page2, page3]);
 
   const toggleStatus = async () => {
@@ -395,36 +409,62 @@ const BeyondResumeJobs = () => {
     } catch (error) {
       console.error("Error updating status:", error);
       showSnackbar("Failed to update status. Please try again.", "success");
-
     } finally {
       setPopupOpen(false);
     }
   };
 
+  const effectiveTerm = (
+    searchTerm?.trim() ||
+    spaceIndustryName ||
+    ""
+  ).toLowerCase();
+
+  // useEffect(() => {
+  //   if (!isJobPage) {
+  //     const term = searchTerm.toLowerCase();
+  //     if (term === "") {
+  //       setSeekerJobs(filteredJobs);
+  //       setSearchedSavedJobs(savedJobs);
+  //     } else {
+  //       const results = filteredJobs.filter(
+  //         (job) =>
+  //           job.jobTitle?.toLowerCase().includes(term) ||
+  //           job.description?.toLowerCase().includes(term) ||
+  //           job.location?.toLowerCase().includes(term) ||
+  //           job.companyName?.toLowerCase().includes(term)
+  //       );
+  //       const results1 = savedJobs.filter(
+  //         (job) =>
+  //           job.jobTitle?.toLowerCase().includes(term) ||
+  //           job.description?.toLowerCase().includes(term) ||
+  //           job.location?.toLowerCase().includes(term) ||
+  //           job.companyName?.toLowerCase().includes(term)
+  //       );
+  //       setSeekerJobs(results);
+  //       setSearchedSavedJobs(results1);
+  //     }
+  //   }
+  // }, [searchTerm, spaceIndustryName]);
+
   useEffect(() => {
-    if (!isJobPage) {
-      const term = searchTerm.toLowerCase();
-      if (term === "") {
-        setSeekerJobs(filteredJobs);
-        setSearchedSavedJobs(savedJobs);
-      } else {
-        const results = filteredJobs.filter(
-          (job) =>
-            job.jobTitle?.toLowerCase().includes(term) ||
-            job.description?.toLowerCase().includes(term) ||
-            job.location?.toLowerCase().includes(term)
-        );
-        const results1 = savedJobs.filter(
-          (job) =>
-            job.jobTitle?.toLowerCase().includes(term) ||
-            job.description?.toLowerCase().includes(term) ||
-            job.location?.toLowerCase().includes(term)
-        );
-        setSeekerJobs(results);
-        setSearchedSavedJobs(results1);
-      }
-    }
-  }, [searchTerm]);
+    if (isJobPage) return;
+
+    const matches = (job: any) => {
+      const t = effectiveTerm;
+      if (!t) return true;
+      const fields = [
+        job.jobTitle,
+        job.description,
+        job.location,
+        job.companyName,
+      ];
+      return fields.some((f) => f?.toLowerCase?.().includes(t));
+    };
+
+    setSeekerJobs(filteredJobs.filter(matches));
+    setSearchedSavedJobs(savedJobs.filter(matches));
+  }, [effectiveTerm, isJobPage, filteredJobs, savedJobs]);
 
   const JobsSection = ({
     title,
@@ -637,9 +677,9 @@ const BeyondResumeJobs = () => {
       return () => clearTimeout(timeout);
     }, [selectedJob]);
 
-    const [activeTab, setActiveTab] = useState<"SUGGESTED" | "ASSESSED">(
-      "ASSESSED"
-    );
+    const [activeTab, setActiveTab] = useState<
+      "SUGGESTED" | "ASSESSED" | "PENDING ASSESSMENT"
+    >("ASSESSED");
 
     return (
       <Box mt={4} mb={4} display="flex" gap={2} alignItems="flex-start">
@@ -679,11 +719,12 @@ const BeyondResumeJobs = () => {
                     textAlign: "center",
                   }}
                 >
-                  Sorry, we couldn't find any jobs based on your profile. If you
-                  haven't updated it yet, please do so to get better matches.
+                  Looks like we don’t have a perfect match for your profile just
+                  yet. Don’t worry great matches start with a sharp profile!.
                   <br />
-                  You can also explore other jobs on our platform by clicking
-                  the button below.
+                  Update your profile to unlock tailored recommendations.
+                  {/* <br/> Your
+                  next opportunity could just be one click away */}
                 </Typography>
               )}
             </>
@@ -714,7 +755,7 @@ const BeyondResumeJobs = () => {
               </Grid>
             ))}
 
-            {jobs.length > 0 && (
+            {jobs.length > 0 && getUserRole() === "TALENT PARTNER" && (
               <Box sx={{ width: "100%" }}>
                 {title === "Posted Jobs" ? (
                   <PaginationControlled
@@ -747,7 +788,7 @@ const BeyondResumeJobs = () => {
                 setShowRecommendedJobs(false);
               }}
             >
-              Browse Other Jobs
+              Explore All Jobs
             </BeyondResumeButton>
           )}
         </Box>
@@ -804,7 +845,7 @@ const BeyondResumeJobs = () => {
                               ).length
                             }
                           </span>
-                          Suggested Candidates
+                          Suggested Matches
                         </div>
 
                         <div
@@ -834,7 +875,38 @@ const BeyondResumeJobs = () => {
                               (s) => s.label === "ASSESSED"
                             )?.count ?? 0}
                           </span>
-                          Assessed Applicants
+                          Assessed Candidates
+                        </div>
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            background:
+                              activeTab === "PENDING ASSESSMENT"
+                                ? "#f97316"
+                                : "grey",
+                            borderRadius: "6px",
+                            padding: "6px 10px",
+                            color: "#fff",
+                            fontWeight: "bold",
+                            fontSize: "14px",
+                            cursor: "pointer",
+                          }}
+                          onClick={() => setActiveTab("PENDING ASSESSMENT")}
+                        >
+                          <span
+                            style={{
+                              background: "rgba(255, 255, 255, 0.2)",
+                              padding: "4px 8px",
+                              borderRadius: "4px",
+                              marginRight: "6px",
+                            }}
+                          >
+                            {statusCountsMap[selectedJob.brJobId]?.find(
+                              (s) => s.label === "PENDING ASSESSMENT"
+                            )?.count ?? 0}
+                          </span>
+                          Pending Assement
                         </div>
                       </Box>
 
@@ -866,6 +938,11 @@ const BeyondResumeJobs = () => {
                             </Typography>
                           )}
                         </Box>
+                      ) : activeTab === "PENDING ASSESSMENT" ? (
+                        <PendingAssessmentApplicants
+                          brJobId={selectedJob.brJobId}
+                          color={color}
+                        />
                       ) : (
                         <AssessedApplicants
                           brJobId={selectedJob.brJobId}
@@ -923,6 +1000,8 @@ const BeyondResumeJobs = () => {
 
   const [tabFilteredJobs, setTabFilteredJobs] = useState<Job[]>([]);
 
+  // console.log(searchTerm);
+
   const filterAndSearchJobs = (jobs: Job[]) => {
     const term = searchTerm.toLowerCase();
 
@@ -941,7 +1020,11 @@ const BeyondResumeJobs = () => {
         return matchesPayroll && matchesType && matchesTitle && matchesMode;
       })
       .filter((job) => {
-        return job.jobTitle?.toLowerCase().includes(term);
+        return (
+          job?.jobTitle?.toLowerCase().includes(term) ||
+          job?.location?.toLowerCase().includes(term) ||
+          job?.companyName?.toLowerCase().includes(term)
+        );
       });
   };
 
@@ -962,8 +1045,17 @@ const BeyondResumeJobs = () => {
           width: "100%",
         }}
       >
-        <Typography variant="h4">Hi</Typography>
-        <GradientText text={userData?.firstName} variant="h4" />
+        {getUserRole() === "CAREER SEEKER" ? (
+          <>
+            <Typography variant="h4">Hi</Typography>
+            <GradientText text={userData?.firstName} variant="h4" />
+          </>
+        ) : (
+          <>
+            <GradientText text={industryName} variant="h4" />
+            {/* <GradientText text={"Welcome back, "} variant="h4" /> */}
+          </>
+        )}
       </Box>
 
       <Typography
@@ -974,8 +1066,8 @@ const BeyondResumeJobs = () => {
         }}
       >
         {getUserRole() === "CAREER SEEKER"
-          ? "Here are our recommended jobs for you!"
-          : "Track, edit, and manage your job listings here."}
+          ? "Let’s find your perfect fit!"
+          : "Manage every open role in one place"}
       </Typography>
 
       <Box
@@ -1009,7 +1101,7 @@ const BeyondResumeJobs = () => {
             }}
           >
             <TextField
-              placeholder="Search"
+              placeholder="Search jobs by title or company"
               fullWidth
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -1017,8 +1109,10 @@ const BeyondResumeJobs = () => {
               //   if (e.key === "Enter") handleSearch();
               // }}
               sx={{
-                "& .MuiOutlinedInput-root": {
-                  height: "40px",
+                "& .MuiInputBase-input": {
+                  borderRadius: "12px",
+                  paddingTop: "8px !important",
+                  paddingBottom: "8px !important",
                 },
               }}
             />
@@ -1044,10 +1138,12 @@ const BeyondResumeJobs = () => {
             sx={{
               px: 3,
               py: 1,
+              borderRadius:'12px',
               background: showSavedJobs ? color.activeButtonBg : "white",
               color: showSavedJobs ? "white" : "black",
-              boxShadow: "0px 0px 10px rgba(90, 128, 253, 0.49)",
+              // boxShadow: "0px 0px 10px rgba(90, 128, 253, 0.49)",
               ml: 1,
+              textTransform:'none',
               fontSize: "14px",
               fontFamily: "custom-regular",
               border: "none",

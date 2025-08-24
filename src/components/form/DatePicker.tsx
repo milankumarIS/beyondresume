@@ -47,15 +47,16 @@ export default function BasicDatePicker({
           marginTop,
           borderRadius: "44px",
           overflow:'hidden',
-          boxShadow: "1px 1px 10px #00000028",
+          // boxShadow: "1px 1px 10px #00000028",
           ...sx,
+           paddingTop:'0px'  
         }}
       >
         <Box width={'100%'}>
           {minimum ? (
             <DatePicker
               label={label}
-              sx={{ fontWeight: 600, width: "100%", ...makeStyles }}
+              sx={{ fontWeight: 600, width: "100%", ...makeStyles,}}
               minDate={minimum ? dayjs(minimum) : dayjs()}
               defaultValue={value ? dayjs(value) : null}
               shouldDisableDate={(date: any) => !isDayAllowed(date)}
@@ -70,7 +71,7 @@ export default function BasicDatePicker({
           ) : (
             <DatePicker
               label={label}
-              sx={{ fontWeight: 600, width: "100%", ...makeStyles }}
+              sx={{ fontWeight: 600, width: "100%", ...makeStyles}}
               defaultValue={value ? dayjs(value) : null}
               shouldDisableDate={(date: any) => !isDayAllowed(date)}
               onChange={(date: any) => {

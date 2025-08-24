@@ -1,7 +1,12 @@
-import { faCheck, faCheckCircle } from "@fortawesome/free-solid-svg-icons";
+import {
+  faCheck,
+  faCheckCircle,
+  faXmarkCircle,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   Box,
+  Button,
   Dialog,
   DialogContent,
   Grid,
@@ -19,6 +24,8 @@ interface InterviewModeModalProps {
   noOQuestion?: any;
   duration?: any;
   onSelectMode: (mode: "AI_VIDEO" | "BASIC_EXAM") => void;
+  disableOutsideClick?: boolean;
+  onClose?: () => void;
 }
 
 const InterviewModeModal: React.FC<InterviewModeModalProps> = ({
@@ -26,11 +33,38 @@ const InterviewModeModal: React.FC<InterviewModeModalProps> = ({
   onSelectMode,
   rawJobData,
   noOQuestion,
-  duration
+  duration,
+  disableOutsideClick = true,
+  onClose,
 }) => {
   const { theme } = useTheme();
+
   return (
-    <Dialog open={open} fullWidth maxWidth="md" disableEscapeKeyDown>
+    <Dialog
+      open={open}
+      fullWidth
+      maxWidth="md"
+      onClose={(event, reason) => {
+        if (reason === "backdropClick" || reason === "escapeKeyDown") {
+          return;
+        }
+      }}
+    >
+      {!disableOutsideClick && (
+        <FontAwesomeIcon
+          icon={faXmarkCircle}
+          onClick={onClose}
+          style={{
+            position: "absolute",
+            top: 12,
+            right: 12,
+            fontSize: "1.5rem",
+            cursor: "pointer",
+            color: theme === "dark" ? color.titleColor : color.titleLightColor,
+          }}
+        />
+      )}
+
       <DialogContent
         style={{
           background: theme === "dark" ? color.newbg : "white",
@@ -86,7 +120,7 @@ const InterviewModeModal: React.FC<InterviewModeModalProps> = ({
               fontFamily: "montserrat-regular",
             }}
           >
-            Please select how you'd like to proceed with your interview.
+            Pick the interview mode that works best for you.
           </Typography>
         </Box>
 
@@ -100,8 +134,7 @@ const InterviewModeModal: React.FC<InterviewModeModalProps> = ({
                 transition: "all 0.3s ease",
                 boxShadow: "0px 0px 20px rgba(0, 0, 0, 0.10)",
                 border: "solid 2px transparent",
-                background:
-                  theme === "dark" ? 'white' : color.jobCardBgLight,
+                background: theme === "dark" ? "white" : color.jobCardBgLight,
                 "&:hover": {
                   // border: "solid 2px #50bcf6",
                   transform: "scale(1.03)",
@@ -125,11 +158,21 @@ const InterviewModeModal: React.FC<InterviewModeModalProps> = ({
                   textAlign: "center",
                 }}
               >
-                AI Video Interview
+                Video Based Interview
               </Typography>
-              <Typography variant="body2" mt={1}>
-                Simulate a real-world interview with voice input and a talking
-                AI. Great for building verbal confidence.
+
+              {/* <Typography textAlign={"center"}>
+                Show your personality and communication skills on camera.
+              </Typography> */}
+
+              <Typography
+                variant="body2"
+                mt={1}
+                textAlign={"center"}
+                fontFamily={"montserrat-regular"}
+              >
+                Simulate a real interview with voice + video. Perfect for
+                building confidence and leaving a lasting impression.
               </Typography>
               {/* <Box
                 mt={2}
@@ -178,7 +221,7 @@ const InterviewModeModal: React.FC<InterviewModeModalProps> = ({
                 }}
                 onClick={() => onSelectMode("AI_VIDEO")}
               >
-                Get Started
+                Start Video Interview
               </BeyondResumeButton>
             </Paper>
           </Grid>
@@ -192,8 +235,7 @@ const InterviewModeModal: React.FC<InterviewModeModalProps> = ({
                 transition: "all 0.3s ease",
                 boxShadow: "0px 0px 20px rgba(0, 0, 0, 0.10)",
                 border: "solid 2px transparent",
-                background:
-                  theme === "dark" ? 'white' : color.jobCardBgLight,
+                background: theme === "dark" ? "white" : color.jobCardBgLight,
                 "&:hover": {
                   // border: "solid 2px #50bcf6",
                   transform: "scale(1.03)",
@@ -218,9 +260,15 @@ const InterviewModeModal: React.FC<InterviewModeModalProps> = ({
               >
                 Text Based Evaluation
               </Typography>
-              <Typography variant="body2" mt={1}>
-                Simulate a real-world interview with voice input and a talking
-                AI. Great for building verbal confidence.
+
+              <Typography
+                variant="body2"
+                mt={1}
+                textAlign={"center"}
+                fontFamily={"montserrat-regular"}
+              >
+                Answer questions in writing at your own pace. Great for
+                structured thinkers who prefer clarity over spontaneity.
               </Typography>
               {/* <Box
                 mt={2}
@@ -268,7 +316,7 @@ const InterviewModeModal: React.FC<InterviewModeModalProps> = ({
                 }}
                 onClick={() => onSelectMode("BASIC_EXAM")}
               >
-                Get Started
+                Start Text Evaluation
               </BeyondResumeButton>
             </Paper>
           </Grid>

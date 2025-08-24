@@ -1,6 +1,7 @@
 import { Box, Grid, Paper, Typography } from "@mui/material";
 import { styled } from "@mui/system";
 import { useRef, useState, useEffect, forwardRef } from "react";
+import color from "../../../theme/color";
 
 const categories = [
   {
@@ -23,7 +24,7 @@ const categories = [
 const HighlightedPaper = styled(Paper)({
   background: "linear-gradient(to bottom, #3BA9FD, #6B60EC)",
   color: "#fff",
-  transition: "0.3s",
+  transition: "0.6s",
   "& svg": {
     color: "#fff",
   },
@@ -31,11 +32,10 @@ const HighlightedPaper = styled(Paper)({
 
 const NormalPaper = styled(Paper)(({ theme }) => ({
   position: "relative",
-  background: "linear-gradient(145deg, #0d0d0d, #2D3436)",
-
-  color: "white",
-  transition: "all 0.3s, box-shadow 0.3s",
-
+  background: color.cardBg,
+  color: "inherit",
+  transition: "all 0.6s, box-shadow 0.3s",
+boxShadow:'none',
   "&::before": {
     content: '""',
     position: "absolute",
@@ -47,7 +47,7 @@ const NormalPaper = styled(Paper)(({ theme }) => ({
     transition: "opacity 0.3s",
     zIndex: 0,
     borderRadius: "12px",
-    color: "#fff",
+    // color: "#fff",
   },
 
   "&:hover::before": {
@@ -55,9 +55,10 @@ const NormalPaper = styled(Paper)(({ theme }) => ({
   },
 
   "&:hover": {
-    color: "#fff",
+    // color: "#fff",
     // boxShadow: "0px 4px 10px rgba(90, 128, 253, 0.49)",
-    transform: "scale(1.02)",
+    transform: "scale(1.05)",
+    // boxShadow: "0px 0px 15px rgba(80, 188, 246, 0.3)",
   },
 
   "& svg": {
@@ -67,7 +68,7 @@ const NormalPaper = styled(Paper)(({ theme }) => ({
   },
 
   "&:hover svg": {
-    color: "#fff",
+    // color: "#fff",
   },
 }));
 
@@ -80,10 +81,10 @@ const CategoryCard = ({ icon, title, highlight, desc }: any) => {
       sx={{
         p: 6,
         textAlign: "left",
-        borderRadius: 3,
+        borderRadius: 4,
         width: "70%",
         height: "300px",
-        boxShadow: "0 8px 24px rgba(29, 28, 39, 0.07)",
+        transition: "all 0.6s",
       }}
     >
       <Box position={"relative"} mb={2}>
@@ -93,7 +94,11 @@ const CategoryCard = ({ icon, title, highlight, desc }: any) => {
           style={{ marginBottom: "20px" }}
         /> */}
         <img style={{ width: "80px" }} src={`/assets/${icon}.png`}></img>
-        <Typography mt={2} variant="h6" sx={{ fontFamily: "custom-bold", lineHeight:1.2 }}>
+        <Typography
+          mt={2}
+          variant="h6"
+          sx={{ fontFamily: "custom-bold", lineHeight: 1.2 }}
+        >
           {title}
         </Typography>
         <Typography

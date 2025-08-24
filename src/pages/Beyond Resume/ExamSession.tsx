@@ -622,7 +622,7 @@ const ExamSession: React.FC<ExamSessionProps> = ({
         const nextQuestion = getNextAdaptiveQuestion(currentLevel);
         const totalQuestionsAnswered = adaptiveProgression.length;
 
-        console.log(nextQuestion);
+        // console.log(nextQuestion);
 
         if (totalQuestionsAnswered >= maxQuestions || !nextQuestion) {
           handleSubmit();
@@ -631,7 +631,7 @@ const ExamSession: React.FC<ExamSessionProps> = ({
           setCurrentCategoryIndex(catIdx);
           setCurrentQuestionIndex(qIdx);
 
-          console.log(qIdx);
+          // console.log(qIdx);
 
           setAdaptiveProgression((prev) => [...prev, { catIdx, qIdx }]);
           setVisitedQuestions((prev) => new Set(prev).add(`${catIdx}-${qIdx}`));
@@ -723,9 +723,11 @@ const ExamSession: React.FC<ExamSessionProps> = ({
 
     return result;
   };
-
+  
   const handleSubmit = async () => {
     setLoading(true);
+    
+
 
     // let videoLink: string = "";
 

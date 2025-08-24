@@ -406,43 +406,69 @@ export const toRoman = (num: number): string => {
 };
 
 export const commonFormTextFieldSx = {
-  // boxShadow: "0px 0px 20px rgba(255, 255, 255, 1)",
-
-  boxShadow: "0px 0px 10px rgba(90, 128, 253, 0.49)",
   background: "white",
   color: "black",
-  borderRadius: "44px",
+  borderRadius: "12px",
   border: "0px",
+
   "& .MuiOutlinedInput-root": {
     background: "white",
     color: "black",
-
     border: "0px",
-    borderRadius: "44px",
+    paddingTop: "0px",
+    paddingBottom: "0px",
+    borderRadius: "12px",
+    fontFamily: "Montserrat-regular",
+
     "& fieldset": {
       border: "none",
-      borderRadius: "44px",
+      borderRadius: "12px",
     },
     "&.Mui-focused fieldset": {
       border: "0px",
-      borderRadius: "44px",
+      borderRadius: "12px",
     },
   },
+
+  "& .MuiInputBase-input": {
+    // borderRadius: "999px",
+    paddingTop: "14px !important",
+    paddingBottom: "8px !important",
+  },
+
   "& .MuiSelect-outlined": {
     border: "none",
     borderRadius: "44px",
     backgroundColor: "white",
-  },
-  "& .Muiselect-select-MuiInputBase-input-Muioutlinedlnput-input": {
-    border: "none",
-    borderRadius: "44px !important",
-    backgroundColor: "white",
+    fontFamily: "Montserrat-regular",
+
   },
 
   "& .MuiOutlinedInput-notchedOutline": {
     border: "none",
-    borderRadius: "44px",
+    borderRadius: "12px",
   },
+
+  "& .MuiFormLabel-root-MuiInputLabel-root": {
+    fontSize: "11px !important",
+    color: "#7f7f7f",
+    transform: "translate(14px, 14px)",
+    textTransform: "Uppercase",
+    fontFamily: "Montserrat-regular",
+  },
+
+  "& .MuiInputLabel-root": {
+    fontSize: "11px !important",
+    color: "#7f7f7f",
+    transform: "translate(14px, 14px)",
+    textTransform: "Uppercase",
+    fontFamily: "Montserrat-regular",
+  },
+  "& .MuiInputLabel-root.Mui-focused, & .MuiInputLabel-root.MuiInputLabel-shrink":
+    {
+      // color: "#000",
+      transform: "translate(14px, 2px)",
+    },
 };
 
 export function shuffleArray<T>(array: T[]): T[] {
@@ -455,6 +481,8 @@ export function shuffleArray<T>(array: T[]): T[] {
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
 import { ToggleButtonGroup, ToggleButton } from "@mui/material";
+import { textTransform } from "html2canvas/dist/types/css/property-descriptors/text-transform";
+import { fontFamily } from "html2canvas/dist/types/css/property-descriptors/font-family";
 
 type InterviewQuestionAnswer = {
   categoryName: string;
@@ -761,8 +789,6 @@ export const getFormattedDateKey = (dateString: string) => {
   return `${day}${suffix} ${month} at ${time}`;
 };
 
-
-
 export const getRemark = (score: number) => {
   if (score >= 85)
     return {
@@ -812,11 +838,13 @@ export function formatDateWithSuffix(dateString: string) {
   return `${day}${suffix} ${month}`;
 }
 
- export const CustomToggleButtonGroup1 = styled(ToggleButtonGroup)(({ theme }) => ({
-  backgroundColor: "#f0f2f7",
-  borderRadius: "999px",
-  padding: "8px",
-}));
+export const CustomToggleButtonGroup1 = styled(ToggleButtonGroup)(
+  ({ theme }) => ({
+    backgroundColor: "#f0f2f7",
+    borderRadius: "999px",
+    padding: "8px",
+  })
+);
 
 export const CustomToggleButton1 = styled(ToggleButton)(({ theme }) => ({
   border: "none",

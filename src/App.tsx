@@ -19,34 +19,34 @@ import LayoutContainer from './components/Layout/LayoutContainer';
 import { ThemeProviderCustom } from './components/util/ThemeContext';
 import { UserDataProvider } from './components/util/UserDataContext';
 import { UserModuleRoleProvider } from './components/util/UserModuleRoleContext';
-import BeyondResumeInterviewForm from './pages/Beyond Resume/Beyond Resume Interview/BeyondResumeInterviewForm';
-import BeyondResumeInterviewSuccess from './pages/Beyond Resume/Beyond Resume Interview/BeyondResumeInterviewSuccess';
-import BeyondResumePracticeInterviewForm from './pages/Beyond Resume/Beyond Resume Interview/BeyondResumePracticeInterviewForm';
-import BeyondResumePracticeInterviewSession from './pages/Beyond Resume/Beyond Resume Interview/BeyondResumePracticeInterviewSession';
-import BeyondResumeReadyToJoin from './pages/Beyond Resume/Beyond Resume Interview/BeyondResumeReadyToJoin';
-import BeyondResumeCandidateList from './pages/Beyond Resume/BeyondResumeCandidateList';
+import BeyondResumeInterviewForm from './pages/Beyond Resume/Beyond Resume Carrer Seeker/Beyond Resume Practice Interview/BeyondResumeCreatePracticeInterviewForm';
+import BeyondResumeInterviewSuccess from './pages/Beyond Resume/Beyond Resume Components/BeyondResumeInterviewSuccess';
+import BeyondResumePracticeInterviewForm from './pages/Beyond Resume/Beyond Resume Carrer Seeker/Beyond Resume Practice Interview/BeyondResumePracticeInterviewForm';
+import BeyondResumePracticeInterviewSession from './pages/Beyond Resume/Beyond Resume Carrer Seeker/Beyond Resume Practice Interview/BeyondResumePracticeInterviewSession';
+import BeyondResumeReadyToJoin from './pages/Beyond Resume/BeyondResumeReadyToJoin';
+import BeyondResumeCandidateList from './pages/Beyond Resume/Beyond Resume Talent Partner/BeyondResumeCandidateList';
 import BeyondResumeHome from './pages/Beyond Resume/BeyondResumeHome';
-import BeyondResumeInterview from './pages/Beyond Resume/BeyondResumeInterview';
-import BeyondResumeInterviewList from './pages/Beyond Resume/BeyondResumeInterviewList';
-import BeyondResumeInterviewOverview from './pages/Beyond Resume/BeyondResumeInterviewOverview';
+import BeyondResumeInterview from './pages/Beyond Resume/Beyond Resume Interview/BeyondResumePractice';
+import BeyondResumeInterviewList from './pages/Beyond Resume/Beyond Resume Carrer Seeker/BeyondResumeInterviewList';
+import BeyondResumeInterviewOverview from './pages/Beyond Resume/Beyond Resume Carrer Seeker/BeyondResumeInterviewOverview';
 import BeyondResumeJobDetails from './pages/Beyond Resume/BeyondResumeJobDetails';
-import BeyondResumeJobInterviewForm from './pages/Beyond Resume/BeyondResumeJobInterviewForm';
-import BeyondResumeJobInterviewSession from './pages/Beyond Resume/BeyondResumeJobInterviewSession';
-import BeyondResumeJobInterviewSessionWritten from './pages/Beyond Resume/BeyondResumeJobInterviewSessionWritten';
+import BeyondResumeJobInterviewForm from './pages/Beyond Resume/Beyond Resume Carrer Seeker/Beyond Resume Job Apply/BeyondResumeJobInterviewForm';
+import BeyondResumeJobInterviewSession from './pages/Beyond Resume/Beyond Resume Carrer Seeker/Beyond Resume Job Apply/BeyondResumeJobInterviewSession';
+import BeyondResumeJobInterviewSessionWritten from './pages/Beyond Resume/Beyond Resume Carrer Seeker/Beyond Resume Job Apply/BeyondResumeJobInterviewSessionWritten';
 import BeyondResumeJobs from './pages/Beyond Resume/BeyondResumeJobs';
-import BeyondResumePartnerJobDetails from './pages/Beyond Resume/BeyondResumePartnerJobDetails';
-import BeyondResumePayment from './pages/Beyond Resume/BeyondResumePayment';
-import BeyondResumePracticeJobs from './pages/Beyond Resume/BeyondResumePracticeJobs';
-import BeyondResumePricing from './pages/Beyond Resume/BeyondResumePricing';
+import BeyondResumePartnerJobDetails from './pages/Beyond Resume/Beyond Resume Talent Partner/BeyondResumePartnerJobDetails';
+import BeyondResumePayment from './pages/Beyond Resume/Beyond Resume Payments/BeyondResumePayment';
+import BeyondResumePracticeJobs from './pages/Beyond Resume/Beyond Resume Carrer Seeker/Beyond Resume Practice Interview/BeyondResumePracticeJobs';
+import BeyondResumePricing from './pages/Beyond Resume/Beyond Resume Payments/BeyondResumePricing';
 import CandidateProfilePage from './pages/Beyond Resume/BeyondResumeProfile/CandidateProfilePage';
-import JobFitmentPage from './pages/Beyond Resume/BeyondResumeProfile/JobFitmentAnalysis';
+import JobFitmentPage from './pages/Beyond Resume/Beyond Resume Carrer Seeker/Beyond Resume Job Apply/JobFitmentAnalysis';
 import BeyondResumeQuestionBankForm from './pages/Beyond Resume/BeyondResumeQuestionBankForm';
 import { CompanyProfilePage } from './pages/Beyond Resume/BeyondResumeCompanyProfile/CompanyProfilePage';
+import { IndustryProvider } from './components/util/IndustryContext';
+import BeyondResumeApplications from './pages/Beyond Resume/Beyond Resume Carrer Seeker/BeyondResumeApplications';
+import BeyondResumePractice from './pages/Beyond Resume/Beyond Resume Interview/BeyondResumePractice';
+import BeyondResumeJobPost from './pages/Beyond Resume/Beyond Resume Talent Partner/Beyond Resume Job Post/BeyondResumeJobPost';
 // import { AvatarProvider } from './pages/Daily Education/Components/AvatarContext';
-// import DailyEducationRegister from './pages/Daily Education/DailyEducationRegister';
-// import MyTeamPerformance from './pages/MyTeamPerformance';
-// import TeamPage from './pages/TeamPage';
-
 
 const App: React.FC = () => {
   const [isPageLoaded, setIsPageLoaded] = useState(false);
@@ -74,13 +74,14 @@ const App: React.FC = () => {
               <NotificationProvider>
               {/* <AvatarProvider> */}
               <ThemeProviderCustom>
-                
-                <div style={{minHeight:'100vh',overflowY:'hidden'}}
-            >
+              <IndustryProvider>
+
+                <div style={{minHeight:'100vh',overflowY:'hidden'}}>
                 <LayoutContainer>
                 {/* <HeaderDesktop /> */}
                 {/* <HeaderMob /> */}
                 <Switch>
+
 
                 <Route
                   exact
@@ -101,16 +102,17 @@ const App: React.FC = () => {
 
                   <Route path="/auth-callback" component={SSORedirectHandler} />
 
-              <UserDataProvider>
+                 <UserDataProvider>
 
                   <ProtectedRoute path="/beyond-resume" component={BeyondResumeHome} />
+                  <ProtectedRoute path="/beyond-resume-jobpost" component={BeyondResumeJobPost} />
                   <ProtectedRoute path="/beyond-resume-jobs" component={BeyondResumeJobs} />
                   <ProtectedRoute path="/beyond-resume-myjobs" component={BeyondResumeJobs} />
                   <ProtectedRoute path="/beyond-resume-practicePools" component={BeyondResumePracticeJobs} />
                   <ProtectedRoute path="/beyond-resume-myjobs-jobdetails/:brJobId" component={BeyondResumeJobDetails} />
                   <ProtectedRoute path="/beyond-resume-jobdetails/:brJobId" component={BeyondResumeJobDetails} />
                   <ProtectedRoute path="/beyond-resume-jobedit/:brJobId" component={BeyondResumePartnerJobDetails} />
-                  <ProtectedRoute path="/beyond-resume-interviews" component={BeyondResumeInterview} />
+                  <ProtectedRoute path="/beyond-resume-practice" component={BeyondResumePractice} />
                   <ProtectedRoute path="/beyond-resume-interviewForm" component={BeyondResumeInterviewForm} />
                   <ProtectedRoute path="/beyond-resume-JobInterviewForm/:brJobId" component={BeyondResumeJobInterviewForm} />
                   <ProtectedRoute path="/beyond-resume-readyToJoin/:brJobId" component={BeyondResumeReadyToJoin} />
@@ -119,6 +121,7 @@ const App: React.FC = () => {
                   <ProtectedRoute path="/beyond-resume-jobInterviewSession-written/:brJobId" component={BeyondResumeJobInterviewSessionWritten} />
                   <ProtectedRoute path="/beyond-resume-practiceInterviewSession/:brJobId" component={BeyondResumePracticeInterviewSession} />
                   <ProtectedRoute path="/beyond-resume-interview-success" component={BeyondResumeInterviewSuccess} />
+                  <ProtectedRoute path="/beyond-resume-jobApplications" component={BeyondResumeApplications} />
                   <ProtectedRoute path="/beyond-resume-interview-list" component={BeyondResumeInterviewList} />
                   <ProtectedRoute path="/beyond-resume-candidate-list" component={BeyondResumeCandidateList} />
                   <ProtectedRoute path="/beyond-resume-interview-overview/:id" component={BeyondResumeInterviewOverview} />
@@ -130,20 +133,20 @@ const App: React.FC = () => {
                   <ProtectedRoute path="/beyond-resume-practiceInterviewForm/:brMockInterviewId" component={BeyondResumePracticeInterviewForm} /> 
 
                   <ProtectedRoute path="/beyond-resume-fitment-analysis" component={JobFitmentPage} />
-              </UserDataProvider>
-
+                 </UserDataProvider>
 
               
 
                 </Switch>
               </LayoutContainer>
                 </div>
+              </IndustryProvider>
+
               </ThemeProviderCustom>
                 
                 
               {/* </AvatarProvider> */}
               </NotificationProvider>
-              {/* </CartProvider> */}
             </UserModuleRoleProvider>
           </BrowserRouter>
         

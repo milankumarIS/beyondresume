@@ -13,6 +13,7 @@ interface FileUploadProps {
   uploadLabel?: string;
   changeLabel?: string;
   textColor?: string;
+  subText?: string;
   sx?: SxProps<Theme>;
   showFileNameOnly?: boolean;
 }
@@ -21,6 +22,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
   questionFile,
   setQuestionFile,
   fileFormatNote,
+  subText,
   acceptFormat = ".xlsx",
   uploadLabel = "Upload",
   changeLabel = "Change File",
@@ -59,8 +61,9 @@ const FileUpload: React.FC<FileUploadProps> = ({
             }}
           >
             Drag and drop file or click to upload {formatLabel} (Max file size
-            2MB)
+            2MB). {subText}
           </Typography>
+          
 
           {fileFormatNote && (
             <Typography
