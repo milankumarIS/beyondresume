@@ -104,6 +104,12 @@ export default function BeyondResumePractice() {
           This is your space to practice interviews, track real ones, and grow
           your confidence.
         </Typography>
+
+        <BeyondResumeButton sx={{my:0, mt:4}}
+                    onClick={() => history.push(`/beyond-resume-practicePools`)}
+        >
+          Start Practicing Now
+        </BeyondResumeButton>
       </Box>
 
       <Box sx={{ px: 8, py: 6 }}>

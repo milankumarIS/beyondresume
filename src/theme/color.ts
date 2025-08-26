@@ -27,7 +27,7 @@
 
   cardBg:'rgba(94, 94, 94, 0.15)',
 
-  jobCardBg:'#1c273d',
+  jobCardBg:'#0E3847',
   jobCardBgLight:'#e3ecff',
 
 

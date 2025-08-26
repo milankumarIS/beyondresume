@@ -311,7 +311,6 @@ const JobCard = ({
             </Typography>
           ) : (
             <div>
-              {/* <h4 style={{ marginBottom: "10px" }}>Candidate Status</h4> */}
               <div
                 style={{
                   display: "flex",

@@ -1,8 +1,12 @@
-import { faBuilding } from "@fortawesome/free-solid-svg-icons";
+import {
+  faBuilding,
+  faChevronCircleRight,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   Box,
   Card,
+  Divider,
   Grid,
   styled,
   ToggleButton,
@@ -12,10 +16,16 @@ import {
 import React, { useEffect, useState } from "react";
 import { useHistory } from "react-router";
 import PaginationControlled from "../../../components/shared/Pagination";
+import { getFormattedDateKey } from "../../../components/util/CommonFunctions";
+import {
+  BeyondResumeButton,
+  BeyondResumeButton2,
+} from "../../../components/util/CommonStyle";
 import { useTheme } from "../../../components/util/ThemeContext";
 import { getUserId } from "../../../services/axiosClient";
 import { paginateDataFromTable } from "../../../services/services";
 import color from "../../../theme/color";
+import BeyondResumeApplications from "./BeyondResumeApplications";
 
 const BeyondResumeInterviewList = () => {
   const [interviewList, setInterviewList] = useState<any[]>([]);
@@ -57,13 +67,15 @@ const BeyondResumeInterviewList = () => {
       });
 
       const grouped = sortedList.reduce((acc: any, item: any) => {
-        const dateKey = getFormattedDateKey(item.updatedAt);
+        const dateKey = getFormattedDateKey1(item.updatedAt);
         if (!acc[dateKey]) {
           acc[dateKey] = [];
         }
         acc[dateKey].push(item);
         return acc;
       }, {});
+
+      // console.log(grouped);
 
       setInterviewList(grouped);
       setLoading(false);
@@ -74,288 +86,406 @@ const BeyondResumeInterviewList = () => {
 
   const { theme } = useTheme();
 
-
   return (
     <Box
       sx={{
-        p: 4,
+        // p: 4,
         minHeight: "90vh",
         overflow: "hidden",
         position: "relative",
       }}
     >
-      {/* <BlobAnimation /> */}
+      <Typography
+        variant="h3"
+        textAlign={"center"}
+        my={2}
+        sx={{ fontFamily: "montserrat-regular" }}
+      >
+        Interview Hub
+      </Typography>
+
+      <BeyondResumeApplications />
+
+      <Typography variant="h5" my={2} sx={{ textAlign: "center" }}>
+        Meanwhile, want to stay sharp? Try a quick Al-powered practice
+        interview.
+      </Typography>
+
+      <BeyondResumeButton
+        sx={{ m: "auto", display: "block", mb: 4, mt: 1 }}
+        onClick={() => {
+          history.push(`/beyond-resume-practicePools`);
+        }}
+      >
+        Start Practice Interview
+      </BeyondResumeButton>
 
       <Box
         sx={{
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          alignItems: "center",
-          position: "relative",
-          mb: 3,
-          color: "inherit",
+          background: color.cardBg,
+          p: 4,
+          m: 4,
+          borderRadius: 4,
         }}
       >
-        <CustomToggleButtonGroup
-          value={isPractice ? "yes" : "no"}
-          exclusive
-          onChange={() => setIsPractice((prev) => !prev)}
-        >
-          <CustomToggleButton value="yes">
-            Practice Interviews
-          </CustomToggleButton>
-          <CustomToggleButton value="no">Job Interviews</CustomToggleButton>
-        </CustomToggleButtonGroup>
-      </Box>
-
-      {loading ? (
         <Box
           sx={{
-            minHeight: "70vh",
             display: "flex",
+            flexDirection: "column",
             justifyContent: "center",
             alignItems: "center",
-            flexDirection: "column",
-          }}
-        >
-          <div className="newtons-cradle">
-            <div className="newtons-cradle__dot"></div>
-            <div className="newtons-cradle__dot"></div>
-            <div className="newtons-cradle__dot"></div>
-            <div className="newtons-cradle__dot"></div>
-          </div>
-          <Typography variant="h6" sx={{ mb: 2 }}>
-            Processing your Result
-          </Typography>
-        </Box>
-      ) : Object.keys(interviewList).length === 0 ? (
-        <Box
-          sx={{
-            minHeight: "70vh",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            flexDirection: "column",
+            position: "relative",
             color: "inherit",
           }}
         >
-          <Typography variant="h6" color="inherit">
-            No Data Available
-          </Typography>
+          <CustomToggleButtonGroup
+            value={isPractice ? "yes" : "no"}
+            exclusive
+            onChange={() => setIsPractice((prev) => !prev)}
+          >
+            <CustomToggleButton value="yes">
+              Past Practice Interviews
+            </CustomToggleButton>
+            <CustomToggleButton value="no">Past Interviews</CustomToggleButton>
+          </CustomToggleButtonGroup>
         </Box>
-      ) : (
-        <Grid container spacing={3} mt={2} sx={{ minHeight: "70vh" }}>
-          {Object.entries(interviewList).map(
-            ([date, interviews]: [string, any[]]) => (
-              <React.Fragment key={date}>
-                <Grid item xs={12}>
-                  <Typography
-                    variant="h6"
-                    sx={{
-                      mt: 4,
-                      mb: 1,
-                      position: "relative",
-                      borderRadius: "999px !important",
-                      padding: "6px 16px",
-                      fontWeight: 600,
-                      //   fontSize: "18px",
-                      background: color.activeButtonBg,
-                      color: "#fff",
-                      boxShadow: "0px 4px 10px rgba(90, 128, 253, 0.49)",
-                      width: "fit-content",
-                    }}
-                  >
-                    {date}
-                  </Typography>
-                </Grid>
 
-                {interviews.map((interview, index) => {
-                  const score = interview.interviewScore;
-                  const { remark, bgcolor } = getRemark(score);
-
-                  return (
-                    <Grid
-                      item
-                      xs={12}
-                      sm={6}
-                      md={6}
-                      key={index}
-                      position={"relative"}
-                    >
-                      <Card
-                        onClick={() =>
-                          history.push(
-                            `/beyond-resume-interview-overview/${
-                              isPractice
-                                ? interview?.brInterviewId
-                                : interview?.brJobApplicantId
-                            }?type=${isPractice ? "practice" : "job"}`
-                          )
-                        }
+        {loading ? (
+          <Box
+            sx={{
+              minHeight: "70vh",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              flexDirection: "column",
+            }}
+          >
+            <div className="newtons-cradle">
+              <div className="newtons-cradle__dot"></div>
+              <div className="newtons-cradle__dot"></div>
+              <div className="newtons-cradle__dot"></div>
+              <div className="newtons-cradle__dot"></div>
+            </div>
+            <Typography variant="h6" sx={{ mb: 2 }}>
+              Processing your Result
+            </Typography>
+          </Box>
+        ) : Object.keys(interviewList).length === 0 ? (
+          <Box
+            sx={{
+              minHeight: "70vh",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              flexDirection: "column",
+              color: "inherit",
+            }}
+          >
+            <Typography variant="h6" color="inherit">
+              No Data Available
+            </Typography>
+          </Box>
+        ) : (
+          <Grid container spacing={3} mt={1} p={3} sx={{ minHeight: "70vh" }}>
+            {Object.entries(interviewList).map(
+              ([date, interviews]: [string, any[]]) => (
+                <React.Fragment key={date}>
+                  {isPractice && (
+                    <Grid item xs={12}>
+                      <Typography
+                        variant="h6"
                         sx={{
-                          background:
-                            theme === "dark"
-                              ? color.jobCardBg
-                              : color.jobCardBgLight,
-
-                          borderRadius: 3,
-                          textAlign: "center",
-                          p: 2,
-                          boxShadow: "none",
-                          // minHeight: "250px",
+                          mt: 4,
+                          mb: 1,
                           position: "relative",
-                          m: "auto",
-                          color: "inherit",
+                          borderRadius: "999px !important",
+                          padding: "6px 16px",
+                          fontWeight: 600,
+                          //   fontSize: "18px",
+                          background: color.activeButtonBg,
+                          color: "#fff",
+                          boxShadow: "0px 4px 10px rgba(90, 128, 253, 0.49)",
+                          width: "fit-content",
                         }}
                       >
-                        {interview.companyName ? (
-                          <>
-                            <Box
-                              display={"flex"}
-                              alignItems={"center"}
-                              textAlign={"left"}
-                              gap={2}
-                              mb={2}
-                            >
-                              <Box>
-                                <FontAwesomeIcon
-                                  icon={faBuilding}
-                                  style={{
-                                    fontSize: "44px",
-                                    background: "white",
-                                    borderRadius: "8px",
-                                    padding: "12px",
-                                    color: color.newbg,
-                                  }}
-                                />
-                              </Box>
+                        {date}
+                      </Typography>
+                    </Grid>
+                  )}
 
-                              <div>
-                                <Typography
-                                  mb={0.5}
-                                  variant="h6"
-                                  onClick={() =>
-                                    history.push(
-                                      `/beyond-resume-interview-overview/${
-                                        isPractice
-                                          ? interview?.brInterviewId
-                                          : interview?.brJobApplicantId
-                                      }?type=${isPractice ? "practice" : "job"}`
-                                    )
-                                  }
-                                  sx={{
-                                    display: "-webkit-box",
-                                    overflow: "hidden",
-                                    textOverflow: "ellipsis",
-                                    WebkitLineClamp: 1,
-                                    WebkitBoxOrient: "vertical",
-                                    cursor: "pointer",
-                                    color:
-                                      theme === "dark"
-                                        ? color.titleColor
-                                        : color.titleLightColor,
-                                    "&:hover": {
-                                      textDecoration: "underline",
-                                    },
-                                  }}
-                                >
-                                  {interview.jobTitle}
-                                </Typography>
+                  {interviews.map((interview, index) => {
+                    const score = interview.interviewScore;
+                    const { remark, bgcolor } = getRemark(score);
 
-                                <Typography
-                                  fontSize={"16px"}
-                                  mt={-0.5}
-                                  mb={1}
-                                  sx={{ fontFamily: "Custom-Regular" }}
-                                >
-                                  {interview.companyName}
-                                </Typography>
-
-                                <Typography
-                                  fontSize={"14px"}
-                                  mt={-0.5}
-                                  sx={{ fontFamily: "montserrat-regular" }}
-                                >
-                                  {interview.location} ({interview.jobType})
-                                </Typography>
-                              </div>
-                            </Box>
-                          </>
-                        ) : (
-                          <>
-                            <Box
-                              sx={{
-                                background: bgcolor,
-                                mt: 2,
-                                borderRadius: "50%",
-                                width: 120,
-                                height: 120,
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                mx: "auto",
-                                mb: 2,
-                              }}
-                            >
-                              <Box>
-                                <Typography variant="h4" fontWeight="bold">
-                                  {score}
-                                </Typography>
-                                <Typography variant="body2">of 100</Typography>
-                              </Box>
-                            </Box>
-
-                            <Typography variant="h6" fontWeight="bold">
-                              {remark}
-                            </Typography>
-                          </>
-                        )}
-
-                        <Typography
-                          textAlign={!isPractice ? "left" : "center"}
-                          mt={1}
-                        >
-                          Overview:
-                        </Typography>
-                        <Typography
-                          variant="body2"
-                          mt={0.4}
-                          mb={2}
+                    return (
+                      <Grid
+                        item
+                        xs={12}
+                        sm={isPractice ? 6 : 12}
+                        md={isPractice ? 6 : 12}
+                        key={index}
+                        position={"relative"}
+                      >
+                        <Card
+                          onClick={() =>
+                            history.push(
+                              `/beyond-resume-interview-overview/${
+                                isPractice
+                                  ? interview?.brInterviewId
+                                  : interview?.brJobApplicantId
+                              }?type=${isPractice ? "practice" : "job"}`
+                            )
+                          }
                           sx={{
-                            display: "-webkit-box",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            WebkitLineClamp: 3,
-                            WebkitBoxOrient: "vertical",
-                            fontFamily: "Montserrat-Regular",
-                            fontSize: "12px",
-                            textAlign: !isPractice ? "left" : "center",
+                            borderRadius: 3,
+                            textAlign: "center",
+                            p: 2,
+                            position: "relative",
+                            m: "auto",
+                            boxShadow: "0px 0px 16px rgba(0, 0, 0, 0.1)",
+                            transition: "all 0.3s",
+                            background:
+                              theme === "dark"
+                                ? color.jobCardBg
+                                : color.jobCardBgLight,
+                            color: "inherit",
+                            "&:hover": {
+                              transform: "scale(1.02)",
+                            },
                           }}
                         >
-                          {interview.interviewSuggestion}
-                        </Typography>
+                          <Box sx={{ display: "flex" }}>
+                            {interview.companyName ? (
+                              <>
+                                <Box
+                                  display={"flex"}
+                                  alignItems={"center"}
+                                  textAlign={"left"}
+                                  gap={2}
+                                  mb={2}
+                                >
+                                  <Box>
+                                    <FontAwesomeIcon
+                                      icon={faBuilding}
+                                      style={{
+                                        fontSize: "44px",
+                                        background: "white",
+                                        borderRadius: "8px",
+                                        padding: "12px",
+                                        color: color.newbg,
+                                      }}
+                                    />
+                                  </Box>
 
-                      </Card>
-                    </Grid>
-                  );
-                })}
-              </React.Fragment>
-            )
-          )}
-        </Grid>
-      )}
+                                  <div>
+                                    <Typography
+                                      mb={0.5}
+                                      variant="h6"
+                                      onClick={() =>
+                                        history.push(
+                                          `/beyond-resume-interview-overview/${
+                                            isPractice
+                                              ? interview?.brInterviewId
+                                              : interview?.brJobApplicantId
+                                          }?type=${
+                                            isPractice ? "practice" : "job"
+                                          }`
+                                        )
+                                      }
+                                      sx={{
+                                        display: "-webkit-box",
+                                        overflow: "hidden",
+                                        textOverflow: "ellipsis",
+                                        WebkitLineClamp: 1,
+                                        WebkitBoxOrient: "vertical",
+                                        cursor: "pointer",
+                                        color:
+                                          theme === "dark"
+                                            ? color.titleColor
+                                            : color.titleLightColor,
+                                        "&:hover": {
+                                          textDecoration: "underline",
+                                        },
+                                      }}
+                                    >
+                                      {interview.jobTitle}
+                                    </Typography>
 
-      <Box sx={{ maxWidth: "100%", ml: "auto" }}>
-        {Object.keys(interviewList).length !== 0 ? (
-          <PaginationControlled
-            page={page}
-            setPage={setPage}
-            count={totalCount}
-          ></PaginationControlled>
-        ) : (
-          <></>
+                                    <Typography
+                                      fontSize={"16px"}
+                                      mt={-0.5}
+                                      mb={1}
+                                      sx={{ fontFamily: "Custom-Regular" }}
+                                    >
+                                      {interview.companyName}
+                                    </Typography>
+
+                                    <Typography
+                                      fontSize={"14px"}
+                                      mt={-0.5}
+                                      sx={{ fontFamily: "montserrat-regular" }}
+                                    >
+                                      {interview.location} ({interview.jobType})
+                                    </Typography>
+                                  </div>
+                                </Box>
+                              </>
+                            ) : (
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  flexDirection: "column",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  width: "100%",
+                                }}
+                              >
+                                <Box
+                                  sx={{
+                                    background: bgcolor,
+                                    mt: 2,
+                                    borderRadius: "50%",
+                                    width: 120,
+                                    height: 120,
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    mx: "auto",
+                                    mb: 2,
+                                  }}
+                                >
+                                  <Box>
+                                    <Typography variant="h4" fontWeight="bold">
+                                      {score}
+                                    </Typography>
+                                    <Typography variant="body2">
+                                      of 100
+                                    </Typography>
+                                  </Box>
+                                </Box>
+
+                                <Typography variant="h6" fontWeight="bold">
+                                  {remark}
+                                </Typography>
+                                <Typography
+                                  sx={{
+                                    pl: 0,
+                                    fontSize: "14px",
+                                    position: "absolute",
+                                    top: 6,
+                                    right: 6,
+                                    background: color.cardBg,
+                                    px: 2,
+                                    borderRadius: 2,
+                                  }}
+                                >
+                                  Applied (on) {""}
+                                  {getFormattedDateKey(interview.createdAt)}
+                                </Typography>
+                              </Box>
+                            )}
+
+                            {!isPractice && (
+                              <>
+                                <Box
+                                  sx={{
+                                    display: "flex",
+                                    // flexDirection:'column',
+                                    justifyContent: "flex-end",
+                                    flexGrow: 1,
+                                  }}
+                                >
+                                  <div
+                                    style={{
+                                      display: "flex",
+                                      flexDirection: "column",
+                                      // alignItems:'center',
+                                      // justifyContent:'center',
+                                    }}
+                                  >
+                                    <BeyondResumeButton2
+                                      sx={{ fontSize: "12px" }}
+                                      onClick={() => {
+                                        history.push(
+                                          `/beyond-resume-applicationJD/${interview.brJobId}`
+                                        );
+                                      }}
+                                    >
+                                      Review JD
+                                      <FontAwesomeIcon
+                                        style={{ marginLeft: "8px" }}
+                                        icon={faChevronCircleRight}
+                                      />
+                                    </BeyondResumeButton2>
+                                    <BeyondResumeButton
+                                      sx={{ fontSize: "12px" }}
+                                      onClick={() =>
+                                        history.push(
+                                          `/beyond-resume-interview-overview/${
+                                            isPractice
+                                              ? interview?.brInterviewId
+                                              : interview?.brJobApplicantId
+                                          }?type=${
+                                            isPractice ? "practice" : "job"
+                                          }`
+                                        )
+                                      }
+                                    >
+                                      View Feedback
+                                      <FontAwesomeIcon
+                                        style={{ marginLeft: "8px" }}
+                                        icon={faChevronCircleRight}
+                                      />
+                                    </BeyondResumeButton>
+                                  </div>
+                                </Box>
+                              </>
+                            )}
+                          </Box>
+
+                          <Typography
+                            textAlign={!isPractice ? "left" : "center"}
+                            mt={1}
+                          >
+                            Overview:
+                          </Typography>
+                          <Typography
+                            mt={0}
+                            mb={2}
+                            sx={{
+                              display: "-webkit-box",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              WebkitLineClamp: 3,
+                              WebkitBoxOrient: "vertical",
+                              fontFamily: "Montserrat-Regular",
+                              fontSize: "14px",
+                              textAlign: !isPractice ? "left" : "center",
+                            }}
+                          >
+                            {interview.interviewSuggestion}
+                          </Typography>
+                        </Card>
+                      </Grid>
+                    );
+                  })}
+                </React.Fragment>
+              )
+            )}
+          </Grid>
         )}
+
+        <Box sx={{ maxWidth: "100%", ml: "auto", mb: 2 }}>
+          {Object.keys(interviewList).length !== 0 ? (
+            <PaginationControlled
+              page={page}
+              setPage={setPage}
+              count={totalCount}
+            ></PaginationControlled>
+          ) : (
+            <></>
+          )}
+        </Box>
       </Box>
     </Box>
   );
@@ -395,30 +525,34 @@ const getRemark = (score: number) => {
   };
 };
 
-
 const CustomToggleButtonGroup = styled(ToggleButtonGroup)(({ theme }) => ({
   backgroundColor: "rgba(94, 94, 94, 0.15)",
-  borderRadius: "999px",
+  borderRadius: "12px",
   padding: "8px",
 }));
 
 const CustomToggleButton = styled(ToggleButton)(({ theme }) => ({
   border: "none",
-  borderRadius: "999px !important",
+  borderRadius: "12px !important",
   padding: "6px 16px",
   fontWeight: 600,
   fontSize: "18px",
   textTransform: "none",
   color: "grey",
+  // boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.11)",
+  marginRight: "8px",
 
   "&.Mui-selected": {
+    borderRadius: "12px",
     background: color.activeButtonBg,
-    color: "#fff",
-    boxShadow: "0px 4px 10px rgba(90, 128, 253, 0.49)",
+    color: "white",
+  boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.11)",
+
+    // boxShadow: "0px 4px 10px rgba(90, 128, 253, 0.49)",
   },
 }));
 
-const getFormattedDateKey = (dateString: string) => {
+const getFormattedDateKey1 = (dateString: string) => {
   const date = new Date(dateString);
   const today = new Date();
   const yesterday = new Date();

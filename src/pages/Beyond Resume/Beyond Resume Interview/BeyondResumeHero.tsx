@@ -1,17 +1,14 @@
-import { Avatar, Box, Container, Stack, Typography } from "@mui/material";
+import { Avatar, Box, Stack, Typography } from "@mui/material";
 import AvatarGroup from "@mui/material/AvatarGroup";
-import GradientText, {
+import { useEffect, useRef, useState } from "react";
+import { useHistory } from "react-router";
+import {
   BeyondResumeButton,
   BeyondResumeButton2,
-  BlobAnimation,
-  BlobComponent,
 } from "../../../components/util/CommonStyle";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faRobot } from "@fortawesome/free-solid-svg-icons";
-import { useRef, useState, useEffect } from "react";
-import { useHistory } from "react-router";
 import { searchListDataFromTable } from "../../../services/services";
 import color from "../../../theme/color";
+import { getUserRole } from "../../../services/axiosClient";
 
 export default function BeyondResumeHero({ onScrollClick }) {
   const blobPaths = [
@@ -56,7 +53,7 @@ export default function BeyondResumeHero({ onScrollClick }) {
   const [count, setCount] = useState(0);
 
   const total = interviewList.length;
-// console.log(total);
+  // console.log(total);
 
   useEffect(() => {
     if (count < total) {
@@ -64,11 +61,40 @@ export default function BeyondResumeHero({ onScrollClick }) {
       const timer = setTimeout(() => {
         setCount((prev) => Math.min(prev + increment, total));
       }, 30);
-      
 
       return () => clearTimeout(timer);
     }
   }, [count, total]);
+
+  const heroContent =
+    getUserRole() === "CAREER SEEKER"
+      ? {
+          title: "Your AI-powered career companion.",
+          subtitle:
+            "Practice, apply, and ace interviews with AI-generated questions, instant feedback, and personalized scoring.",
+          primaryBtn: {
+            label: "Start Practicing Today",
+            action: () => history.push("/beyond-resume-practicePools"),
+          },
+          secondaryBtn: {
+            label: "Explore Jobs",
+            action: () => history.push("/beyond-resume-jobs"),
+          },
+        }
+      : {
+          title:
+            "Hire smarter with AI-powered job descriptions and interviews.",
+          subtitle:
+            "Create job postings in minutes, generate tailored interview questions, and evaluate candidates with AI-driven insights.",
+          primaryBtn: {
+            label: "Post a Job",
+            action: () => history.push("/beyond-resume-jobpost"),
+          },
+          secondaryBtn: {
+            label: "Learn More",
+            action: onScrollClick,
+          },
+        };
 
   return (
     <Box
@@ -76,11 +102,11 @@ export default function BeyondResumeHero({ onScrollClick }) {
       className={`slide-in ${isVisible ? "visible" : ""}`}
       sx={{
         py: 20,
-        pt:15,
+        pt: 15,
         mb: 4,
         mt: -10,
         position: "relative",
-        borderRadius: "0px 0px 680px 680px",
+        borderRadius: "0px 0px 900px 900px",
         // overflow: "hidden",
         background: color.cardBg,
       }}
@@ -134,15 +160,14 @@ export default function BeyondResumeHero({ onScrollClick }) {
               position: "relative",
             }}
           >
-            Land your dream job faster with our mock interview practice tool.
+            {heroContent.title}
           </Typography>
 
           <Typography
             variant="h6"
             sx={{ mt: 2, fontFamily: "Montserrat-Regular" }}
           >
-            Ace any job interview with unlimited mock interviews, tailored
-            feedback, and an interactive interview simulator.
+            {heroContent.subtitle}
           </Typography>
         </Box>
 
@@ -153,20 +178,17 @@ export default function BeyondResumeHero({ onScrollClick }) {
           sx={{ mt: 4 }}
         >
           <BeyondResumeButton
-            onClick={() => history.push("/beyond-resume-practicePools")}
+            onClick={heroContent.primaryBtn.action}
             sx={{ p: 1, px: 4 }}
           >
-            Start Practicing Today
+            {heroContent.primaryBtn.label}
           </BeyondResumeButton>
 
           <BeyondResumeButton2
-            onClick={onScrollClick}
-            sx={{
-              // p: 2,
-              px: 4,
-            }}
+            onClick={heroContent.secondaryBtn.action}
+            sx={{ p: 0.8, px: 4 }}
           >
-            Learn More
+            {heroContent.secondaryBtn.label}
           </BeyondResumeButton2>
         </Stack>
 

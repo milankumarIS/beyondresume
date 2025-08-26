@@ -1,20 +1,25 @@
 import React from "react";
+import { useLocation } from "react-router-dom";
+import { useTheme } from "../util/ThemeContext";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
-import color from "../../theme/color";
-import { useTheme } from "../util/ThemeContext";
 
 const LayoutContainer: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const { theme } = useTheme();
+  const location = useLocation();
+
+  const isPublicPage = location.pathname.startsWith(
+    "/beyond-resume-publicjobdetails"
+  );
 
   return (
     <div
       className="layout-wrapper"
       style={{
         display: "flex",
-        background: theme === "dark" ? color.newbg : "#e3ecf5",
+        background: theme === "dark" ? "#082028" : "#e3ecf5",
         color: theme === "dark" ? "white" : "black",
         maxWidth: "100vw",
       }}
@@ -33,7 +38,7 @@ const LayoutContainer: React.FC<{ children: React.ReactNode }> = ({
           maxHeight: "100vh",
         }}
       />
-      <Sidebar />
+      {!isPublicPage && <Sidebar />}
       <div
         className="main-content"
         style={{
@@ -42,7 +47,7 @@ const LayoutContainer: React.FC<{ children: React.ReactNode }> = ({
           flexDirection: "column",
           position: "relative",
           background: "transparent",
-          paddingLeft: 60,
+          paddingLeft: isPublicPage ? 0 : 60,
         }}
       >
         <Header />

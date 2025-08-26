@@ -8,49 +8,96 @@ import {
 } from "@mui/material";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
+import { getUserRole } from "../../../services/axiosClient";
 
-export const faqList = [
+const jobSeekerFaqs = [
   {
-    question: "What is this platform used for?",
-    answer:
-      "Our platform helps companies post jobs with AI-generated descriptions and interview questions, and allows candidates to apply and attend AI-evaluated written or voice-based interviews.",
+    question: "What is Beyond Resume for job seekers?",
+    answer: "Beyond Resume helps job seekers practice real AI-driven interviews, get instant feedback, and improve their chances of landing jobs."
   },
   {
-    question: "How does the AI generate job descriptions and questions?",
-    answer:
-      "The AI analyzes your input (such as job title, skills, and requirements) and generates a complete JD along with relevant, role-specific interview questions. You can modify them before publishing.",
+    question: "Can I apply for real jobs on Beyond Resume?",
+    answer: "Yes, you can explore job postings from companies and apply directly through Beyond Resume."
   },
   {
-    question: "What interview formats are supported?",
-    answer:
-      "We support two formats: Web-based written interviews and Voice-based interviews. Candidates can answer in real-time, and AI will score them automatically.",
+    question: "What types of interviews can I practice?",
+    answer: "You can practice AI-driven interviews in two modes: text-based and video-based."
   },
   {
-    question: "Can candidates practice interviews?",
-    answer:
-      "Yes, candidates can take mock interviews using their resume or a selected job description. They’ll get AI-generated questions and performance analytics based on their answers.",
+    question: "How does the AI evaluate my performance?",
+    answer: "Our AI analyzes your clarity, confidence, communication skills, and job relevance to generate scores and feedback."
   },
   {
-    question: "How is the interview scored?",
-    answer:
-      "The AI evaluates answers using natural language understanding, assessing factors like relevance, accuracy, communication, and completeness. Scores are instantly available.",
+    question: "Is my interview data secure?",
+    answer: "Yes, all your interview data and responses are kept private and secure, visible only to you and recruiters you apply to."
   },
   {
-    question: "Is the platform free to use?",
-    answer:
-      "Yes, basic usage is free. Advanced features like multiple job posts, voice interviews, and in-depth analytics are available via affordable subscription plans.",
+    question: "Can I create a custom job description to practice?",
+    answer: "Yes, you can enter any custom JD, and the AI will generate relevant interview questions for practice."
   },
   {
-    question: "Can I trust AI to evaluate candidates?",
-    answer:
-      "Yes. Our AI models are trained to fairly assess language, logic, and relevance. For transparency, both candidates and recruiters can view scoring breakdowns.",
+    question: "Will I know if I am suitable for a role?",
+    answer: "Yes, Beyond Resume categorizes your performance to indicate whether you are suitable for the role."
   },
   {
-    question: "Is my data secure?",
-    answer:
-      "Absolutely. We follow industry best practices and compliance standards to keep your data safe. Resume data, interview content, and analytics are encrypted and private.",
+    question: "Do I get unlimited practice sessions?",
+    answer: "You can practice as many times as you want, depending on your chosen plan."
   },
+  {
+    question: "Can I track my progress over time?",
+    answer: "Yes, Beyond Resume provides performance history so you can see how you’re improving across interviews."
+  },
+  {
+    question: "Is Beyond Resume free for job seekers?",
+    answer: "We offer both free practice sessions and premium plans with advanced feedback and unlimited interviews."
+  }
 ];
+
+const recruiterFaqs = [
+  {
+    question: "What is Beyond Resume for recruiters?",
+    answer: "Beyond Resume helps recruiters post jobs, generate AI-powered job descriptions, and evaluate candidates using AI-driven interviews."
+  },
+  {
+    question: "How do I create a job post?",
+    answer: "Simply provide basic details, and Beyond Resume will generate a polished AI job description instantly."
+  },
+  {
+    question: "Can Beyond Resume generate interview questions automatically?",
+    answer: "Yes, based on the job description and evaluation criteria, AI generates structured interview questions for candidates."
+  },
+  {
+    question: "How does candidate evaluation work?",
+    answer: "The AI evaluates responses from candidates in both video and text interviews, scoring them against your criteria."
+  },
+  {
+    question: "Can I customize the evaluation criteria?",
+    answer: "Yes, you can set your own evaluation parameters, and the AI tailors its scoring to match them."
+  },
+  {
+    question: "Is it possible to review candidate performance?",
+    answer: "Yes, recruiters can see AI-generated scores, feedback, and performance reports for every applicant."
+  },
+  {
+    question: "How does this save my hiring time?",
+    answer: "Beyond Resume pre-screens candidates using AI, helping you shortlist top talent quickly without manual effort."
+  },
+  {
+    question: "Can multiple team members collaborate on recruitment?",
+    answer: "Yes, recruiters can invite their team to view candidates, share notes, and make collaborative decisions."
+  },
+  {
+    question: "Is Beyond Resume secure for candidate data?",
+    answer: "Yes, all candidate data is encrypted and securely stored, ensuring compliance with data protection standards."
+  },
+  {
+    question: "Do recruiters need technical knowledge to use Beyond Resume?",
+    answer: "Not at all! The platform is designed to be user-friendly, so you can focus on hiring while AI handles the complexity."
+  }
+];
+
+const faqList =
+  getUserRole() === "CAREER SEEKER" ? jobSeekerFaqs : recruiterFaqs;
 
 const BeyondResumeFAQ = () => {
   return (

@@ -1,15 +1,18 @@
-import React, { useRef, useState } from "react";
-import { Modal, Button, Box, Typography } from "@mui/material";
+import {
+  faDownload,
+  faFileExport
+} from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { Box, Modal, Typography } from "@mui/material";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import React, { useRef, useState } from "react";
 import {
   BeyondResumeButton,
+  BeyondResumeButton2,
   StyledTypography,
 } from "../../../components/util/CommonStyle";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faDownload } from "@fortawesome/free-solid-svg-icons";
 import { useTheme } from "../../../components/util/ThemeContext";
-import color from "../../../theme/color";
 
 interface HtmlToPdfViewerProps {
   htmlText: string;
@@ -53,13 +56,14 @@ const HtmlToPdfViewer: React.FC<HtmlToPdfViewerProps> = ({
 
   const { theme } = useTheme();
   return (
-    <Box >
-      <Typography variant="h5" mb={2}>
+    <Box p={2}>
+      <BeyondResumeButton2 onClick={() => setOpen(true)}>
         {" "}
-        {heading}
-      </Typography>
+        View {heading}{" "}
+        <FontAwesomeIcon style={{ marginLeft: "6px" }} icon={faFileExport} />
+      </BeyondResumeButton2>
 
-      <Box
+      {/* <Box
         className="custom-scrollbar"
         onClick={() => setOpen(true)}
         sx={{
@@ -74,7 +78,7 @@ const HtmlToPdfViewer: React.FC<HtmlToPdfViewerProps> = ({
           background: theme === "dark" ? color.jobCardBg : color.jobCardBgLight,
         }}
         dangerouslySetInnerHTML={{ __html: htmlText }}
-      />
+      /> */}
 
       <Modal open={open} onClose={() => setOpen(false)}>
         <Box
@@ -94,14 +98,9 @@ const HtmlToPdfViewer: React.FC<HtmlToPdfViewerProps> = ({
             color: "black",
           }}
         >
-          <Typography
-            variant="h5"
-            mb={3}
-            textAlign={"center"}
-          >
+          <Typography variant="h5" mb={3} textAlign={"center"}>
             {heading}
           </Typography>
-
 
           <StyledTypography
             dangerouslySetInnerHTML={{

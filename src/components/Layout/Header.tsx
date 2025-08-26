@@ -19,10 +19,15 @@ const Header: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
   const [popupOpen1, setPopupOpen1] = useState(false);
   const history = useHistory();
-  const locationurl = useLocation();
+  const location = useLocation();
+
+  const isPublicPage = location.pathname.startsWith(
+    "/beyond-resume-publicjobdetails"
+  );
 
   const isOnProfilePage =
-    location.pathname === "/beyond-resume-candidate-profile" || location.pathname === "/beyond-resume-company-profile";
+    location.pathname === "/beyond-resume-candidate-profile" ||
+    location.pathname === "/beyond-resume-company-profile";
 
   const handleClick = () => {
     if (isOnProfilePage) {
@@ -86,9 +91,8 @@ const Header: React.FC = () => {
             )}
           </Box>
         ) : (
-
           <></>
-          // <Box style={{ cursor: "pointer" }} 
+          // <Box style={{ cursor: "pointer" }}
           // onClick={handleClick}
           // >
           //   {isOnProfilePage ? (
@@ -99,16 +103,18 @@ const Header: React.FC = () => {
           // </Box>
         )}
 
-        <FontAwesomeIcon
-          title="Sign out"
-          style={{
-            cursor: "pointer",
-          }}
-          onClick={() => {
-            setPopupOpen1(true);
-          }}
-          icon={faSignOut}
-        />
+        {!isPublicPage && (
+          <FontAwesomeIcon
+            title="Sign out"
+            style={{
+              cursor: "pointer",
+            }}
+            onClick={() => {
+              setPopupOpen1(true);
+            }}
+            icon={faSignOut}
+          />
+        )}
       </Box>
 
       <ConfirmationPopup

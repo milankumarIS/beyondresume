@@ -4,6 +4,7 @@ import {
   faChevronCircleDown,
   faChevronCircleRight,
   faClock,
+  faHourglass,
   faLocationDot,
   faLocationPin,
 } from "@fortawesome/free-solid-svg-icons";
@@ -24,6 +25,7 @@ import { useHistory } from "react-router";
 import PaginationControlled from "../../../components/shared/Pagination";
 import {
   BeyondResumeButton,
+  BeyondResumeButton2,
   commonPillStyle,
   GradientFontAwesomeIcon,
   StyledTypography,
@@ -96,7 +98,7 @@ const BeyondResumeApplications = () => {
         }, {});
 
         setInterviewList(grouped);
-        console.log(grouped);
+        // console.log(grouped);
 
         setLoading(false);
 
@@ -223,7 +225,9 @@ const BeyondResumeApplications = () => {
         position: "relative",
       }}
     >
-      <Box
+      <Typography variant="h6">Upcoming Interviews</Typography>
+
+      {/* <Box
         sx={{
           display: "flex",
           flexDirection: "column",
@@ -238,10 +242,9 @@ const BeyondResumeApplications = () => {
           exclusive
           onChange={() => setIsPractice((prev) => !prev)}
         >
-          {/* <CustomToggleButton value="yes">Saved Jobs</CustomToggleButton> */}
           <CustomToggleButton value="no">Pending Assessment</CustomToggleButton>
         </CustomToggleButtonGroup>
-      </Box>
+      </Box> */}
 
       {loading ? (
         // Loader
@@ -264,35 +267,6 @@ const BeyondResumeApplications = () => {
             Loading your jobs
           </Typography>
         </Box>
-      ) : isPractice ? (
-        savedJobs.length === 0 ? (
-          <Box
-            sx={{
-              minHeight: "70vh",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              flexDirection: "column",
-              color: "inherit",
-            }}
-          >
-            <Typography variant="h6" color="inherit">
-              No Saved Jobs Available
-            </Typography>
-          </Box>
-        ) : (
-          <Grid container spacing={3} mt={2}>
-            {savedJobs.map((job, index) => (
-              <Grid item xs={12} sm={6} md={6} key={index}>
-                <JobCard
-                  job={job}
-                  theme={theme}
-                  onStartAssessment={handleStartAssessment}
-                />
-              </Grid>
-            ))}
-          </Grid>
-        )
       ) : Object.keys(interviewList).length === 0 ? (
         // Pending Assessment: No Data
         <Box
@@ -310,12 +284,11 @@ const BeyondResumeApplications = () => {
           </Typography>
         </Box>
       ) : (
-        // ✅ Pending Assessment Tab
-        <Grid container spacing={3} mt={2} sx={{ minHeight: "70vh" }}>
+        <Grid container spacing={1} mt={2}>
           {Object.entries(interviewList).map(
             ([date, interviews]: [string, any[]]) => (
               <React.Fragment key={date}>
-                <Grid item xs={12}>
+                {/* <Grid item xs={12}>
                   <Typography
                     variant="h6"
                     sx={{
@@ -332,10 +305,10 @@ const BeyondResumeApplications = () => {
                   >
                     {date}
                   </Typography>
-                </Grid>
+                </Grid> */}
 
                 {interviews.map((interview, index) => (
-                  <Grid item xs={12} sm={6} md={6} key={index}>
+                  <Grid item xs={12} sm={12} md={12} key={index}>
                     <JobCard
                       job={interview}
                       theme={theme}
@@ -349,9 +322,8 @@ const BeyondResumeApplications = () => {
         </Grid>
       )}
 
-      {/* Pagination only for Pending Assessments */}
       <Box sx={{ maxWidth: "100%", ml: "auto" }}>
-        {!isPractice && Object.keys(interviewList).length !== 0 ? (
+        {!isPractice && Object.keys(interviewList).length >= 10 ? (
           <PaginationControlled
             page={page}
             setPage={setPage}
@@ -384,12 +356,12 @@ interface JobCardProps {
 
 const JobCard: React.FC<JobCardProps> = ({ job, theme, onStartAssessment }) => {
   const [showFullDescription, setShowFullDescription] = useState(false);
+  const history = useHistory();
 
   return (
     <Card
       sx={{
         borderRadius: "12px",
-        height: "100%",
         boxShadow: "0px 0px 16px rgba(0, 0, 0, 0.1)",
         transition: "all 0.3s",
         background: theme === "dark" ? color.jobCardBg : color.jobCardBgLight,
@@ -400,15 +372,20 @@ const JobCard: React.FC<JobCardProps> = ({ job, theme, onStartAssessment }) => {
       }}
     >
       <CardContent
-        sx={{ position: "relative" }}
+        sx={{
+          position: "relative",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
         style={{
           paddingBottom: "16px",
           borderRadius: "12px",
           overflow: "hidden",
+          minHeight: "0px",
         }}
       >
-        {/* Header */}
-        <Box display={"flex"} alignItems={"center"} gap={2} mb={2}>
+        <Box display={"flex"} gap={2} mb={2}>
           <Box>
             <FontAwesomeIcon
               icon={faBuilding}
@@ -445,8 +422,21 @@ const JobCard: React.FC<JobCardProps> = ({ job, theme, onStartAssessment }) => {
             >
               {job.jobTitle}
             </Typography>
-            <Typography fontSize={"16px"} mt={-0.5} mb={1}>
+            <Typography
+              fontSize={"14px"}
+              mt={-0.5}
+              mb={1}
+              sx={{ fontFamily: "montserrat-regular" }}
+            >
               {job.companyName}
+            </Typography>
+            <Typography
+              fontSize={"14px"}
+              mt={-0.5}
+              mb={1}
+              sx={{ fontFamily: "montserrat-regular" }}
+            >
+              {job.location}
             </Typography>
 
             <Box
@@ -454,16 +444,12 @@ const JobCard: React.FC<JobCardProps> = ({ job, theme, onStartAssessment }) => {
                 display: "flex",
                 gap: 1,
                 flexWrap: "wrap",
-                ml:-1
+                ml: -1,
                 // paddingLeft: "60px",
               }}
             >
               <Typography sx={commonPillStyle}>
-                <GradientFontAwesomeIcon size={14} icon={faLocationDot} />{" "}
-                {job.location}
-              </Typography>
-              <Typography sx={commonPillStyle}>
-                <GradientFontAwesomeIcon size={14} icon={faClock} />{" "}
+                <GradientFontAwesomeIcon size={14} icon={faHourglass} />{" "}
                 {job.interviewDuration} Mins Duration
               </Typography>
               <Typography sx={commonPillStyle}>
@@ -478,8 +464,45 @@ const JobCard: React.FC<JobCardProps> = ({ job, theme, onStartAssessment }) => {
           </div>
         </Box>
 
+        <Box
+          sx={{
+            display: "flex",
+            // flexDirection:'column',
+            justifyContent: "flex-end",
+            gap: 1,
+            flexGrow: 1,
+          }}
+        >
+          <div
+            style={{ display: "flex", flexDirection: "column", gap: "12px" }}
+          >
+            <BeyondResumeButton2
+              sx={{ fontSize: "12px" }}
+              onClick={() => {
+                history.push(`/beyond-resume-applicationJD/${job.brJobId}`);
+              }}
+            >
+              Review JD
+              <FontAwesomeIcon
+                style={{ marginLeft: "8px" }}
+                icon={faChevronCircleRight}
+              />
+            </BeyondResumeButton2>
+            <BeyondResumeButton
+              sx={{ fontSize: "12px" }}
+              onClick={() => onStartAssessment(job)}
+            >
+              Start Assessment
+              <FontAwesomeIcon
+                style={{ marginLeft: "8px" }}
+                icon={faChevronCircleRight}
+              />
+            </BeyondResumeButton>
+          </div>
+        </Box>
+
         {/* Description */}
-        <StyledTypography
+        {/* <StyledTypography
           sx={{
             display: "-webkit-box",
             WebkitLineClamp: showFullDescription ? "none" : 3,
@@ -492,9 +515,9 @@ const JobCard: React.FC<JobCardProps> = ({ job, theme, onStartAssessment }) => {
           dangerouslySetInnerHTML={{
             __html: job.jobDescriptions?.replace(/```(?:html)?/g, "").trim(),
           }}
-        />
+        /> */}
 
-        <Button
+        {/* <Button
           sx={{
             mt: 1,
             mr: "auto",
@@ -513,29 +536,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, theme, onStartAssessment }) => {
               showFullDescription ? faChevronCircleDown : faChevronCircleRight
             }
           />
-        </Button>
-
-        <Box
-          sx={{
-            display: "flex",
-            gap: 1,
-            justifyContent: "flex-end",
-            width:'100%',
-            my:2,
-            mt:-2
-          }}
-        >
-          <BeyondResumeButton
-            sx={{ fontSize: "12px" }}
-            onClick={() => onStartAssessment(job)}
-          >
-            Start Assessment
-            <FontAwesomeIcon
-              style={{ marginLeft: "8px" }}
-              icon={faChevronCircleRight}
-            />
-          </BeyondResumeButton>
-        </Box>
+        </Button> */}
       </CardContent>
     </Card>
   );

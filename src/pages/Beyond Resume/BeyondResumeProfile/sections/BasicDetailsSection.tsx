@@ -59,6 +59,7 @@ export default function BasicDetailsSection({
           minWidth: "300px",
           textAlign: "center",
           borderRadius: "18px",
+          background:'transparent',
           boxShadow: "none",
         }}
       >

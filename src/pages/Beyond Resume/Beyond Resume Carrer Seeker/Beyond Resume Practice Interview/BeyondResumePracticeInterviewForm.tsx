@@ -84,6 +84,7 @@ const BeyondResumePracticeInterviewForm = () => {
       setLoading(false);
     });
   }, []);
+console.log(jobsData);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,6 +96,8 @@ const BeyondResumePracticeInterviewForm = () => {
       brInterviewStatus: "INPROGRESS",
       name,
       about,
+      email,
+      phone
       // userExperience,
     };
 

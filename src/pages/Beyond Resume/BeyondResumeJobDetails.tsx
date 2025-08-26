@@ -45,6 +45,7 @@ type Props = {
   selectedTab: any;
   onBack?: () => void;
   setPopupOpen: (open: boolean) => void;
+  showJD?: boolean;
   setSelectedJobIdC: (id: any) => void;
 };
 
@@ -54,6 +55,7 @@ const BeyondResumeJobDetails = ({
   onBack,
   setPopupOpen,
   selectedTab,
+  showJD = true,
   setSelectedJobIdC,
 }: Props) => {
   const { theme } = useTheme();
@@ -74,6 +76,9 @@ const BeyondResumeJobDetails = ({
   const [displayContent, setDisplayContent] = useState("");
   const [showQuestion, setShowQuestions] = useState(false);
   const isJobPage = location.pathname.startsWith("/beyond-resume-myjobs");
+  const isApplicationJDPage = location.pathname.startsWith(
+    "/beyond-resume-applicationJD"
+  );
   const [jobUsername, setjobUsername] = useState("");
   const { snackbarProps, showSnackbar } = useNewSnackbar();
   const [popupOpen, setPopupOpen1] = useState(false);
@@ -86,6 +91,8 @@ const BeyondResumeJobDetails = ({
           setLoading(true);
           const result: any = await searchDataFromTable("brJobs", { brJobId });
           setJob(result?.data?.data);
+          console.log(result.data.data);
+          
         } catch (error) {
           console.error("Error fetching job by brJobId:", error);
         } finally {
@@ -158,7 +165,11 @@ const BeyondResumeJobDetails = ({
     };
 
     const base64Payload = btoa(JSON.stringify(payload));
-    const fullLink = `https://indi.skillablers.com/indi-registration?${base64Payload}`;
+    // const fullLink = `https://indi.skillablers.com/indi-registration?${base64Payload}`;
+    // window.location.href = `/beyond-resume-publicjobdetails?${base64Payload}`;
+
+
+    const fullLink = `https://br.skillablers.com/beyond-resume-publicjobdetails?${base64Payload}`
 
     try {
       await copyToClipboard(fullLink);
@@ -261,7 +272,7 @@ const BeyondResumeJobDetails = ({
       mt={0}
       m={brJobId ? 4 : 0}
       sx={{
-        boxShadow: "0px 2px 36px rgba(0, 0, 0, 0.25)",
+        boxShadow: "0px 2px 36px rgba(0, 0, 0, 0.05)",
         borderRadius: 4,
       }}
     >
@@ -287,8 +298,8 @@ const BeyondResumeJobDetails = ({
                 >
                   <img
                     style={{
-                      width: "30px",
-                      borderRadius: "4px",
+                      width: "50px",
+                      // borderRadius: "4px",
                     }}
                     src="/assets/translab.png"
                     alt=""
@@ -382,7 +393,7 @@ const BeyondResumeJobDetails = ({
                   }}
                 >
                   {getUserRole() === "TALENT PARTNER" &&
-                    job.brJobStatus === "ACTIVE" &&
+                    job?.brJobStatus === "ACTIVE" &&
                     !!job.endDate &&
                     new Date(job.endDate) >= new Date() && (
                       <BeyondResumeButton2
@@ -420,7 +431,7 @@ const BeyondResumeJobDetails = ({
                   )}
 
                   {selectedTab === 1 ||
-                  (job.brJobStatus === "INPROGRESS" &&
+                  (job?.brJobStatus === "INPROGRESS" &&
                     !!job.endDate &&
                     new Date(job.endDate) >= new Date()) ? (
                     <BeyondResumeButton
@@ -468,22 +479,24 @@ const BeyondResumeJobDetails = ({
                   }}
                 >
                   <Box sx={{ display: "flex", gap: 1 }}>
-                    <BeyondResumeButton2
-                      sx={{ fontSize: "12px", px: 2 }}
-                      onClick={handleToggleFitment}
-                    >
-                      {selectedJobId
-                        ? "Hide Fitment Analysis"
-                        : "Get Fitment Analysis"}
-                      <FontAwesomeIcon
-                        style={{ marginLeft: "6px" }}
-                        icon={
-                          selectedJobId
-                            ? faChevronCircleDown
-                            : faChevronCircleRight
-                        }
-                      />
-                    </BeyondResumeButton2>
+                    {!isApplicationJDPage && (
+                      <BeyondResumeButton2
+                        sx={{ fontSize: "12px", px: 2 }}
+                        onClick={handleToggleFitment}
+                      >
+                        {selectedJobId
+                          ? "Hide Fitment Analysis"
+                          : "Get Fitment Analysis"}
+                        <FontAwesomeIcon
+                          style={{ marginLeft: "6px" }}
+                          icon={
+                            selectedJobId
+                              ? faChevronCircleDown
+                              : faChevronCircleRight
+                          }
+                        />
+                      </BeyondResumeButton2>
+                    )}
 
                     <BeyondResumeButton2
                       onClick={() => {
@@ -500,19 +513,20 @@ const BeyondResumeJobDetails = ({
                       />
                     </BeyondResumeButton2>
                   </Box>
-
-                  <BeyondResumeButton
-                    onClick={handleApplyJob}
-                    variant="contained"
-                    color="primary"
-                    sx={{ fontSize: "12px" }}
-                  >
-                    Apply For The Job
-                    <FontAwesomeIcon
-                      style={{ marginLeft: "6px" }}
-                      icon={faChevronCircleRight}
-                    ></FontAwesomeIcon>
-                  </BeyondResumeButton>
+                  {!isApplicationJDPage && (
+                    <BeyondResumeButton
+                      onClick={handleApplyJob}
+                      variant="contained"
+                      color="primary"
+                      sx={{ fontSize: "12px" }}
+                    >
+                      Apply For The Job
+                      <FontAwesomeIcon
+                        style={{ marginLeft: "6px" }}
+                        icon={faChevronCircleRight}
+                      ></FontAwesomeIcon>
+                    </BeyondResumeButton>
+                  )}
                 </Box>
               )}
             </Box>
@@ -551,129 +565,136 @@ const BeyondResumeJobDetails = ({
                 </Typography>
               </>
             ) : (
-              <Typography
-                sx={{
-                  textTransform: "none",
-                  fontSize: "16px",
-                  borderRadius: "999px",
-                  mt: 2,
-                  fontFamily: "montserrat-regular",
-                }}
-              >
-                Apply Before{" "}
-                <span style={{ fontFamily: "custom-bold" }}>
-                  {" "}
-                  {formatDateJob(job?.endDate)}{" "}
-                </span>
-              </Typography>
+              !isApplicationJDPage && (
+                <Typography
+                  sx={{
+                    textTransform: "none",
+                    fontSize: "16px",
+                    borderRadius: "999px",
+                    mt: 2,
+                    fontFamily: "montserrat-regular",
+                  }}
+                >
+                  Apply Before{" "}
+                  <span style={{ fontFamily: "custom-bold" }}>
+                    {" "}
+                    {formatDateJob(job?.endDate)}{" "}
+                  </span>
+                </Typography>
+              )
             )}
           </Box>
 
-          <StyledTypography
-            sx={{
-              display: "-webkit-box",
-              WebkitLineClamp: showFullDescription ? "none" : 4,
-              WebkitBoxOrient: "vertical",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-            }}
-            dangerouslySetInnerHTML={{
-              __html: displayContent,
-            }}
-          />
-
-          {displayContent && (
-            <Button
-              sx={{
-                mt: 1,
-                ml: "auto",
-                display: "block",
-                fontSize: "12px",
-                px: 2,
-                py: 0.2,
-                textTransform: "none",
-              }}
-              onClick={() => setShowFullDescription((prev) => !prev)}
-            >
-              {showFullDescription ? "Show Less" : "Read More"}
-              <FontAwesomeIcon
-                style={{ marginLeft: "6px" }}
-                icon={
-                  showFullDescription
-                    ? faChevronCircleDown
-                    : faChevronCircleRight
-                }
-              />
-            </Button>
-          )}
-
-          {getUserRole() === "TALENT PARTNER" &&
-            job?.examMode !== "Adaptive" && (
-              <BeyondResumeButton2
-                sx={{ mt: 0, fontSize: "12px" }}
-                onClick={() => {
-                  setShowQuestions((prev) => {
-                    const next = !prev;
-                    setTimeout(() => {
-                      if (next && questionRef.current) {
-                        questionRef.current.scrollIntoView({
-                          behavior: "smooth",
-                        });
-                      }
-                    }, 200);
-                    return next;
-                  });
+          {showJD && (
+            <>
+              <StyledTypography
+                sx={{
+                  display: "-webkit-box",
+                  WebkitLineClamp: showFullDescription ? "none" : 4,
+                  WebkitBoxOrient: "vertical",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
                 }}
-              >
-                {showQuestion
-                  ? "Hide Interview Questions"
-                  : "Show Interview Questions"}
-
-                <FontAwesomeIcon
-                  style={{ marginLeft: "6px" }}
-                  icon={
-                    showQuestion ? faChevronCircleDown : faChevronCircleRight
-                  }
-                />
-              </BeyondResumeButton2>
-            )}
-
-          {showQuestion && (
-            <Box ref={questionRef} sx={{ m: -4, mt: 2 }}>
-              <GeneratedAiQnaResponse
-                status={job.brJobStatus}
-                response={job.jobInterviewQuestions}
-                jobId={job.brJobId}
+                dangerouslySetInnerHTML={{
+                  __html: displayContent,
+                }}
               />
-            </Box>
-          )}
 
-          {matchingUsers.length > 0 &&
-            getUserRole() !== "CAREER SEEKER" &&
-            selectedTab === 0 && (
-              <Box mt={2}>
-                <Typography
-                  variant="h6"
+              {displayContent && (
+                <Button
                   sx={{
-                    fontFamily: "custom-bold",
-                    mb: 2,
+                    mt: 1,
+                    ml: "auto",
+                    display: "block",
+                    fontSize: "12px",
+                    px: 2,
+                    py: 0.2,
+                    textTransform: "none",
                   }}
+                  onClick={() => setShowFullDescription((prev) => !prev)}
                 >
-                  Top Matching Candidates
-                </Typography>
-                {matchingUsers.slice(0, 5).map((user) => (
-                  <MatchingUserCard
-                    key={user.userId}
-                    user={user}
-                    color={color}
-                    size={60}
-                    strokeWidth={4}
+                  {showFullDescription ? "Show Less" : "Read More"}
+                  <FontAwesomeIcon
+                    style={{ marginLeft: "6px" }}
+                    icon={
+                      showFullDescription
+                        ? faChevronCircleDown
+                        : faChevronCircleRight
+                    }
                   />
-                ))}
-              </Box>
-            )}
+                </Button>
+              )}
 
-          <div style={{ paddingTop: "32px" }} ref={fitmentRef}>
+              {getUserRole() === "TALENT PARTNER" &&
+                job?.examMode !== "Adaptive" && (
+                  <BeyondResumeButton2
+                    sx={{ mt: 0, fontSize: "12px" }}
+                    onClick={() => {
+                      setShowQuestions((prev) => {
+                        const next = !prev;
+                        setTimeout(() => {
+                          if (next && questionRef.current) {
+                            questionRef.current.scrollIntoView({
+                              behavior: "smooth",
+                            });
+                          }
+                        }, 200);
+                        return next;
+                      });
+                    }}
+                  >
+                    {showQuestion
+                      ? "Hide Interview Questions"
+                      : "Show Interview Questions"}
+
+                    <FontAwesomeIcon
+                      style={{ marginLeft: "6px" }}
+                      icon={
+                        showQuestion
+                          ? faChevronCircleDown
+                          : faChevronCircleRight
+                      }
+                    />
+                  </BeyondResumeButton2>
+                )}
+
+              {showQuestion && (
+                <Box ref={questionRef} sx={{ m: -4, mt: 2 }}>
+                  <GeneratedAiQnaResponse
+                    status={job?.brJobStatus}
+                    response={job.jobInterviewQuestions}
+                    jobId={job.brJobId}
+                  />
+                </Box>
+              )}
+
+              {matchingUsers.length > 0 &&
+                getUserRole() !== "CAREER SEEKER" &&
+                selectedTab === 0 && (
+                  <Box mt={2}>
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        fontFamily: "custom-bold",
+                        mb: 2,
+                      }}
+                    >
+                      Top Matching Candidates
+                    </Typography>
+                    {matchingUsers.slice(0, 5).map((user) => (
+                      <MatchingUserCard
+                        key={user.userId}
+                        user={user}
+                        color={color}
+                        size={60}
+                        strokeWidth={4}
+                      />
+                    ))}
+                  </Box>
+                )}
+            </>
+          )}
+          <div style={{ paddingTop: "24px" }} ref={fitmentRef}>
             {selectedJobId && <JobFitmentPage jobId={selectedJobId} />}
           </div>
         </Box>

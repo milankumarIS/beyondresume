@@ -41,7 +41,7 @@ const buttonsArray: any[] = [
     role: "TALENT PARTNER",
   },
   {
-    title: "My Jobs",
+    title: "Posted Jobs",
     url: "/beyond-resume-myjobs",
     icon: faBriefcase,
     role: "TALENT PARTNER",
@@ -59,17 +59,17 @@ const buttonsArray: any[] = [
     role: "CAREER SEEKER",
   },
   {
-    title: "My Interviews",
+    title: "My Applications",
     url: "/beyond-resume-interview-list",
     icon: faComments,
     role: "CAREER SEEKER",
   },
-  {
-    title: "My Applications",
-    url: "/beyond-resume-jobApplications",
-    icon: faFileLines,
-    role: "CAREER SEEKER",
-  },
+  // {
+  //   title: "My Applications",
+  //   url: "/beyond-resume-jobApplications",
+  //   icon: faFileLines,
+  //   role: "CAREER SEEKER",
+  // },
   // {
   //   title: "My Profile",
   //   url: "/beyond-resume-candidate-profile",

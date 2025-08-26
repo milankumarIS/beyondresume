@@ -1,25 +1,47 @@
 import { Box, Grid, Paper, Typography } from "@mui/material";
 import { styled } from "@mui/system";
-import { useRef, useState, useEffect, forwardRef } from "react";
+import { forwardRef, useEffect, useState } from "react";
 import color from "../../../theme/color";
+import { getUserRole } from "../../../services/axiosClient";
 
-const categories = [
+const seekerCategories = [
   {
     icon: "Shape 3",
     title: "Personalized Interview Prep",
-    desc: "With Beyond Resume, select your career path or a specific job listing to practice questions that are truly relevant. Our intelligent system ensures your prep is focused and effective.",
+    desc: "Select your career path or a specific job listing to practice AI-generated questions tailored to your goals. Prep smarter, not harder.",
   },
   {
     icon: "Shape 7",
     title: "Immersive Interview Experience",
-    desc: "Beyond Resume offers a real-world interview simulation through an intuitive interface, helping you build confidence and perform at your best when it matters most.",
+    desc: "Simulate real interviews in text or video mode with an intuitive, AI-driven experience that boosts confidence and readiness.",
   },
   {
     icon: "Shape 4",
     title: "AI-Powered Performance Feedback",
-    desc: "Receive instant, intelligent feedback from Beyond Resume’s AI coach — analyzing your answers for clarity, impact, and delivery so you can continuously improve.",
+    desc: "Get instant, actionable feedback on your responses. Beyond Resume’s AI evaluates clarity, depth, and delivery so you can keep improving.",
   },
 ];
+
+const partnerCategories = [
+  {
+    icon: "Shape 3",
+    title: "Smart Job Descriptions",
+    desc: "Post a role in minutes — our AI generates engaging job descriptions and custom interview questions aligned to your requirements.",
+  },
+  {
+    icon: "Shape 7",
+    title: "AI Candidate Evaluation",
+    desc: "Beyond Resume helps talent partners evaluate applicants with AI-driven scoring, identifying the best-fit candidates quickly and fairly.",
+  },
+  {
+    icon: "Shape 4",
+    title: "One Platform, Two Perspectives",
+    desc: "Designed for both job seekers and talent partners — Beyond Resume bridges the gap, making hiring and career growth smarter and faster.",
+  },
+];
+
+const categories =
+  getUserRole() === "CAREER SEEKER" ? seekerCategories : partnerCategories;
 
 const HighlightedPaper = styled(Paper)({
   background: "linear-gradient(to bottom, #3BA9FD, #6B60EC)",
@@ -35,7 +57,7 @@ const NormalPaper = styled(Paper)(({ theme }) => ({
   background: color.cardBg,
   color: "inherit",
   transition: "all 0.6s, box-shadow 0.3s",
-boxShadow:'none',
+  boxShadow: "none",
   "&::before": {
     content: '""',
     position: "absolute",
@@ -83,7 +105,7 @@ const CategoryCard = ({ icon, title, highlight, desc }: any) => {
         textAlign: "left",
         borderRadius: 4,
         width: "70%",
-        height: "300px",
+        height: "250px",
         transition: "all 0.6s",
       }}
     >
@@ -94,6 +116,8 @@ const CategoryCard = ({ icon, title, highlight, desc }: any) => {
           style={{ marginBottom: "20px" }}
         /> */}
         <img style={{ width: "80px" }} src={`/assets/${icon}.png`}></img>
+
+        
         <Typography
           mt={2}
           variant="h6"

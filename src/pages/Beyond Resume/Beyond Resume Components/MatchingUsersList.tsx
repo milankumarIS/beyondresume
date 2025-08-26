@@ -1,4 +1,4 @@
-import { searchListDataFromTable, searchDataFromTable } from "../../../services/services";
+import { searchDataFromTable, searchOpenListDataFromTable } from "../../../services/services";
 
 export type MatchingUser = {
   userId: number;
@@ -13,11 +13,9 @@ export async function fetchMatchingUsers(job: any): Promise<{
   jobUsername: string;
 }> {
   try {
-    // Fetch all users
-    const userRes = await searchListDataFromTable("userPersonalInfo", {});
+    const userRes = await searchOpenListDataFromTable("userPersonalInfo", {});
     const users = userRes?.data?.data || [];
 
-    // Normalize job skills
     const jobSkillsArray = Array.isArray(job.skills)
       ? job.skills
       : typeof job.skills === "string"
@@ -25,7 +23,6 @@ export async function fetchMatchingUsers(job: any): Promise<{
       : [];
     const jobSkills = jobSkillsArray.map((s: string) => s.toLowerCase());
 
-    // Map users with match calculation
     const matchedUserList: MatchingUser[] = users.map((user: any) => {
       const userSkillsArray = Array.isArray(user.skills)
         ? user.skills
@@ -51,6 +48,9 @@ export async function fetchMatchingUsers(job: any): Promise<{
         matchPercent,
         matchedSkills,
         userImage: user.userImage,
+        resumeFileUrl:user?.resumeFile,
+        about:user?.about,
+
       };
     });
 
@@ -58,11 +58,10 @@ export async function fetchMatchingUsers(job: any): Promise<{
 
     const filteredMatches = matchedUserList.filter((u) => u.matchPercent > 0);
 
-    // Fetch job creator username
-    const creatorRes = await searchDataFromTable("user", {
+    const creatorRes = await searchOpenListDataFromTable("user", {
       userId: job?.createdBy,
     });
-    const jobUsername = creatorRes?.data?.data?.userName || "";
+    const jobUsername = creatorRes?.data?.data[0]?.userName || "";
 
     return {
       matches: filteredMatches,

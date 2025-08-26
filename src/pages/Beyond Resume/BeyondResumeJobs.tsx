@@ -494,6 +494,8 @@ const BeyondResumeJobs = () => {
         matchedSkills: string[];
         userImage: string;
         jobId: string;
+        resumeFileUrl?: string;
+        about?: string;
       }[]
     >([]);
 
@@ -539,16 +541,19 @@ const BeyondResumeJobs = () => {
     useEffect(() => {
       (async () => {
         const allMatches: {
-          jobId: string;
           userId: number;
           fullName: string;
           matchPercent: number;
           matchedSkills: string[];
           userImage: string;
+          jobId: string;
+          resumeFileUrl?: string;
+          about?: string;
         }[] = [];
 
         for (const job of jobs) {
           const { matches } = await fetchMatchingUsers(job);
+
           allMatches.push(
             ...matches.map((m) => ({
               ...m,
@@ -682,11 +687,12 @@ const BeyondResumeJobs = () => {
     >("ASSESSED");
 
     return (
-      <Box mt={4} mb={4} display="flex" gap={2} alignItems="flex-start">
+      <Box mb={4} mt={2} display="flex" gap={2} alignItems="flex-start">
         <Box
           className="custom-scrollbar"
           sx={{
             p: 1,
+            pt: getUserRole() === "TALENT PARTNER" ? 10 : 2,
             width: jobs.length > 0 ? "35vw" : "100%",
             height: detailsHeight || "auto",
             minHeight: "100vh",
@@ -750,7 +756,8 @@ const BeyondResumeJobs = () => {
                   setSelectedJobId={setSelectedJobId}
                   setPopupOpen={setPopupOpen}
                   selected={selectedJob?.brJobId === job.brJobId}
-                  showStatus={title !== "Pending Jobs"}
+                  showStatus={false}
+                  // showStatus={title !== "Pending Jobs"}
                 />
               </Grid>
             ))}
@@ -804,6 +811,20 @@ const BeyondResumeJobs = () => {
                   exit="exit"
                   variants={slideLeftVariants}
                 >
+                  <BeyondResumeJobDetails
+                    job={selectedJob}
+                    applicantsCount={selectedApplicantsCount}
+                    onBack={() => setSelectedJob(null)}
+                    setPopupOpen={setPopupOpen}
+                    setSelectedJobIdC={setSelectedJobId}
+                    selectedTab={selectedTab}
+                    showJD={
+                      title === "Posted Jobs" || title === "Completed Jobs"
+                        ? false
+                        : true
+                    }
+                  />
+
                   {isJobPage &&
                   (title === "Posted Jobs" || title === "Completed Jobs") ? (
                     <Box>
@@ -951,14 +972,7 @@ const BeyondResumeJobs = () => {
                       )}
                     </Box>
                   ) : (
-                    <BeyondResumeJobDetails
-                      job={selectedJob}
-                      applicantsCount={selectedApplicantsCount}
-                      onBack={() => setSelectedJob(null)}
-                      setPopupOpen={setPopupOpen}
-                      setSelectedJobIdC={setSelectedJobId}
-                      selectedTab={selectedTab}
-                    />
+                    <></>
                   )}
                 </motion.div>
               )}
@@ -1052,8 +1066,32 @@ const BeyondResumeJobs = () => {
           </>
         ) : (
           <>
-            <GradientText text={industryName} variant="h4" />
-            {/* <GradientText text={"Welcome back, "} variant="h4" /> */}
+            <Box display={"flex"} alignItems={"center"} gap={1} mb={0.5}>
+              {industryName === "translab.io" ? (
+                <Box
+                  sx={{
+                    background: "white",
+                    padding: "4px",
+                    borderRadius: "8px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    mb: 2,
+                  }}
+                >
+                  <img
+                    style={{
+                      width: "180px",
+                      // borderRadius: "4px",
+                    }}
+                    src="/assets/translab.png"
+                    alt=""
+                  />
+                </Box>
+              ) : (
+                <GradientText text={industryName} variant="h4" />
+              )}
+            </Box>
           </>
         )}
       </Box>
@@ -1138,12 +1176,12 @@ const BeyondResumeJobs = () => {
             sx={{
               px: 3,
               py: 1,
-              borderRadius:'12px',
+              borderRadius: "12px",
               background: showSavedJobs ? color.activeButtonBg : "white",
               color: showSavedJobs ? "white" : "black",
               // boxShadow: "0px 0px 10px rgba(90, 128, 253, 0.49)",
               ml: 1,
-              textTransform:'none',
+              textTransform: "none",
               fontSize: "14px",
               fontFamily: "custom-regular",
               border: "none",
@@ -1214,13 +1252,27 @@ const BeyondResumeJobs = () => {
                 initial="hidden"
                 animate="visible"
                 exit="exit"
+                style={{ position: "relative" }}
               >
-                <Box mt={2} mb={2}>
-                  <CustomTabs
-                    selectedTab={selectedTab}
-                    onChange={handleTabChange}
-                    durationTabs={durationTabs}
-                  />
+                <Box
+                  mt={2}
+                  mb={2}
+                  sx={{
+                    position: "absolute",
+                    top: 0,
+                    left: "7%",
+                    // background:color.jobCardBg,
+                    // borderRadius: "32px",
+                    zIndex: 1000,
+                  }}
+                >
+                  {tabFilteredJobs.length > 0 && (
+                    <CustomTabs
+                      selectedTab={selectedTab}
+                      onChange={handleTabChange}
+                      durationTabs={durationTabs}
+                    />
+                  )}
                 </Box>
 
                 {/* {currentSection.jobs.length > 0 ? (

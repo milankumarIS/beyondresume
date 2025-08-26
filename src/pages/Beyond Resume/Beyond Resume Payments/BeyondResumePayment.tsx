@@ -145,7 +145,7 @@ const BeyondResumePayment = () => {
 
     try {
       await syncDataInTable("brPayments", payload, "createdBy");
-      history.push("/beyond-resume-interviews");
+      history.push("/beyond-resume");
     } catch (error) {
       console.error("Error saving ", error);
     }

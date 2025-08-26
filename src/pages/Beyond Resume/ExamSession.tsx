@@ -189,7 +189,7 @@ const ExamSession: React.FC<ExamSessionProps> = ({
   useEffect(() => {
     const unlisten = history.listen((location, action) => {
       if (action === "POP") {
-        window.location.href = "/beyond-resume-interviews";
+        window.location.href = "/beyond-resume";
       }
     });
 

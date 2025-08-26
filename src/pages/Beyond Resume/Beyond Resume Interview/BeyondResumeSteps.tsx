@@ -1,27 +1,53 @@
 import React, { useRef, useEffect, useState } from "react";
 import { Typography, Box, Grid2 } from "@mui/material";
 import color from "../../../theme/color";
+import { getUserRole } from "../../../services/axiosClient";
 
-const sectionData = [
+const talentPartnerSteps = [
   {
-    title: "Choose or Create a Job Description",
+    title: "Post a Job Instantly",
     description:
-      "Select from our ready-made job descriptions or craft your own tailored to the role.",
+      "Use AI to generate polished job descriptions in seconds and start attracting candidates.",
+ image: "/assets/Vector Smart Object2.png",
+  },
+  {
+    title: "AI-Powered Candidate Evaluation",
+    description:
+      "Save time with automated scoring and structured feedback on candidate interviews.",
+       image: "/assets/Vector Smart Object3.png",
+
+  },
+  {
+    title: "Hire Smarter, Faster",
+    description:
+      "Focus on the best-fit candidates and speed up your hiring process with confidence.",
+      image: "/assets/Vector Smart Object1.png",
+
+  },
+];
+const jobSeekerSteps = [
+  {
+    title: "Choose a Job",
+    description:
+      "Browse live openings from talent partners or create a custom role for practice.",
     image: "/assets/Vector Smart Object2.png",
   },
   {
-    title: "Start Your Interview Practice",
+    title: "AI Interview Practice",
     description:
-      "Kick off your mock interview with our AI-powered interviewer for a realistic experience.",
+      "Take interactive interviews with text or video. Get a real hiring experience before the real thing.",
     image: "/assets/Vector Smart Object3.png",
   },
   {
-    title: "Get Instant, Actionable Feedback",
+    title: "Get Instant Feedback",
     description:
-      "Receive a comprehensive analysis of your interview to highlight strengths and areas for improvement.",
+      "AI analyzes your answers, scores performance, and shares tips to improve.",
     image: "/assets/Vector Smart Object1.png",
   },
 ];
+
+const sectionData =
+  getUserRole() === "CAREER SEEKER" ? jobSeekerSteps : talentPartnerSteps;
 
 const BeyondResumeSteps = () => {
   const [visible, setVisible] = useState<boolean[]>([]);
@@ -58,11 +84,10 @@ const BeyondResumeSteps = () => {
           borderRadius: "12px",
           m: "auto",
           mb: 4,
-
         }}
         fontWeight="bold"
       >
-        Quick Steps to Give Winning Interviews
+        Quick Steps to Get Into Beyond Resume
       </Typography>
 
       {sectionData.map((item, index) => {
@@ -123,7 +148,7 @@ const BeyondResumeSteps = () => {
                 {item.title}
               </Typography>
               <Typography
-                variant="body2"
+                variant="body1"
                 sx={{ fontFamily: "Montserrat-Regular" }}
                 gutterBottom
               >

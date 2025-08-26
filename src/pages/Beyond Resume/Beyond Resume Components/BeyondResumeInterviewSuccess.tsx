@@ -7,19 +7,18 @@ import {
 } from "../../../components/util/CommonStyle";
 
 const BeyondResumeInterviewSuccess: React.FC = () => {
+
+
   const history = useHistory();
-
-
   useEffect(() => {
-    // Block navigation (including browser back button)
-    const unblock = history.block((tx) => {
-      // Always redirect to /beyond-resume-interviews
-      history.replace("/beyond-resume-interviews");
-      return false; // cancel the default back action
+    const unlisten = history.listen((location, action) => {
+      if (action === "POP") {
+        window.location.href = "/beyond-resume-interviews";
+      }
     });
 
     return () => {
-      unblock(); // cleanup on unmount
+      unlisten();
     };
   }, [history]);
 
@@ -74,7 +73,7 @@ const BeyondResumeInterviewSuccess: React.FC = () => {
           Check Result
         </BeyondResumeButton>
         <BeyondResumeButton2
-          onClick={() => history.push(`/beyond-resume-interviews`)}
+          onClick={() => history.push(`/beyond-resume`)}
           variant="contained"
           color="primary"
         >

@@ -28,7 +28,7 @@ export const BeyondResumeButton = styled((props: ButtonProps) => (
   marginTop: "auto",
   marginBottom: "auto",
   boxShadow: "none",
-  fontSize:'12px',
+  fontSize: "12px",
   transition: "all 0.3s",
   "&:hover": {
     transform: "scale(1.08)",
@@ -44,7 +44,7 @@ export const BeyondResumeButton2 = styled((props: ButtonProps) => (
   paddingLeft: theme.spacing(5),
   paddingRight: theme.spacing(5),
   // textTransform: "none",
-  fontSize:'12px',
+  fontSize: "12px",
   background: "transparent",
   border: "solid 2px #0C83B7",
   borderRadius: "8px",
@@ -355,21 +355,14 @@ export const IconTextRow1 = ({
   </Box>
 );
 
-
-export const SocialIcon = ({
-  icon,
-  link,
-}: {
-  icon: any;
-  link: string;
-}) => (
+export const SocialIcon = ({ icon, link }: { icon: any; link: string }) => (
   <Box
     component="a"
     href={link}
     target="_blank"
     rel="noopener noreferrer"
     sx={{
-      cursor:'pointer',
+      cursor: "pointer",
       display: "inline-flex",
       alignItems: "center",
       justifyContent: "center",
@@ -389,10 +382,9 @@ export const SocialIcon = ({
       },
     }}
   >
-    <FontAwesomeIcon icon={icon}  />
+    <FontAwesomeIcon icon={icon} />
   </Box>
 );
-
 
 export const commonPillStyle = {
   borderRadius: "999px",
@@ -605,6 +597,18 @@ export const CustomTabs: React.FC<DurationTabsProps> = ({
   onChange,
   durationTabs,
 }) => {
+  const iconsMap: Record<string, any> = {
+    Live: faCircle,
+    Draft: faEdit,
+    Closed: faXmarkCircle,
+  };
+  const colorMap: Record<string, string> = {
+    Live: "green",
+    Draft: color.titleColor,
+    Closed: "red",
+  };
+
+  const { theme } = useTheme();
   return (
     <Tabs
       value={selectedTab}
@@ -612,8 +616,8 @@ export const CustomTabs: React.FC<DurationTabsProps> = ({
       centered
       sx={{
         m: "auto",
-        fontFamily: "montserrat-regular",
-        background: color.cardBg,
+        // fontFamily: "montserrat-regular",
+        background: theme === "dark" ? color.jobCardBg : 'white',
         width: "fit-content",
         borderRadius: "32px",
         p: 1,
@@ -631,8 +635,8 @@ export const CustomTabs: React.FC<DurationTabsProps> = ({
           fontFamily: "montserrat-regular",
         },
         "& .Mui-selected": {
-          background: color.newbg,
-          color: "white !important",
+          background:theme === "dark" ?'white': color.newbg,
+          color:theme === "dark" ? "black !important" : 'white !important',
         },
         "& .MuiButtonBase-root": {
           p: 0,
@@ -644,13 +648,24 @@ export const CustomTabs: React.FC<DurationTabsProps> = ({
       }}
     >
       {durationTabs.map((min) => (
-        <Tab key={min} label={`${min}`} />
+        <Tab
+          key={min}
+          icon={<FontAwesomeIcon color={colorMap[min]} icon={iconsMap[min]} />}
+          label={`${min}`}
+          iconPosition="start"
+        />
       ))}
     </Tabs>
   );
 };
 
+import {
+  faCircle,
+  faEdit,
+  faXmarkCircle,
+} from "@fortawesome/free-solid-svg-icons";
 import { SliderThumb } from "@mui/material";
+import { useTheme } from "./ThemeContext";
 
 type CustomThumbProps = React.HTMLAttributes<unknown> & {
   value: number;
@@ -678,4 +693,3 @@ export const CustomThumbComponent = (props: CustomThumbProps) => {
     </SliderThumb>
   );
 };
-

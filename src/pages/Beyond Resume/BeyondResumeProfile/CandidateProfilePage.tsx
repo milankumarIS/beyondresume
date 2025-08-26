@@ -61,6 +61,8 @@ export default function CandidateProfilePage() {
         useCORS: true,
         backgroundColor: theme === "dark" ? color.newbg : "white",
       });
+
+      
       const imgData = canvas.toDataURL("image/png");
 
       const pdf = new jsPDF("p", "mm", "a4");
