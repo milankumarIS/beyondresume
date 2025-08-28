@@ -1,6 +1,7 @@
 import {
   faDownload,
   faEnvelope,
+  faGraduationCap,
   faPhone,
   faUserTie,
 } from "@fortawesome/free-solid-svg-icons";
@@ -8,6 +9,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Box, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router";
+import { jobKeywordIcons } from "../../../components/form/data";
 import {
   generateInterviewReportExcel,
   getFormattedDateKey,
@@ -40,6 +42,7 @@ interface InterviewData {
   location: string;
   jobType: string;
   jobTitle: string;
+  jobLevel: string;
   fullName: string;
   email: string;
   phone: string;
@@ -365,30 +368,118 @@ const BeyondResumeInterviewOverview = () => {
                   </Typography>
                 </div>
               )}
-        
 
-          <Box
-            sx={{
-              display: "flex",
-              gap: 1,
-              flexWrap: "wrap",
-              mb: 2,
-            }}
-          >
-            <Typography sx={{ ...commonPillStyle, pl: 0, fontSize: "14px" }}>
-              Applied (on) {""}
-              {getFormattedDateKey(data.createdAt)}
-            </Typography>
-          </Box>
-
-              </>
+              <Box
+                sx={{
+                  display: "flex",
+                  gap: 1,
+                  flexWrap: "wrap",
+                  mb: 2,
+                }}
+              >
+                <Typography
+                  sx={{ ...commonPillStyle, pl: 0, fontSize: "14px" }}
+                >
+                  Applied (on) {""}
+                  {getFormattedDateKey(data.createdAt)}
+                </Typography>
+              </Box>
+            </>
           )}
 
-          {/* {type !== "candidateResult" && (
-          <Typography color="inherit" variant="h5">
-            {remark}
-          </Typography>
-        )} */}
+          {type === "practice" && (
+            <>
+              <Box display={"flex"} alignItems={'center'} p={2} gap={2} mt={-2}>
+                {data?.jobTitle ? (
+                  jobKeywordIcons.map((entry) =>
+                    data?.jobTitle
+                      ?.toLowerCase()
+                      .includes(entry.keyword.toLowerCase()) ? (
+                      <img
+                        key={entry.keyword}
+                        src={entry.iconUrl}
+                        alt={entry.keyword}
+                        style={{
+                          width: 44,
+                          height: 44,
+                          background:
+                            theme !== "dark"
+                              ? color.jobCardBg
+                              : color.jobCardBgLight,
+                          padding: "12px",
+                          borderRadius: "50%",
+                        }}
+                      />
+                    ) : (
+                      <></>
+                    )
+                  )
+                ) : (
+                  <Box>
+                    <FontAwesomeIcon
+                      icon={faGraduationCap}
+                      style={{
+                        fontSize: "44px",
+                        background: "white",
+                        borderRadius: "8px",
+                        padding: "12px",
+                        color: color.newbg,
+                      }}
+                    />
+                  </Box>
+                )}
+
+                <Box>
+                  <div>
+                    <Typography
+                      mb={0.5}
+                      variant="h6"
+                      sx={{
+                        display: "-webkit-box",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        WebkitLineClamp: 1,
+                        WebkitBoxOrient: "vertical",
+                        cursor: "pointer",
+                        color:
+                          theme === "dark"
+                            ? color.titleColor
+                            : color.titleLightColor,
+                        pr: 3,
+                      }}
+                    >
+                      {data?.jobTitle}
+                    </Typography>
+
+                    <Typography
+                      fontSize={"16px"}
+                      mt={-1}
+                      mb={0}
+                      sx={{ fontFamily: "Custom-Regular" }}
+                    >
+                      {data?.jobLevel}
+                    </Typography>
+                  </div>
+
+                  <Box
+                    sx={{
+                      display: "flex",
+                      gap: 1,
+                      flexWrap: "wrap",
+                      mb: 1,
+                    }}
+                  >
+                    <Typography
+                      sx={{ ...commonPillStyle, pl: 0, fontSize: "14px" }}
+                    >
+                      Applied (on) {""}
+                      {getFormattedDateKey(data.createdAt)}
+                    </Typography>
+                  </Box>
+                </Box>
+              </Box>
+            </>
+          )}
 
           {type === "candidateResult" ? (
             <Box
@@ -449,7 +540,7 @@ const BeyondResumeInterviewOverview = () => {
             alignItems: "center",
             justifyContent: "space-around",
             mt: 4,
-            overflowX:'hidden'
+            overflowX: "hidden",
           }}
         >
           <HtmlToPdfViewer

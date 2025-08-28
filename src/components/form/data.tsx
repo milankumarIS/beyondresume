@@ -825,6 +825,44 @@ const STATUS_CONFIG = [
   // { label: "Elite Specialist", color: "#1e3a8a" },
 ];
 
+const jobKeywordIcons = [
+  {
+    keyword: "React",
+    iconUrl:
+      "https://img.icons8.com/?size=100&id=wPohyHO_qO1a&format=png&color=000000",
+  },
+  {
+    keyword: "Java",
+    iconUrl:
+      "https://img.icons8.com/?size=100&id=13679&format=png&color=000000",
+  },
+  {
+    keyword: "Python",
+    iconUrl:
+      "https://img.icons8.com/?size=100&id=13441&format=png&color=000000",
+  },
+  {
+    keyword: "JavaScript",
+    iconUrl:
+      "https://img.icons8.com/?size=100&id=108784&format=png&color=000000",
+  },
+  {
+    keyword: "SQL",
+    iconUrl:
+      "https://img.icons8.com/?size=100&id=UFXRpPFebwa2&format=png&color=000000",
+  },
+  {
+    keyword: "Machine Learning",
+    iconUrl:
+      "https://img.icons8.com/?size=100&id=79275&format=png&color=000000",
+  },
+  {
+    keyword: "Angular",
+    iconUrl:
+      "https://img.icons8.com/?size=100&id=71257&format=png&color=000000",
+  },
+];
+
 export {
   addressType,
   STATUS_CONFIG,
@@ -879,4 +917,5 @@ export {
   workTypeArray,
   JobSeekerScriptLines,
   TalentPartnerScriptLines,
+  jobKeywordIcons
 };

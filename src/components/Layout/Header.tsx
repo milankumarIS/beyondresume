@@ -82,38 +82,40 @@ const Header: React.FC = () => {
           onClick={() => history.push("/beyond-resume-candidate-profile")}
           icon={faUserCircle}
         /> */}
-        {getUserRole() === "CAREER SEEKER" ? (
-          <Box style={{ cursor: "pointer" }} onClick={handleClick}>
-            {isOnProfilePage ? (
-              <GradientFontAwesomeIcon size={20} icon={faUserCircle} />
-            ) : (
-              <FontAwesomeIcon icon={faUserCircle} />
-            )}
-          </Box>
-        ) : (
-          <></>
-          // <Box style={{ cursor: "pointer" }}
-          // onClick={handleClick}
-          // >
-          //   {isOnProfilePage ? (
-          //     <GradientFontAwesomeIcon size={20} icon={faBuilding} />
-          //   ) : (
-          //     <FontAwesomeIcon icon={faBuilding} />
-          //   )}
-          // </Box>
-        )}
-
         {!isPublicPage && (
-          <FontAwesomeIcon
-            title="Sign out"
-            style={{
-              cursor: "pointer",
-            }}
-            onClick={() => {
-              setPopupOpen1(true);
-            }}
-            icon={faSignOut}
-          />
+          <>
+            {getUserRole() === "CAREER SEEKER" ? (
+              <Box style={{ cursor: "pointer" }} onClick={handleClick}>
+                {isOnProfilePage ? (
+                  <GradientFontAwesomeIcon size={20} icon={faUserCircle} />
+                ) : (
+                  <FontAwesomeIcon icon={faUserCircle} />
+                )}
+              </Box>
+            ) : (
+              <></>
+              // <Box style={{ cursor: "pointer" }}
+              // onClick={handleClick}
+              // >
+              //   {isOnProfilePage ? (
+              //     <GradientFontAwesomeIcon size={20} icon={faBuilding} />
+              //   ) : (
+              //     <FontAwesomeIcon icon={faBuilding} />
+              //   )}
+              // </Box>
+            )}
+
+            <FontAwesomeIcon
+              title="Sign out"
+              style={{
+                cursor: "pointer",
+              }}
+              onClick={() => {
+                setPopupOpen1(true);
+              }}
+              icon={faSignOut}
+            />
+          </>
         )}
       </Box>
 

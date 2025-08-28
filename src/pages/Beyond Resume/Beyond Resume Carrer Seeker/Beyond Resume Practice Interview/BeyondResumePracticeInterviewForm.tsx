@@ -4,9 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useHistory, useParams } from "react-router";
 import { useSnackbar } from "../../../../components/shared/SnackbarProvider";
 import { commonFormTextFieldSx } from "../../../../components/util/CommonFunctions";
-import {
-  BeyondResumeButton
-} from "../../../../components/util/CommonStyle";
+import { BeyondResumeButton } from "../../../../components/util/CommonStyle";
 import { getUserId } from "../../../../services/axiosClient";
 import {
   getProfile,
@@ -84,7 +82,7 @@ const BeyondResumePracticeInterviewForm = () => {
       setLoading(false);
     });
   }, []);
-console.log(jobsData);
+  // console.log(jobsData);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,7 +95,9 @@ console.log(jobsData);
       name,
       about,
       email,
-      phone
+      phone,
+      jobTitle: jobsData?.jobTitle,
+      jobLevel: jobsData?.jobLevel,
       // userExperience,
     };
 
@@ -110,10 +110,10 @@ console.log(jobsData);
         const sessionType = "practiceSession";
         history.push(
           `/beyond-resume-readyToJoin/${interviewId}?sessionType=${sessionType}`,
-            {
-              duration: jobsData?.interviewDuration,
-              noOfQuestions: jobsData?.interviewDuration / 2,
-            }
+          {
+            duration: jobsData?.interviewDuration,
+            noOfQuestions: jobsData?.interviewDuration / 2,
+          }
         );
       })
       .catch((error) => {
@@ -142,7 +142,7 @@ console.log(jobsData);
             m: "auto",
             fontFamily: "Custom-Bold",
             borderRadius: "44px",
-            mb:-2,
+            mb: -2,
           }}
         >
           Practice Interview Form
@@ -155,7 +155,7 @@ console.log(jobsData);
         >
           Please fill out the following details
         </Typography>
-        <Box px={4} >
+        <Box px={4}>
           <TextField
             fullWidth
             required
@@ -199,8 +199,7 @@ console.log(jobsData);
               borderRadius: "18px",
               "& .MuiInputBase-input": {
                 resize: "vertical",
-                  mt: 2,
-
+                mt: 2,
               },
               "& textarea": {
                 resize: "vertical",
@@ -222,7 +221,7 @@ console.log(jobsData);
           variant="contained"
           color="secondary"
           disabled={isSubmitDisabled}
-          sx={{ mx:4,mt:0, py: 1.5, fontSize: "1rem" }}
+          sx={{ mx: 4, mt: 0, py: 1.5, fontSize: "1rem" }}
         >
           Submit
         </BeyondResumeButton>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter, Route, Switch } from 'react-router-dom';
+import { BrowserRouter, Route, Switch, useLocation } from 'react-router-dom';
 
 import 'regenerator-runtime/runtime';
 import './theme/variables.css';
@@ -65,6 +65,15 @@ const App: React.FC = () => {
     };
   }, []);
 
+  const ScrollToTopPage = () => {
+    const { pathname } = useLocation();
+
+    useEffect(() => {
+      window.scrollTo(0, 0);
+    }, [pathname]);
+
+    return null;
+  };
 
 
   return (
@@ -75,6 +84,9 @@ const App: React.FC = () => {
               {/* <AvatarProvider> */}
               <ThemeProviderCustom>
               <IndustryProvider>
+
+              <ScrollToTopPage />
+
 
                 <div style={{minHeight:'100vh',overflowY:'hidden'}}>
                 <LayoutContainer>

@@ -146,7 +146,7 @@ const BeyondResumeJobInterviewForm = () => {
           urls: [resumeLink],
         });
 
-        console.log(response);
+        // console.log(response);
         extractedResumeText =
           response?.data?.data?.candidates[0]?.content?.parts[0].text || "";
       } catch (err) {
@@ -155,7 +155,7 @@ const BeyondResumeJobInterviewForm = () => {
 
       const result: any = await searchDataFromTable("brJobs", { brJobId });
       const rawJobData = result?.data?.data || {};
-      console.log(rawJobData);
+      // console.log(rawJobData);
 
       const cleanedContent = rawJobData?.jobInterviewQuestions
         .replace(/```json/g, "")
@@ -163,7 +163,7 @@ const BeyondResumeJobInterviewForm = () => {
         .replace(/<[^>]*>?/gm, "")
         .trim();
 
-      console.log(cleanedContent);
+      // console.log(cleanedContent);
 
       const data1 = JSON.parse(cleanedContent);
       const totalQuestions = countTotalQuestions(data1);
@@ -200,7 +200,7 @@ const BeyondResumeJobInterviewForm = () => {
         candidateResume: extractedResumeText,
       };
 
-      console.log(payload);
+      // console.log(payload);
 
       const insertResult: any = await syncByTwoUniqueKeyData(
         "brJobApplicant",

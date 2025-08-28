@@ -1,6 +1,7 @@
 import {
   faBuilding,
   faChevronCircleRight,
+  faGraduationCap,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -26,6 +27,7 @@ import { getUserId } from "../../../services/axiosClient";
 import { paginateDataFromTable } from "../../../services/services";
 import color from "../../../theme/color";
 import BeyondResumeApplications from "./BeyondResumeApplications";
+import { jobKeywordIcons } from "../../../components/form/data";
 
 const BeyondResumeInterviewList = () => {
   const [interviewList, setInterviewList] = useState<any[]>([]);
@@ -96,10 +98,10 @@ const BeyondResumeInterviewList = () => {
       }}
     >
       <Typography
-        variant="h3"
+        variant="h4"
         textAlign={"center"}
-        my={2}
-        sx={{ fontFamily: "montserrat-regular" }}
+        mt={4}
+        // sx={{ fontFamily: "montserrat-regular" }}
       >
         Interview Hub
       </Typography>
@@ -190,7 +192,7 @@ const BeyondResumeInterviewList = () => {
             {Object.entries(interviewList).map(
               ([date, interviews]: [string, any[]]) => (
                 <React.Fragment key={date}>
-                  {isPractice && (
+                  {/* {isPractice && (
                     <Grid item xs={12}>
                       <Typography
                         variant="h6"
@@ -211,18 +213,19 @@ const BeyondResumeInterviewList = () => {
                         {date}
                       </Typography>
                     </Grid>
-                  )}
+                  )} */}
 
                   {interviews.map((interview, index) => {
                     const score = interview.interviewScore;
                     const { remark, bgcolor } = getRemark(score);
+                    // console.log(interview);
 
                     return (
                       <Grid
                         item
                         xs={12}
-                        sm={isPractice ? 6 : 12}
-                        md={isPractice ? 6 : 12}
+                        sm={isPractice ? 12 : 12}
+                        md={isPractice ? 12 : 12}
                         key={index}
                         position={"relative"}
                       >
@@ -332,77 +335,165 @@ const BeyondResumeInterviewList = () => {
                               </>
                             ) : (
                               <Box
-                                sx={{
-                                  display: "flex",
-                                  flexDirection: "column",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                  width: "100%",
-                                }}
+                                display={"flex"}
+                                alignItems={"center"}
+                                textAlign={"left"}
+                                gap={2}
+                                mb={2}
                               >
-                                <Box
-                                  sx={{
-                                    background: bgcolor,
-                                    mt: 2,
-                                    borderRadius: "50%",
-                                    width: 120,
-                                    height: 120,
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    mx: "auto",
-                                    mb: 2,
-                                  }}
-                                >
+                                {isPractice ? (
+                                  interview?.jobTitle ? (
+                                    jobKeywordIcons.map((entry) =>
+                                      interview?.jobTitle
+                                        ?.toLowerCase()
+                                        .includes(
+                                          entry.keyword.toLowerCase()
+                                        ) ? (
+                                        <img
+                                          key={entry.keyword}
+                                          src={entry.iconUrl}
+                                          alt={entry.keyword}
+                                          style={{
+                                            width: 44,
+                                            height: 44,
+                                            background:
+                                              theme !== "dark"
+                                                ? color.jobCardBg
+                                                : color.jobCardBgLight,
+                                            padding: "12px",
+                                            borderRadius: "50%",
+                                          }}
+                                        />
+                                      ) : (
+                                        <></>
+                                      )
+                                    )
+                                  ) : (
+                                    <Box>
+                                      <FontAwesomeIcon
+                                        icon={faGraduationCap}
+                                        style={{
+                                          fontSize: "44px",
+                                          background: "white",
+                                          borderRadius: "8px",
+                                          padding: "12px",
+                                          color: color.newbg,
+                                        }}
+                                      />
+                                    </Box>
+                                  )
+                                ) : (
                                   <Box>
-                                    <Typography variant="h4" fontWeight="bold">
-                                      {score}
-                                    </Typography>
-                                    <Typography variant="body2">
-                                      of 100
-                                    </Typography>
+                                    <FontAwesomeIcon
+                                      icon={faBuilding}
+                                      style={{
+                                        fontSize: "44px",
+                                        background: "white",
+                                        borderRadius: "8px",
+                                        padding: "12px",
+                                        color: color.newbg,
+                                      }}
+                                    />
                                   </Box>
-                                </Box>
+                                )}
 
-                                <Typography variant="h6" fontWeight="bold">
-                                  {remark}
-                                </Typography>
-                                <Typography
-                                  sx={{
-                                    pl: 0,
-                                    fontSize: "14px",
-                                    position: "absolute",
-                                    top: 6,
-                                    right: 6,
-                                    background: color.cardBg,
-                                    px: 2,
-                                    borderRadius: 2,
-                                  }}
-                                >
-                                  Applied (on) {""}
-                                  {getFormattedDateKey(interview.createdAt)}
-                                </Typography>
+                                <div>
+                                  <Typography
+                                    mb={0.5}
+                                    variant="h6"
+                                    sx={{
+                                      display: "-webkit-box",
+                                      overflow: "hidden",
+                                      textOverflow: "ellipsis",
+                                      WebkitLineClamp: 1,
+                                      WebkitBoxOrient: "vertical",
+                                      cursor: "pointer",
+                                      color:
+                                        theme === "dark"
+                                          ? color.titleColor
+                                          : color.titleLightColor,
+                                      "&:hover": {
+                                        textDecoration: "underline",
+                                      },
+                                    }}
+                                  >
+                                    {interview.jobTitle}
+                                  </Typography>
+
+                                  <Typography
+                                    fontSize={"16px"}
+                                    mt={-0.5}
+                                    mb={1}
+                                    sx={{ fontFamily: "Custom-Regular" }}
+                                  >
+                                    {interview.jobLevel}
+                                  </Typography>
+
+                                  <Typography
+                                    fontSize={"14px"}
+                                    mt={-0.5}
+                                    sx={{ fontFamily: "montserrat-regular" }}
+                                  >
+                                    Applied (on) {""}
+                                    {getFormattedDateKey(interview.createdAt)}
+                                  </Typography>
+                                </div>
                               </Box>
                             )}
 
-                            {!isPractice && (
-                              <>
-                                <Box
-                                  sx={{
+                            <>
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  // flexDirection:'column',
+                                  justifyContent: "flex-end",
+                                  flexGrow: 1,
+                                  minHeight: "100px",
+                                }}
+                              >
+                                <div
+                                  style={{
                                     display: "flex",
-                                    // flexDirection:'column',
-                                    justifyContent: "flex-end",
-                                    flexGrow: 1,
+                                    flexDirection: "column",
+                                    // alignItems:'center',
+                                    // justifyContent:'center',
                                   }}
                                 >
-                                  <div
-                                    style={{
-                                      display: "flex",
-                                      flexDirection: "column",
-                                      // alignItems:'center',
-                                      // justifyContent:'center',
-                                    }}
-                                  >
+                                  {isPractice ? (
+                                    <BeyondResumeButton2
+                                      sx={{
+                                        position: "relative",
+                                        overflow: "hidden",
+                                        borderColor: getColor(score),
+                                        py: 0.6,
+                                        "&:hover": {
+                                          transform: "none",
+                                          borderColor: getColor(score),
+                                        },
+                                      }}
+                                    >
+                                      <span
+                                        style={{
+                                          position: "absolute",
+                                          left: 0,
+                                          top: 0,
+                                          bottom: 0,
+                                          width: `${score}%`,
+                                          // borderRadius:'999px',
+                                          backgroundColor: getColor(score),
+                                          transition: "width 0.4s ease",
+                                        }}
+                                      />
+                                      <span
+                                        style={{
+                                          position: "relative",
+                                          zIndex: 1,
+                                        }}
+                                      >
+                                        {score}%
+                                      </span>
+                                    </BeyondResumeButton2>
+                                  ) : (
                                     <BeyondResumeButton2
                                       sx={{ fontSize: "12px" }}
                                       onClick={() => {
@@ -417,34 +508,34 @@ const BeyondResumeInterviewList = () => {
                                         icon={faChevronCircleRight}
                                       />
                                     </BeyondResumeButton2>
-                                    <BeyondResumeButton
-                                      sx={{ fontSize: "12px" }}
-                                      onClick={() =>
-                                        history.push(
-                                          `/beyond-resume-interview-overview/${
-                                            isPractice
-                                              ? interview?.brInterviewId
-                                              : interview?.brJobApplicantId
-                                          }?type=${
-                                            isPractice ? "practice" : "job"
-                                          }`
-                                        )
-                                      }
-                                    >
-                                      View Feedback
-                                      <FontAwesomeIcon
-                                        style={{ marginLeft: "8px" }}
-                                        icon={faChevronCircleRight}
-                                      />
-                                    </BeyondResumeButton>
-                                  </div>
-                                </Box>
-                              </>
-                            )}
+                                  )}
+                                  <BeyondResumeButton
+                                    sx={{ fontSize: "12px" }}
+                                    onClick={() =>
+                                      history.push(
+                                        `/beyond-resume-interview-overview/${
+                                          isPractice
+                                            ? interview?.brInterviewId
+                                            : interview?.brJobApplicantId
+                                        }?type=${
+                                          isPractice ? "practice" : "job"
+                                        }`
+                                      )
+                                    }
+                                  >
+                                    View Feedback
+                                    <FontAwesomeIcon
+                                      style={{ marginLeft: "8px" }}
+                                      icon={faChevronCircleRight}
+                                    />
+                                  </BeyondResumeButton>
+                                </div>
+                              </Box>
+                            </>
                           </Box>
 
                           <Typography
-                            textAlign={!isPractice ? "left" : "center"}
+                            textAlign={!isPractice ? "left" : "left"}
                             mt={1}
                           >
                             Overview:
@@ -460,7 +551,7 @@ const BeyondResumeInterviewList = () => {
                               WebkitBoxOrient: "vertical",
                               fontFamily: "Montserrat-Regular",
                               fontSize: "14px",
-                              textAlign: !isPractice ? "left" : "center",
+                              textAlign: !isPractice ? "left" : "left",
                             }}
                           >
                             {interview.interviewSuggestion}
@@ -527,13 +618,13 @@ const getRemark = (score: number) => {
 
 const CustomToggleButtonGroup = styled(ToggleButtonGroup)(({ theme }) => ({
   backgroundColor: "rgba(94, 94, 94, 0.15)",
-  borderRadius: "12px",
+  borderRadius: "44px",
   padding: "8px",
 }));
 
 const CustomToggleButton = styled(ToggleButton)(({ theme }) => ({
   border: "none",
-  borderRadius: "12px !important",
+  borderRadius: "44px !important",
   padding: "6px 16px",
   fontWeight: 600,
   fontSize: "18px",
@@ -546,7 +637,7 @@ const CustomToggleButton = styled(ToggleButton)(({ theme }) => ({
     borderRadius: "12px",
     background: color.activeButtonBg,
     color: "white",
-  boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.11)",
+    boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.11)",
 
     // boxShadow: "0px 4px 10px rgba(90, 128, 253, 0.49)",
   },
@@ -576,4 +667,10 @@ const getFormattedDateKey1 = (dateString: string) => {
       ? "rd"
       : "th";
   return `${day}${suffix} ${month}`;
+};
+
+const getColor = (score: number) => {
+  if (score < 40) return "#e53935"; // Red
+  if (score < 70) return "#fbc02d"; // Yellow
+  return "#43a047"; // Green
 };

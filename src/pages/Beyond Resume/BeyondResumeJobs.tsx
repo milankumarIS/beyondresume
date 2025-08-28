@@ -692,7 +692,7 @@ const BeyondResumeJobs = () => {
           className="custom-scrollbar"
           sx={{
             p: 1,
-            pt: getUserRole() === "TALENT PARTNER" ? 10 : 2,
+            mt: getUserRole() === "TALENT PARTNER" ? 10 : 2,
             width: jobs.length > 0 ? "35vw" : "100%",
             height: detailsHeight || "auto",
             minHeight: "100vh",
@@ -1070,7 +1070,7 @@ const BeyondResumeJobs = () => {
               {industryName === "translab.io" ? (
                 <Box
                   sx={{
-                    background: "white",
+                    // background: "white",
                     padding: "4px",
                     borderRadius: "8px",
                     display: "flex",

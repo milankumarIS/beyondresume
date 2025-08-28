@@ -25,9 +25,9 @@ const SSORedirectHandler = () => {
   const [ip, setIp] = useState<any | null>(null);
   const [countryCode, setCountryCode] = useState<string | null>(null);
   const queryParams = new URLSearchParams(location.search);
-  const token = queryParams.get("token") || "";
-  // const token =
-    // "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyTmFtZSI6IkNBTjI1QTE5NTkwIiwidXNlckVtYWlsIjoiYmhhZ3lhLnNiQHNraWxsYWJsZXJzLmNvbSIsInBhc3N3b3JkIjoiU2tpbGxAMzYwIiwiRmlyc3ROYW1lIjoiQmhhZ3lhICIsIk1pZGRsZU5hbWUiOiIiLCJMYXN0TmFtZSI6IlNhdGh5YSBCIiwidXNlclR5cGUiOiJJbmRpdmlkdWFsIiwiaXNQcm9maWxlQ3JlYXRlZCI6dHJ1ZSwiYnJKb2JJZCI6NjYsImV4cCI6MTcyNTQ3ODYwMCwiaWF0IjoxNzU0OTc1Njc5fQ.zSV0II8UHp3E7R5xY_yXOr9yeCQuzuvvHmjdPcOJL4k";
+  // const token = queryParams.get("token") || "";
+  const token =
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyTmFtZSI6IkNBTjI1QTE5NTkwIiwidXNlckVtYWlsIjoiYmhhZ3lhLnNiQHNraWxsYWJsZXJzLmNvbSIsInBhc3N3b3JkIjoiU2tpbGxAMzYwIiwiRmlyc3ROYW1lIjoiQmhhZ3lhICIsIk1pZGRsZU5hbWUiOiIiLCJMYXN0TmFtZSI6IlNhdGh5YSBCIiwidXNlclR5cGUiOiJJbmRpdmlkdWFsIiwiaXNQcm9maWxlQ3JlYXRlZCI6dHJ1ZSwiYnJKb2JJZCI6NjYsImV4cCI6MTcyNTQ3ODYwMCwiaWF0IjoxNzU0OTc1Njc5fQ.zSV0II8UHp3E7R5xY_yXOr9yeCQuzuvvHmjdPcOJL4k";
   // const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyTmFtZSI6IklORFUyM0EwMDA3MiIsInVzZXJFbWFpbCI6ImJoYWd5YS5zYXRoeWExOTk1QGdtYWlsLmNvbSIsInBhc3N3b3JkIjoicGFzc3dvcmRAU1NPMTIzIiwiRmlyc3ROYW1lIjoiYmhhZ3lhIiwiTWlkZGxlTmFtZSI6IiIsIkxhc3ROYW1lIjoiIiwidXNlclR5cGUiOiJJbmR1c3RyeSIsImlzUHJvZmlsZUNyZWF0ZWQiOmZhbHNlLCJleHAiOjE3MjU0Nzg2MDAsImlhdCI6MTc1MTg3NDM1MX0.7IgPdxcX6IPUXjTa1oj9t5CtqjiyP--S2wBjbwfGUss'
 
   // const token =
