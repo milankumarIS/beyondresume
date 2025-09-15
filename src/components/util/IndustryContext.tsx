@@ -5,6 +5,8 @@ type IndustryContextType = {
   setIndustryName: (name: string | null) => void;
   spaceIndustryName: string | null;
   setSpaceIndustryName: (name: string | null) => void;
+  industryLogo: string | null;
+  setIndustryLogo: (logo: string | null) => void;
 };
 
 const IndustryContext = createContext<IndustryContextType>({
@@ -12,6 +14,8 @@ const IndustryContext = createContext<IndustryContextType>({
   setIndustryName: () => {},
   spaceIndustryName: null,
   setSpaceIndustryName: () => {},
+  industryLogo: null,
+  setIndustryLogo: () => {},
 });
 
 export const IndustryProvider = ({ children }: { children: React.ReactNode }) => {
@@ -21,6 +25,10 @@ export const IndustryProvider = ({ children }: { children: React.ReactNode }) =>
 
   const [spaceIndustryName, setSpaceIndustryNameState] = useState<string | null>(
     () => localStorage.getItem("spaceIndustryName")
+  );
+
+  const [industryLogo, setIndustryLogoState] = useState<string | null>(
+    () => localStorage.getItem("industryLogo")
   );
 
   const setIndustryName = (name: string | null) => {
@@ -41,9 +49,25 @@ export const IndustryProvider = ({ children }: { children: React.ReactNode }) =>
     }
   };
 
+  const setIndustryLogo = (logo: string | null) => {
+    setIndustryLogoState(logo);
+    if (logo) {
+      localStorage.setItem("industryLogo", logo);
+    } else {
+      localStorage.removeItem("industryLogo");
+    }
+  };
+
   return (
     <IndustryContext.Provider
-      value={{ industryName, setIndustryName, spaceIndustryName, setSpaceIndustryName }}
+      value={{
+        industryName,
+        setIndustryName,
+        spaceIndustryName,
+        setSpaceIndustryName,
+        industryLogo,
+        setIndustryLogo,
+      }}
     >
       {children}
     </IndustryContext.Provider>

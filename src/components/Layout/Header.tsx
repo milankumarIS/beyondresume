@@ -2,11 +2,12 @@ import {
   faBuilding,
   faCloudMoon,
   faCloudSun,
+  faHamburger,
   faSignOut,
   faUserCircle,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Box } from "@mui/material";
+import { Box, IconButton } from "@mui/material";
 import React, { useState } from "react";
 import { useHistory, useLocation } from "react-router-dom";
 
@@ -14,6 +15,7 @@ import { getUserRole } from "../../services/axiosClient";
 import { GradientFontAwesomeIcon } from "../util/CommonStyle";
 import ConfirmationPopup from "../util/ConfirmationPopup";
 import { useTheme } from "../util/ThemeContext";
+import SidebarMenuDrawer from "./SidebarMenuDrawer";
 
 const Header: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
@@ -38,6 +40,7 @@ const Header: React.FC = () => {
         : history.push("/beyond-resume-company-profile");
     }
   };
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
     <div
@@ -104,6 +107,18 @@ const Header: React.FC = () => {
               //   )}
               // </Box>
             )}
+
+            <IconButton
+              onClick={() => setMobileMenuOpen(true)}
+              sx={{ display: { xs: "block", md: "none" }, color: "inherit" }}
+            >
+              <FontAwesomeIcon icon={faHamburger} />
+            </IconButton>
+
+            <SidebarMenuDrawer
+              open={mobileMenuOpen}
+              onClose={() => setMobileMenuOpen(false)}
+            />
 
             <FontAwesomeIcon
               title="Sign out"

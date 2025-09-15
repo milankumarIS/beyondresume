@@ -510,7 +510,7 @@ const JobDescriptionResponse: React.FC<JobDescriptionResponseProps> = ({
           </div>
 
           <Typography variant="h6" sx={{ mb: 2 }}>
-            Fetching Your Job Description
+            Fetching Job Description
           </Typography>
         </Box>
       ) : (

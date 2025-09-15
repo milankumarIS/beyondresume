@@ -117,7 +117,6 @@ const CategoryCard = ({ icon, title, highlight, desc }: any) => {
         /> */}
         <img style={{ width: "80px" }} src={`/assets/${icon}.png`}></img>
 
-        
         <Typography
           mt={2}
           variant="h6"
@@ -171,15 +170,16 @@ const BeyondResumeFeatures = forwardRef<HTMLDivElement>((props, ref) => {
       }}
     >
       <Typography
-        variant="h3"
         sx={{
           fontFamily: "Custom-Bold",
-          maxWidth: "70%",
+          // maxWidth: "70%",
           width: "fit-content",
           p: 2,
           borderRadius: "12px",
           m: "auto",
           mb: 2,
+          fontSize: { xs: "32px", md: "48px" },
+          textAlign:'center'
         }}
         fontWeight="bold"
       >

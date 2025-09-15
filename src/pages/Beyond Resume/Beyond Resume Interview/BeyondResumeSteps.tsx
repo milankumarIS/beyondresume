@@ -76,7 +76,6 @@ const BeyondResumeSteps = () => {
   return (
     <Box>
       <Typography
-        variant="h3"
         sx={{
           fontFamily: "Custom-Bold",
           width: "fit-content",
@@ -84,6 +83,9 @@ const BeyondResumeSteps = () => {
           borderRadius: "12px",
           m: "auto",
           mb: 4,
+          textAlign:'center',
+          fontSize: { xs: "32px", md: "48px" },
+
         }}
         fontWeight="bold"
       >
@@ -111,8 +113,8 @@ const BeyondResumeSteps = () => {
 
               background: color.cardBg,
               borderRadius: isImageLeft
-                ? "0px 200px 200px 0px"
-                : "200px 0px 0px 200px",
+                ? "0px 900px 200px 0px"
+                : "900px 0px 0px 200px",
               opacity: isVisible ? 1 : 0,
               // transform: isVisible
               //   ? "translateX(0)"
@@ -126,7 +128,7 @@ const BeyondResumeSteps = () => {
                 component="img"
                 src={item.image}
                 alt={item.title}
-                sx={{ width: "100%", maxHeight: 300, objectFit: "contain" }}
+                sx={{ width: "100%", maxHeight: 200, objectFit: "contain" }}
               />
             </Grid2>
 

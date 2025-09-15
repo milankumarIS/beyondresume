@@ -247,6 +247,7 @@ export default function CustomEvaluationDriver({
         gap={4}
         alignItems={"center"}
         justifyContent={"center"}
+        flexDirection={{ xs: "column", md: "row" }}
       >
         <Box
           width={"100%"}
@@ -262,7 +263,8 @@ export default function CustomEvaluationDriver({
           {selectedCategories.map((category) => (
             <Box
               key={category}
-              minWidth={"420px"}
+              // minWidth={"420px"}
+              flexDirection={{ xs: "column", md: "row" }}
               sx={{
                 p: 2,
                 px: 4,
@@ -276,7 +278,7 @@ export default function CustomEvaluationDriver({
               <Stack
                 direction="column"
                 spacing={1}
-                alignItems="flex-start"
+                alignItems={{ xs: "center", md: "flex-start" }}
                 minWidth={"200px"}
               >
                 <Typography

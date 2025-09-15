@@ -3,8 +3,13 @@ import { useEffect, useState } from "react";
 import { pricingPlans } from "../../../components/form/data";
 import { formatDateJob } from "../../../components/util/CommonFunctions";
 import GradientText from "../../../components/util/CommonStyle";
-import { getUserFirstName, getUserId, getUserRole } from "../../../services/axiosClient";
 import {
+  getUserFirstName,
+  getUserId,
+  getUserRole,
+} from "../../../services/axiosClient";
+import {
+  brAnalytics,
   getProfile,
   searchDataFromTable,
   searchListDataFromTable,
@@ -38,6 +43,10 @@ export default function BeyondResumePricing() {
   useEffect(() => {
     const checkSubscription = async () => {
       const userId = getUserId();
+
+      // const res = await brAnalytics({ userName: "INDU25A00086" });
+
+      // console.log(res);
 
       const [payments, interviews, jobs, user]: any = await Promise.all([
         searchDataFromTable("brPayments", {
@@ -170,12 +179,12 @@ export default function BeyondResumePricing() {
         <Tabs
           value={duration}
           onChange={handleTabChange}
+          variant="scrollable"
+          scrollButtons="auto"
           allowScrollButtonsMobile
-          centered
           sx={{
             m: "auto",
             fontFamily: "montserrat-regular",
-
             my: 4,
             background: "white",
             width: "fit-content",
@@ -234,19 +243,18 @@ const SubscriptionGlassCard = ({
   onUpgrade,
   endDate,
 }: any) => {
-
-   const { userData } = useUserData();
+  const { userData } = useUserData();
 
   const mockPercent = mockUsed / mockTotal;
   const datePercent = 1 - daysLeft / 30;
-  const jobPercent = (jobUsed / jobTotal) ;
+  const jobPercent = jobUsed / jobTotal;
 
   const mocksLeft = mockTotal - mockUsed;
   const jobsLeft = jobTotal - jobUsed;
 
   const stats = [
     {
-      title:  "Practice Interviews" ,
+      title: "Practice Interviews",
       centerText: "Left",
       subtitle: `Used ${mockUsed} out of ${mockTotal}`,
       progress: mockPercent,
@@ -267,7 +275,7 @@ const SubscriptionGlassCard = ({
 
   const stats1 = [
     {
-      title: 'Job Posts',
+      title: "Job Posts",
       centerText: "Left",
       subtitle: `Used ${jobUsed} out of ${jobTotal}`,
       progress: jobPercent,
@@ -286,7 +294,7 @@ const SubscriptionGlassCard = ({
     },
   ];
 
-  const statsMap = getUserRole() === 'CAREER SEEKER' ? stats : stats1;
+  const statsMap = getUserRole() === "CAREER SEEKER" ? stats : stats1;
 
   return (
     <Box>
@@ -300,8 +308,7 @@ const SubscriptionGlassCard = ({
         }}
       >
         <Typography variant="h4">Hi</Typography>
-                   <GradientText text={userData?.firstName} variant="h4" />
-
+        <GradientText text={userData?.firstName} variant="h4" />
       </Box>
       <Typography
         variant="h5"
@@ -341,7 +348,7 @@ interface DonutStatCardProps {
   title: string;
   centerText: string;
   subtitle: string;
-  progress: number; 
+  progress: number;
   color?: string;
   daysLeft?: string;
   mocksLeft?: string;

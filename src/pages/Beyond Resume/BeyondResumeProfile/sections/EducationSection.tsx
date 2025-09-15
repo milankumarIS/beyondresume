@@ -238,6 +238,9 @@ export default function EducationSection({ hideSensitive }: any) {
                             //  alignSelf:'flex-end',
                             display: "block",
                             ml: "auto",
+                            position: { xs: "absolute", md: "static" },
+                            bottom: 10,
+                            right: 0,
                           }}
                         >
                           <Box

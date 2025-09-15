@@ -1,4 +1,14 @@
-import { Box, CircularProgress, Typography } from "@mui/material";
+import {
+  Box,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Typography,
+  useMediaQuery,
+  useTheme,
+} from "@mui/material";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useHistory, useLocation, useParams } from "react-router";
 import Webcam from "react-webcam";
@@ -10,6 +20,7 @@ import { useUserData } from "../../components/util/UserDataContext";
 import BeyondResumeLoader from "./Beyond Resume Components/BeyondResumeLoader";
 import { useProctoringSuite } from "./Beyond Resume Components/useProctoringSuite";
 import AIProfileInterview from "./Beyond Resume Carrer Seeker/Beyond Resume Job Apply/AIProfileInterview";
+import theme from "quill/core/theme";
 
 const BeyondResumeReadyToJoin = () => {
   const location = useLocation();
@@ -26,6 +37,8 @@ const BeyondResumeReadyToJoin = () => {
   const history = useHistory();
   const [isManualRead, setIsManualRead] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const [isMicOn, setIsMicOn] = useState(false);
   const [micAccessible, setMicAccessible] = useState(true);
@@ -169,19 +182,7 @@ const BeyondResumeReadyToJoin = () => {
   return (
     <Box
       className="full-screen-div"
-      display="flex"
-      sx={{
-        alignItems: "center",
-        backgroundSize: "110%",
-        backgroundPosition: "center",
-        backgroundRepeat: "repeat",
-        gap: "2%",
-        flexDirection: { xs: "column", lg: "column" },
-        justifyContent: "center",
-        position: "relative",
-        overflow: "hidden",
-        minHeight: "calc(100vh - 58px)",
-      }}
+
     >
       <Box
         display="flex"
@@ -211,14 +212,20 @@ const BeyondResumeReadyToJoin = () => {
         justifyContent={"space-around"}
         width={"100%"}
         mt={4}
+        height={"100%"}
       >
-        <Box display="flex" alignItems="center" flexDirection="column">
+        <Box
+          display="flex"
+          alignItems="center"
+          flexDirection="column"
+          sx={{ display: { xs: "none", sm: "flex" } }}
+        >
           <Box
             sx={{
               width: { xs: "80vw", sm: "50vw" },
               position: "relative",
               borderRadius: "12px",
-              overflow: "hidden",
+              // overflow: "hidden",
               background: "black",
             }}
           >
@@ -328,6 +335,20 @@ const BeyondResumeReadyToJoin = () => {
               Proceed
             </BeyondResumeButton>
           </Box>
+
+          {!isManualRead && (
+            <Typography
+              sx={{
+                mt: 2,
+                color: "#ff5252",
+                fontSize: "14px",
+                textAlign: "center",
+              }}
+            >
+              Please read the instructions and check the acknowledgement box to
+              proceed.
+            </Typography>
+          )}
         </Box>
 
         <Box>
@@ -463,6 +484,33 @@ const BeyondResumeReadyToJoin = () => {
           }}
         />
       )}
+
+      <Dialog
+        open={isMobile}
+        onClose={() => {}}
+        disableEscapeKeyDown
+        disableScrollLock
+      >
+        <DialogTitle textAlign="center">
+          <Typography variant="h5" textAlign="center" fontFamily="custom-bold">
+            Device Requirement
+          </Typography>
+        </DialogTitle>
+        <DialogContent sx={{ textAlign: "center" }}>
+          To attend the interview, please use a laptop. Mobile devices are not
+          supported.
+        </DialogContent>
+        <DialogActions sx={{ justifyContent: "center", pb: 2 }}>
+          <BeyondResumeButton
+            variant="contained"
+            color="primary"
+            onClick={() => history.goBack()}
+            sx={{ px: 4 }}
+          >
+            Go Back
+          </BeyondResumeButton>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

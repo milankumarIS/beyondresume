@@ -26,7 +26,7 @@ const navItems = [
   { icon: faCrown, label: "Premium", path: "/beyond-resume-pricing" },
 ];
 
-const buttonsArray: any[] = [
+export const buttonsArray: any[] = [
   {
     title: "Home",
     url: "/beyond-resume",

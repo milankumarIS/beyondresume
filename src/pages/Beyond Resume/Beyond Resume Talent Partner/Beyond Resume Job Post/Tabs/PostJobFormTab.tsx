@@ -23,6 +23,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { beyondResumeSchema } from "../../../../../components/form/schema";
 import { faXmarkCircle } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useIndustry } from "../../../../../components/util/IndustryContext";
 
 type BeyondResumeSchemaType = {
   jobTitle: string;
@@ -52,6 +53,7 @@ const PostJobForm: React.FC<PostJobFormProps> = ({
   onSuccess,
 }) => {
   const [loading, setLoading] = useState(false);
+  const { industryName } = useIndustry();
 
   const {
     control,
@@ -63,7 +65,7 @@ const PostJobForm: React.FC<PostJobFormProps> = ({
     resolver: zodResolver(beyondResumeSchema),
     defaultValues: {
       jobTitle: "",
-      companyName: "",
+      companyName: industryName || '',
       skills: "",
       experience: "",
       jobType: "",
@@ -129,8 +131,10 @@ const PostJobForm: React.FC<PostJobFormProps> = ({
       let generatedDescription = "";
       try {
         const res = await getUserAnswerFromAi({ question: fullCommand });
+        console.log(res);
         generatedDescription =
           res?.data?.data?.candidates[0]?.content?.parts[0]?.text || "";
+          
       } catch (err) {
         console.error("AI generation failed:", err);
         generatedDescription =
@@ -176,7 +180,9 @@ const PostJobForm: React.FC<PostJobFormProps> = ({
         style={{
           display: "flex",
           flexDirection: "column",
-          maxWidth: "60vw",
+          // maxWidth: "60vw",
+          maxWidth:'800px',
+
           margin: "auto",
         }}
       >
@@ -190,6 +196,7 @@ const PostJobForm: React.FC<PostJobFormProps> = ({
               register={register}
               withValidationClass={false}
               sx={commonFormTextFieldSx}
+             readonly
             />
           </Grid2>
 

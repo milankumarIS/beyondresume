@@ -149,7 +149,7 @@ const JobCard = ({
         )} */}
 
         <Box display={"flex"} alignItems={"center"} gap={2} mb={2}>
-          {job.companyName === "Translab.io" ? (
+         {job?.companyName?.toLowerCase() === "translab.io".toLowerCase() ? (
             <Box
               sx={{
                 background: "white",

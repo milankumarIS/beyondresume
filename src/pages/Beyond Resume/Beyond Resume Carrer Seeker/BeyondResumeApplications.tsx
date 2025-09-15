@@ -42,6 +42,7 @@ import { countTotalQuestions } from "../../../components/util/CommonFunctions";
 
 const BeyondResumeApplications = () => {
   const [interviewList, setInterviewList] = useState<any[]>([]);
+  const [interviewListCount, setInterviewListCount] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isPractice, setIsPractice] = useState(false);
   const [page, setPage] = useState(1);
@@ -87,6 +88,8 @@ const BeyondResumeApplications = () => {
             new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
           );
         });
+
+        setInterviewListCount(sortedList);
 
         const grouped = sortedList.reduce((acc: any, item: any) => {
           const dateKey = getFormattedDateKey(item.updatedAt);
@@ -216,6 +219,8 @@ const BeyondResumeApplications = () => {
     }
   };
 
+  // console.log(interviewList);
+
   return (
     <Box
       sx={{
@@ -225,7 +230,7 @@ const BeyondResumeApplications = () => {
         position: "relative",
       }}
     >
-      <Typography variant="h6">Upcoming Interviews</Typography>
+      {/* <Typography variant="h6">Upcoming Interviews</Typography> */}
 
       {/* <Box
         sx={{
@@ -323,13 +328,13 @@ const BeyondResumeApplications = () => {
       )}
 
       <Box sx={{ maxWidth: "100%", ml: "auto" }}>
-        {!isPractice && Object.keys(interviewList).length >= 10 ? (
+        {interviewListCount.length !== 0 && (
           <PaginationControlled
             page={page}
             setPage={setPage}
             count={totalCount}
           />
-        ) : null}
+        )}
       </Box>
 
       <Box sx={{ position: "relative", zIndex: 10000 }}>
@@ -377,6 +382,8 @@ const JobCard: React.FC<JobCardProps> = ({ job, theme, onStartAssessment }) => {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
+          flexDirection: { xs: "column", md: "row" },
+          minWidth: 0,
         }}
         style={{
           paddingBottom: "16px",
@@ -385,7 +392,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, theme, onStartAssessment }) => {
           minHeight: "0px",
         }}
       >
-        <Box display={"flex"} gap={2} mb={2}>
+        <Box display={"flex"} mr={"auto"} gap={2} mb={2}>
           <Box>
             <FontAwesomeIcon
               icon={faBuilding}

@@ -71,7 +71,14 @@ const BeyondResumeJobFilterComponent: React.FC<Props> = ({
   };
 
   return (
-    <Box position={"relative"} display={"flex"} gap={1} flexWrap="wrap">
+    <Box
+      position={"relative"}
+      display={"flex"}
+      alignItems={'center'}
+      justifyContent={'center'}
+      gap={1}
+      flexWrap="wrap"
+    >
       {FILTER_KEYS.map((key) => (
         <Box key={key} sx={{ display: "flex", flexDirection: "column" }}>
           <Select
@@ -129,8 +136,8 @@ const BeyondResumeJobFilterComponent: React.FC<Props> = ({
                       //   }))
                       // }
                       sx={{
-                        fontSize:'12px',
-                        height:'24px',
+                        fontSize: "12px",
+                        height: "24px",
                         "& .MuiChip-deleteIcon": {
                           color: color.newFirstColor,
                         },

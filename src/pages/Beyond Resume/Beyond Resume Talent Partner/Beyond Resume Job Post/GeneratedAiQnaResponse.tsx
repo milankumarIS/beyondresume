@@ -1,16 +1,9 @@
-import {
-  faArrowCircleRight,
-  faEdit,
-  faSave,
-} from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Box, Button, Typography } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import React, { useState } from "react";
 import { useHistory, useLocation } from "react-router";
 import { useSnackbar } from "../../../../components/shared/SnackbarProvider";
-import { updateByIdDataInTable } from "../../../../services/services";
-import color from "../../../../theme/color";
 import { BeyondResumeButton } from "../../../../components/util/CommonStyle";
+import { updateByIdDataInTable } from "../../../../services/services";
 
 interface GeneratedAiQnaResponseProps {
   response: string;
@@ -28,7 +21,7 @@ const GeneratedAiQnaResponse: React.FC<GeneratedAiQnaResponseProps> = ({
 
   
 
-  const isJobPage = location.pathname.startsWith("/beyond-resume-myjobs");
+  const isJobPage = location.pathname.startsWith("/beyond-resume-myjobs") || location.pathname.startsWith("/beyond-resume-jobdetails");
 
   const processedResponse = response
     .replace(/\*\*(.*?)\*\*/g, "")
@@ -117,7 +110,7 @@ const handleClick = async () => {
           position: "relative",
         }}
       >
-        {(!isJobPage || (isJobPage && status === "INPROGRESS")) && (
+        {/* {(!isJobPage || (isJobPage && status === "INPROGRESS")) && (
           <Box
             sx={{
               display: "flex",
@@ -144,7 +137,7 @@ const handleClick = async () => {
               />
             </Button>
           </Box>
-        )}
+        )} */}
 
         {isEditing ? (
           <Box mt={8}>
@@ -223,7 +216,7 @@ const HtmlParserExample = ({
 }) => {
   let parsedData: TextContent | null = null;
 
-console.log(htmlString);
+// console.log(htmlString);
 
   try {
     const match = htmlString.match(/<pre>\s*([\s\S]*?)\s*<\/pre>/);

@@ -84,7 +84,6 @@ const JobDescriptionTab: React.FC<JobDescriptionTabProps> = ({
   const [jobStatus, setJobStatus] = useState("");
   const [loading1, setLoading1] = useState(false);
 
-  // Move generateFromFile outside useEffect so you can call it on button click
   const generateFromFile = async () => {
     if (!jd) return;
     setLoading1(true);
@@ -247,23 +246,24 @@ const JobDescriptionTab: React.FC<JobDescriptionTabProps> = ({
           </div>
 
           <Typography variant="h6" sx={{ mb: 2 }}>
-            Fetching Your Job Description From The File...
+            Fetching Job Description From The File...
           </Typography>
         </Box>
       ) : (
         <Box
           id="jdSection"
-          pt={2}
+          // pt={2}
           sx={{
             borderRadius: "12px",
             position: "relative",
             display: "flex",
+            flexDirection:{xs:'column',md:'row'}
           }}
         >
           <Box pr={4}>
             {!isEditing ? (
               <StyledTypography
-                sx={{ mt: { xs: 8, md: 0 } }}
+                sx={{ mb: { xs: 4, md: 0 } }}
                 dangerouslySetInnerHTML={{
                   __html: displayContent,
                 }}

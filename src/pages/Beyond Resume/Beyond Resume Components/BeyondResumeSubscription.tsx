@@ -52,6 +52,8 @@ const PricingCard = ({
         transform: isHovered ? "scale(1.05)" : "scale(1)",
         transition: "all 0.6s ease",
         pb: 0,
+        filter: "grayscale(1)",
+        pointerEvents: "none",
       }}
     >
       <Card
@@ -68,7 +70,7 @@ const PricingCard = ({
           // color: isHovered ? "#fff" : "black",
           border: "solid 2px",
           borderColor: isHovered ? color.newFirstColor : "transparent",
-          background: theme === "dark" ? 'white' : color.jobCardBgLight,
+          background: theme === "dark" ? "white" : color.jobCardBgLight,
           color: "black",
           boxShadow: isHovered
             ? "0px 0px 15px rgba(80, 188, 246, 0.3)"
@@ -95,7 +97,11 @@ const PricingCard = ({
               component="span"
               fontFamily={"Custom-ExtraBold"}
             >
-              {duration === "lifetime" ? " / lifetime" : duration === "1month" ? ' / month': ` / ${duration}`}
+              {duration === "lifetime"
+                ? " / lifetime"
+                : duration === "1month"
+                ? " / month"
+                : ` / ${duration}`}
             </Typography>
           </Typography>
 
@@ -163,6 +169,7 @@ const PricingCard = ({
                 border: "solid 1px black",
                 borderColor: isHovered ? "white" : "black",
                 background: "linear-gradient(145deg, #0d0d0d, #2D3436)",
+                // background: "grey",
                 color: "white",
               }}
             >
@@ -177,7 +184,7 @@ const PricingCard = ({
             textAlign: "center",
             p: 1,
             fontFamily: "custom-bold",
-            color:'white'
+            color: "white",
           }}
         >
           RECOMMENDED

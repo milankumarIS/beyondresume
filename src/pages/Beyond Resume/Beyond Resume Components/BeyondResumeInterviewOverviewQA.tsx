@@ -90,6 +90,7 @@ export default function BeyondResumeInterviewOverviewQA({
         px={2}
         mb={3}
         display={"flex"}
+        flexDirection={{ xs: "column", md: "row" }}
         alignItems={"center"}
         justifyContent={"center"}
       >
@@ -276,6 +277,7 @@ export default function BeyondResumeInterviewOverviewQA({
             variant="scrollable"
             allowScrollButtonsMobile
             sx={{
+              maxWidth: "80vw",
               mt: 4,
               mb: 2,
               "& .MuiTab-root": {
@@ -302,10 +304,9 @@ export default function BeyondResumeInterviewOverviewQA({
           </Tabs>
         </>
       ) : (
-        <Typography textAlign={'center'} variant="h6" mb={4}>
+        <Typography textAlign={"center"} variant="h6" mb={4}>
           Adaptive Evaluation Insights
         </Typography>
-        
       )}
 
       <Box px={2}>

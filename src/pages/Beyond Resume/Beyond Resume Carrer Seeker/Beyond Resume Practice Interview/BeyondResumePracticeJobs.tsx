@@ -23,10 +23,7 @@ import GradientText, {
   BeyondResumeButton2,
 } from "../../../../components/util/CommonStyle";
 import { useTheme } from "../../../../components/util/ThemeContext";
-import {
-  getUserId,
-  getUserRole
-} from "../../../../services/axiosClient";
+import { getUserId, getUserRole } from "../../../../services/axiosClient";
 import {
   searchDataFromTable,
   searchListDataFromTable,
@@ -40,7 +37,7 @@ const BeyondResumePracticeJobs = () => {
   const isJobPage = location.pathname.startsWith("/beyond-resume-myjobs");
   const history = useHistory();
   const [loading, setLoading] = useState(true);
-   const { userData } = useUserData();
+  const { userData } = useUserData();
 
   const fadeVariant = {
     hidden: { opacity: 0, y: 20 },
@@ -231,7 +228,10 @@ const BeyondResumePracticeJobs = () => {
                         </Typography>
                       </Grid2>
 
-                      <Grid2 size={{ xs: 12, md: 6 }} sx={{ pl: 4 }}>
+                      <Grid2
+                        size={{ xs: 12, md: 6 }}
+                        sx={{ pl: { xs: 0, md: 4 } }}
+                      >
                         <Typography
                           variant="body2"
                           mb={1}

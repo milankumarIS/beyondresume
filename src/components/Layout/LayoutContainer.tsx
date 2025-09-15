@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import { useTheme } from "../util/ThemeContext";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
+import { useMediaQuery } from "@mui/material";
 
 const LayoutContainer: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -13,7 +14,7 @@ const LayoutContainer: React.FC<{ children: React.ReactNode }> = ({
   const isPublicPage = location.pathname.startsWith(
     "/beyond-resume-publicjobdetails"
   );
-
+  const isMobile = useMediaQuery("(max-width:900px)");
   return (
     <div
       className="layout-wrapper"
@@ -22,6 +23,7 @@ const LayoutContainer: React.FC<{ children: React.ReactNode }> = ({
         background: theme === "dark" ? "#082028" : "#e3ecf5",
         color: theme === "dark" ? "white" : "black",
         maxWidth: "100vw",
+        minHeight: "100vh",
       }}
     >
       <img
@@ -38,7 +40,7 @@ const LayoutContainer: React.FC<{ children: React.ReactNode }> = ({
           maxHeight: "100vh",
         }}
       />
-      {!isPublicPage && <Sidebar />}
+      {!isPublicPage && !isMobile && <Sidebar />}
       <div
         className="main-content"
         style={{
@@ -47,7 +49,7 @@ const LayoutContainer: React.FC<{ children: React.ReactNode }> = ({
           flexDirection: "column",
           position: "relative",
           background: "transparent",
-          paddingLeft: isPublicPage ? 0 : 60,
+          paddingLeft: !isMobile ? (isPublicPage ? 0 : 60) : 0,
         }}
       >
         <Header />

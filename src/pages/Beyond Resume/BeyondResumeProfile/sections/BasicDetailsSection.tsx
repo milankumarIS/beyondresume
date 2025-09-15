@@ -59,7 +59,7 @@ export default function BasicDetailsSection({
           minWidth: "300px",
           textAlign: "center",
           borderRadius: "18px",
-          background:'transparent',
+          background: "transparent",
           boxShadow: "none",
         }}
       >
@@ -103,7 +103,7 @@ export default function BasicDetailsSection({
     <Box>
       <Stack
         spacing={1}
-        flexDirection={"row"}
+        flexDirection={{ xs: "column", md: "row" }}
         sx={{
           justifyContent: "space-between",
           alignItems: "center",
@@ -119,13 +119,15 @@ export default function BasicDetailsSection({
           alignItems={"flex-start"}
           p={2}
           pr={4}
-          width={'100%'}
+          width={"100%"}
         >
           <Box
             sx={{ display: "flex", mb: 2, width: "100%" }}
             alignItems={"center"}
             justifyContent={"space-between"}
             gap={2}
+        flexDirection={{ xs: "column", md: "row" }}
+
           >
             <Box
               display={"flex"}
@@ -199,7 +201,7 @@ export default function BasicDetailsSection({
             )}
           </Box>
 
-          <div style={{ width: "100%", flexGrow: 1 }}>
+          <Box sx={{  flexGrow: 1, px:1 }}>
             <Typography sx={{ fontFamily: "custom-bold" }}>About Me</Typography>
             {/* <Divider sx={{ border: "solid 1px grey", my: 1, opacity: 0.4 }} /> */}
 
@@ -208,7 +210,7 @@ export default function BasicDetailsSection({
             >
               {currentUser?.userPersonalInfo?.about || "No data"}
             </Typography>
-          </div>
+          </Box>
         </Box>
 
         <Box
@@ -239,7 +241,7 @@ export default function BasicDetailsSection({
                 color: "#5b5e66",
                 display: "flex",
                 alignItems: "center",
-                justifyContent:'center'
+                justifyContent: "center",
               }}
             >
               <FontAwesomeIcon icon={faEnvelope} />{" "}

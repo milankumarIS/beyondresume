@@ -323,6 +323,7 @@ const BeyondResumePayment = () => {
                         ...commonFormTextFieldSx,
                         mb: 2,
                         borderRadius: "12px",
+                        border:'solid 1px black'
                       }}
                       value={block}
                       inputProps={{

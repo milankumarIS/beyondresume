@@ -137,7 +137,7 @@ export default function BeyondResumeHero({ onScrollClick }) {
             gap: 1,
             alignItems: "center",
             justifyContent: "center",
-            px: 6,
+            px: {xs:2, md:6},
           }}
         >
           {/* <Typography sx={{ fontFamily: "montserrat-regular" }} variant="h4">
@@ -146,10 +146,9 @@ export default function BeyondResumeHero({ onScrollClick }) {
           <GradientText text={"Interview Hub"} variant="h4" /> */}
 
           <Typography
-            variant="h3"
             gutterBottom
             sx={{
-              width: "fit-content",
+              fontSize:{xs:'24px', md:'48px'},
               m: "auto",
               fontFamily: "Custom-Bold",
               // background: "linear-gradient(180deg, #50bcf6, #5a81fd)",
@@ -193,7 +192,7 @@ export default function BeyondResumeHero({ onScrollClick }) {
         </Stack>
 
         <Stack
-          direction="row"
+          direction={{xs:'column', md:"row"}}
           spacing={2}
           alignItems="center"
           justifyContent="center"

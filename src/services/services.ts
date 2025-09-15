@@ -457,4 +457,7 @@ export function g2iRegisterMobile(payload: any) {
 export function getRandomQuestions(query: any) {
   return client.get(`brQuestionSets/getRandomQuestions`, { params: query });
 }
+export function brAnalytics(query: any) {
+  return client.get(`brAnalytics`, { params: query });
+}
 

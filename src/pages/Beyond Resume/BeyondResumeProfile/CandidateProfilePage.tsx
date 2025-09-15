@@ -62,7 +62,6 @@ export default function CandidateProfilePage() {
         backgroundColor: theme === "dark" ? color.newbg : "white",
       });
 
-      
       const imgData = canvas.toDataURL("image/png");
 
       const pdf = new jsPDF("p", "mm", "a4");
@@ -84,13 +83,13 @@ export default function CandidateProfilePage() {
     <Box
       sx={{
         p: 4,
-        px: 6,
+        px: { xs: 1, md: 6 },
         minHeight: "90vh",
         overflow: "hidden",
         position: "relative",
       }}
     >
-      <BeyondResumeButton2
+      {/* <BeyondResumeButton2
         sx={{
           position: "absolute",
           top: "3.5%",
@@ -103,7 +102,7 @@ export default function CandidateProfilePage() {
       >
         <FontAwesomeIcon style={{ marginRight: "4px" }} icon={faDownload} />{" "}
         Download BR Profile
-      </BeyondResumeButton2>
+      </BeyondResumeButton2> */}
 
       <motion.div
         ref={profileRef}
@@ -187,7 +186,10 @@ export default function CandidateProfilePage() {
           />
         </motion.div>
 
-        <Box sx={{ display: "flex", width: "100%" }}>
+        <Box
+          flexDirection={{ xs: "column", md: "row" }}
+          sx={{ display: "flex", width: "100%" }}
+        >
           <Box sx={{ flexGrow: 1 }}>
             <motion.div variants={sectionVariant}>
               <ExperienceSection hideSensitive={hideSensitive} />

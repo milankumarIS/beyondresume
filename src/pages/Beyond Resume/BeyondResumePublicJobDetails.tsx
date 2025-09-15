@@ -89,7 +89,6 @@ const BeyondResumePublicJobDetails = () => {
         .trim();
       setDisplayContent(cleanedResponse);
     }
-
   }, [job]);
 
   const handleApplyJob = () => {
@@ -152,9 +151,9 @@ const BeyondResumePublicJobDetails = () => {
     <Box
       p={2}
       mt={0}
-      m={brJobId ? 4 : 0}
+      m={{ xs: 0, md: brJobId ? 4 : 0 }}
       sx={{
-        boxShadow: "0px 2px 36px rgba(0, 0, 0, 0.05)",
+        boxShadow: "0px 2px 36px rgba(0, 0, 0, 0.15)",
         borderRadius: 4,
       }}
     >
@@ -166,11 +165,10 @@ const BeyondResumePublicJobDetails = () => {
               m: -2,
             }}
           >
-            <Box display={"flex"} alignItems={"center"} gap={1} mb={0.5}>
-              {job?.companyName === "Translab.io" ? (
+            <Box display={"flex"} alignItems={"center"} gap={2} mb={0.5}>
+              {job?.companyName?.toLowerCase() === "translab.io".toLowerCase() ? (
                 <Box
                   sx={{
-                    background: "white",
                     padding: "4px",
                     borderRadius: "8px",
                     display: "flex",
@@ -181,14 +179,39 @@ const BeyondResumePublicJobDetails = () => {
                   <img
                     style={{
                       width: "120px",
-                    //   borderRadius: "4px",
+                      //   borderRadius: "4px",
                     }}
                     src="/assets/translab.png"
                     alt=""
                   />
+                  <div>
+                    <Typography
+                      mb={0.5}
+                      sx={{
+                        fontSize: "24px",
+                        cursor: "pointer",
+                        color:
+                          theme === "dark"
+                            ? color.titleColor
+                            : color.titleLightColor,
+                      }}
+                    >
+                      {job?.jobTitle}
+                    </Typography>
+
+                    <div>
+                      <Typography
+                        fontSize={"16px"}
+                        mt={0}
+                        sx={{ fontFamily: "montserrat-regular" }}
+                      >
+                        {job?.location} ({job?.jobMode})
+                      </Typography>
+                    </div>
+                  </div>
                 </Box>
               ) : (
-                <Box>
+                <Box display={"flex"} gap={1} alignItems={"center"}>
                   <FontAwesomeIcon
                     icon={faBuilding}
                     style={{
@@ -199,39 +222,49 @@ const BeyondResumePublicJobDetails = () => {
                       color: color.newbg,
                     }}
                   />
+                  <Typography
+                    fontSize={"20px"}
+                    sx={{ fontFamily: "montserrat-Regular" }}
+                  >
+                    {job?.companyName}
+                  </Typography>
                 </Box>
               )}
-
+              {/* 
               <Typography
                 fontSize={"20px"}
                 sx={{ fontFamily: "montserrat-Regular" }}
               >
                 {job?.companyName}
-              </Typography>
+              </Typography> */}
             </Box>
+            {job?.companyName?.toLowerCase() === "translab.io".toLowerCase() && (
+              <div>
+                <Typography
+                  mb={0.5}
+                  sx={{
+                    fontSize: "24px",
+                    cursor: "pointer",
+                    color:
+                      theme === "dark"
+                        ? color.titleColor
+                        : color.titleLightColor,
+                  }}
+                >
+                  {job?.jobTitle}
+                </Typography>
 
-            <Typography
-              mb={0.5}
-              sx={{
-                fontSize: "26px",
-                cursor: "pointer",
-                color:
-                  theme === "dark" ? color.titleColor : color.titleLightColor,
-              }}
-            >
-              {job?.jobTitle}
-            </Typography>
-
-            <div>
-              <Typography
-                fontSize={"16px"}
-                mt={0}
-                sx={{ fontFamily: "montserrat-regular" }}
-              >
-                {job?.location} ({job?.jobMode})
-              </Typography>
-            </div>
-
+                <div>
+                  <Typography
+                    fontSize={"16px"}
+                    mt={0}
+                    sx={{ fontFamily: "montserrat-regular" }}
+                  >
+                    {job?.location} ({job?.jobMode})
+                  </Typography>
+                </div>
+              </div>
+            )}
             <Box
               sx={{
                 mt: 1.5,
@@ -252,12 +285,13 @@ const BeyondResumePublicJobDetails = () => {
 
               <Box
                 sx={{
-                  position: "absolute",
+                  position: { xs: "static", md: "absolute" },
                   top: "-20px",
                   right: "0px",
                   display: "flex",
                   flexDirection: "column",
                   gap: 2,
+                  mt: { xs: 2, md: 0 },
                 }}
               >
                 <BeyondResumeButton
@@ -305,7 +339,7 @@ const BeyondResumePublicJobDetails = () => {
               }}
             />
 
-            {displayContent && (
+            {/* {displayContent && (
               <Button
                 sx={{
                   mt: 1,
@@ -328,7 +362,7 @@ const BeyondResumePublicJobDetails = () => {
                   }
                 />
               </Button>
-            )}
+            )} */}
           </>
         </Box>
       </>

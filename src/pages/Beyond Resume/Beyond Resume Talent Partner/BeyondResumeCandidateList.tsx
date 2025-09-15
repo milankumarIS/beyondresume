@@ -247,7 +247,7 @@ const BeyondResumeCandidateList = () => {
           sx={{
             mt: 4,
             position: "absolute",
-            top: 10,
+            top: {xs:80, md:10},
             right: 30,
             fontSize: "14px",
           }}

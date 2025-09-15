@@ -2,13 +2,13 @@ import { Box, Typography } from "@mui/material";
 import { useRef, useState } from "react";
 import { useHistory } from "react-router";
 import { BeyondResumeButton } from "../../components/util/CommonStyle";
+import { getUserRole } from "../../services/axiosClient";
 import BeyondResumeFAQ from "./Beyond Resume Components/BeyondResumeFAQ";
 import BeyondResumeSubscription from "./Beyond Resume Components/BeyondResumeSubscription";
 import BeyondResumeTestimony from "./Beyond Resume Components/BeyondResumeTestimony";
 import BeyondResumeFeatures from "./Beyond Resume Interview/BeyondResumeFeatures";
 import BeyondResumeHero from "./Beyond Resume Interview/BeyondResumeHero";
 import BeyondResumeSteps from "./Beyond Resume Interview/BeyondResumeSteps";
-import { getUserRole } from "../../services/axiosClient";
 
 export default function BeyondResumeHome() {
   const history = useHistory();
@@ -39,12 +39,23 @@ export default function BeyondResumeHome() {
       <BeyondResumeHero onScrollClick={handleScroll} />
       <BeyondResumeFeatures ref={scrollRef} />
       <BeyondResumeSteps />
-      <Typography variant="h3" fontFamily="Custom-Bold" textAlign="center">
+      <Typography
+        sx={{
+          textAlign: "center",
+          fontSize: { xs: "32px", md: "48px" },
+        }}
+        fontFamily="Custom-Bold"
+      >
         Subscription Plans
       </Typography>
       <Typography
         variant="h6"
         mb={4}
+        sx={{
+          textAlign: "center",
+          fontSize: { xs: "12px", md: "18px" },
+          mx: 2,
+        }}
         fontFamily="Montserrat-Regular"
         textAlign="center"
       >
@@ -59,7 +70,9 @@ export default function BeyondResumeHome() {
 
       <BeyondResumeFAQ />
 
-      <Box sx={{ width: "calc(100vw - 92px)" }}>
+      <Box
+        sx={{ width: { xs: "calc(100vw - 52px)", md: "calc(100vw - 92px)" } }}
+      >
         <BeyondResumeTestimony />
       </Box>
 
@@ -79,10 +92,11 @@ export default function BeyondResumeHome() {
             borderRadius: "12px",
             zIndex: 2,
             position: "relative",
+            textAlign: "center",
+            fontSize: { xs: "32px", md: "48px" },
           }}
         >
-                     {getUserRole() === "CAREER SEEKER"
-
+          {getUserRole() === "CAREER SEEKER"
             ? "Start practicing today and land your dream job"
             : "Start hiring smarter and build your dream team"}
         </Typography>
@@ -90,7 +104,11 @@ export default function BeyondResumeHome() {
         <Typography
           gutterBottom
           variant="h6"
-          sx={{ mb: 2, fontFamily: "Montserrat-Regular" }}
+          sx={{
+            mb: 2,
+            fontFamily: "Montserrat-Regular",
+            fontSize: { xs: "12px", md: "18px", mx: 2 },
+          }}
         >
           {getUserRole() === "CAREER SEEKER"
             ? "Try our mock interview tool for free today. Start practicing and improving your skills immediately."

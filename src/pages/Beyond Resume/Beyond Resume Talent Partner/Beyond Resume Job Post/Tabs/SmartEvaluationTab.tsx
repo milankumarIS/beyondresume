@@ -145,7 +145,13 @@ const SmartEvaluationTab: React.FC<SmartEvaluationTabProps> = ({
             jobInterviewQuestions: qnaJsonString,
           };
 
+          // console.log(payload);
+          
+
           await updateByIdDataInTable("brJobs", jobId, payload, "brJobId");
+
+        onNext?.(qnaJsonString);
+
 
           setTimeout(() => {
             document
@@ -208,7 +214,7 @@ const SmartEvaluationTab: React.FC<SmartEvaluationTabProps> = ({
         `.trim();
 
         const aiRes = await getUserAnswerFromAi({ question: fullCommand });
-        console.log(aiRes);
+        // console.log(aiRes);
         const generatedText =
           aiRes.data.data.candidates[0].content.parts[0].text;
 
@@ -284,7 +290,7 @@ const SmartEvaluationTab: React.FC<SmartEvaluationTabProps> = ({
             </CustomToggleButtonGroup>
           </Box>
 
-          <Box px={4} py={2} mt={4}>
+          <Box  py={2} mt={4}>
             <Typography
               gutterBottom
               align="center"
@@ -388,8 +394,8 @@ const SmartEvaluationTab: React.FC<SmartEvaluationTabProps> = ({
               <FileUpload
                 questionFile={questionFile}
                 setQuestionFile={setQuestionFile}
-                acceptFormat=".csv"
-                fileFormatNote="Please make sure the CSV follows the exact column order of the sample file."
+                acceptFormat=".csv, .xlsx"
+                fileFormatNote="Please make sure the file follows the exact column order of the sample file."
               />
             </Box>
           )}

@@ -32,8 +32,8 @@ const BeyondResumeJobPost: React.FC = () => {
   const [jdResponse, setJdResponse] = useState("");
   const [qnResponse, setQnResponse] = useState("");
 
-//   console.log(jdResponse);
-//   console.log(qnResponse);
+  //   console.log(jdResponse);
+  //   console.log(qnResponse);
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
     if (newValue < maxStepReached) {
@@ -111,7 +111,7 @@ const BeyondResumeJobPost: React.FC = () => {
   ];
 
   return (
-    <Box p={4}>
+    <Box p={{ xs: 0, md: 4 }}>
       <Box className="full-screen-div">
         <Box
           sx={{
@@ -123,7 +123,7 @@ const BeyondResumeJobPost: React.FC = () => {
             width: "100%",
           }}
         >
-          {industryName === "translab.io" ? (
+          {industryName?.toLowerCase() === "translab.io".toLowerCase() ? (
             <img
               style={{
                 width: "180px",

@@ -78,12 +78,13 @@ export default function BeyondResumePractice() {
     <Box>
       <Box
         sx={{
-          minHeight: "70vh",
+          minHeight: {xs:'50vh', md:"70vh"},
           textAlign: "center",
           alignItems: "center",
           justifyContent: "center",
           display: "flex",
           flexDirection: "column",
+          p:2
         }}
       >
         <Typography
@@ -105,8 +106,9 @@ export default function BeyondResumePractice() {
           your confidence.
         </Typography>
 
-        <BeyondResumeButton sx={{my:0, mt:4}}
-                    onClick={() => history.push(`/beyond-resume-practicePools`)}
+        <BeyondResumeButton
+          sx={{ my: 0, mt: 4 }}
+          onClick={() => history.push(`/beyond-resume-practicePools`)}
         >
           Start Practicing Now
         </BeyondResumeButton>
@@ -123,7 +125,8 @@ export default function BeyondResumePractice() {
               display="flex"
               alignItems="center"
               justifyContent="space-around"
-              flexDirection={index % 2 === 0 ? "row" : "row-reverse"}
+              flexDirection={{xs:'column-reverse', md:index % 2 === 0 ? "row" : "row-reverse"}}
+              gap={2}
             >
               <Box sx={{ maxWidth: "400px" }}>
                 <Typography
@@ -153,7 +156,7 @@ export default function BeyondResumePractice() {
                 component="img"
                 src={feature.image}
                 alt="feature"
-                sx={{ width: "300px", height: "auto" }}
+                sx={{ width: "300px", height: "auto",  }}
               />
             </Grid>
           ))}
@@ -223,6 +226,5 @@ export default function BeyondResumePractice() {
         Try Free Practice
       </BeyondResumeButton>
     </Box>
-
   );
 }

@@ -29,15 +29,16 @@ const BeyondResumeTestimony = () => {
   const testimonialChunks = chunkArray(testimonials, 4);
 
   return (
-    <Box my={6} px={2}>
+    <Box my={6} px={2} width={'100%'}>
       <Typography
-        variant="h3"
         sx={{
           fontFamily: "Custom-Bold",
           width: "fit-content",
           p: 2,
           borderRadius: "12px",
           m: "auto",
+          textAlign: "center",
+          fontSize: { xs: "32px", md: "48px" },
         }}
       >
         What Our Users Say

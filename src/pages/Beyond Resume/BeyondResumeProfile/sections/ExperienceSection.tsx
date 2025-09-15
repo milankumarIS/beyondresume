@@ -232,6 +232,7 @@ export default function ExperienceSection({ hideSensitive }: any) {
                               theme === "dark"
                                 ? color.titleColor
                                 : color.titleLightColor,
+                                
                           }}
                         >
                           {exp.jobTitle}
@@ -274,6 +275,9 @@ export default function ExperienceSection({ hideSensitive }: any) {
                           //  alignSelf:'flex-end',
                           display: "block",
                           ml: "auto",
+                          position:{xs: "absolute", md:'static'},
+                          bottom: 10,
+                          right: 0,
                         }}
                       >
                         <Box

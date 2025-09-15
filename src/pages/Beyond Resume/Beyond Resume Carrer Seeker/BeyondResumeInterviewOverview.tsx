@@ -136,6 +136,7 @@ const BeyondResumeInterviewOverview = () => {
     <Box
       sx={{
         p: 4,
+        px: { xs: 2, md: 4 },
         // background: "linear-gradient(145deg, #0d0d0d, #2D3436)",
         minHeight: "100vh",
         position: "relative",
@@ -163,8 +164,10 @@ const BeyondResumeInterviewOverview = () => {
           mt: 4,
           p: type === "candidateResult" ? 2 : 0,
           px: 0,
-          flexDirection:
-            type === "candidateResult" ? "row-reverse" : "row-reverse",
+          flexDirection: {
+            xs: "column-reverse",
+            md: type === "candidateResult" ? "row-reverse" : "row-reverse",
+          },
           justifyContent:
             type === "candidateResult" ? "space-between" : "-moz-initial",
           // background: type === "candidateResult" ? color.cardBg : "transparent",
@@ -389,7 +392,7 @@ const BeyondResumeInterviewOverview = () => {
 
           {type === "practice" && (
             <>
-              <Box display={"flex"} alignItems={'center'} p={2} gap={2} mt={-2}>
+              <Box display={"flex"} alignItems={"center"} p={2} gap={2} mt={-2}>
                 {data?.jobTitle ? (
                   jobKeywordIcons.map((entry) =>
                     data?.jobTitle
@@ -534,6 +537,7 @@ const BeyondResumeInterviewOverview = () => {
 
       {type === "candidateResult" && (
         <Box
+          flexDirection={{ xs: "column", md: "row" }}
           sx={{
             display: "flex",
             gap: 2,

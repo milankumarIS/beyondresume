@@ -33,6 +33,7 @@ const BeyondResumeInterviewList = () => {
   const [interviewList, setInterviewList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isPractice, setIsPractice] = useState(false);
+  const [isUpcoming, setIsUpcoming] = useState(false);
   const [page, setPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [reload, setReload] = useState(false);
@@ -100,33 +101,18 @@ const BeyondResumeInterviewList = () => {
       <Typography
         variant="h4"
         textAlign={"center"}
-        mt={4}
+        mt={2}
         // sx={{ fontFamily: "montserrat-regular" }}
       >
-        Interview Hub
+        Your Interview Hub
       </Typography>
-
-      <BeyondResumeApplications />
-
-      <Typography variant="h5" my={2} sx={{ textAlign: "center" }}>
-        Meanwhile, want to stay sharp? Try a quick Al-powered practice
-        interview.
-      </Typography>
-
-      <BeyondResumeButton
-        sx={{ m: "auto", display: "block", mb: 4, mt: 1 }}
-        onClick={() => {
-          history.push(`/beyond-resume-practicePools`);
-        }}
-      >
-        Start Practice Interview
-      </BeyondResumeButton>
 
       <Box
         sx={{
-          background: color.cardBg,
-          p: 4,
-          m: 4,
+          // background: color.cardBg,
+          p: { xs: 0, md: 4 },
+          mb: 4,
+          mt: { xs: 2, md: 0 },
           borderRadius: 4,
         }}
       >
@@ -141,18 +127,34 @@ const BeyondResumeInterviewList = () => {
           }}
         >
           <CustomToggleButtonGroup
-            value={isPractice ? "yes" : "no"}
+            value={isPractice ? "yes" : isUpcoming ? "upcoming" : "no"}
             exclusive
-            onChange={() => setIsPractice((prev) => !prev)}
+            onChange={(_, newValue) => {
+              if (newValue === "yes") {
+                setIsPractice(true);
+                setIsUpcoming(false);
+              } else if (newValue === "upcoming") {
+                setIsPractice(false);
+                setIsUpcoming(true);
+              } else {
+                setIsPractice(false);
+                setIsUpcoming(false);
+              }
+            }}
           >
+            <CustomToggleButton value="upcoming">
+              Upcoming Interviews
+            </CustomToggleButton>
+            <CustomToggleButton value="no">Past Interviews</CustomToggleButton>
             <CustomToggleButton value="yes">
               Past Practice Interviews
             </CustomToggleButton>
-            <CustomToggleButton value="no">Past Interviews</CustomToggleButton>
           </CustomToggleButtonGroup>
         </Box>
 
-        {loading ? (
+        {isUpcoming ? (
+          <BeyondResumeApplications />
+        ) : loading ? (
           <Box
             sx={{
               minHeight: "70vh",
@@ -188,7 +190,13 @@ const BeyondResumeInterviewList = () => {
             </Typography>
           </Box>
         ) : (
-          <Grid container spacing={3} mt={1} p={3} sx={{ minHeight: "70vh" }}>
+          <Grid
+            container
+            spacing={3}
+            mt={1}
+            p={{ xs: 0, md: 3 }}
+            sx={{ minHeight: "30vh" }}
+          >
             {Object.entries(interviewList).map(
               ([date, interviews]: [string, any[]]) => (
                 <React.Fragment key={date}>
@@ -257,7 +265,10 @@ const BeyondResumeInterviewList = () => {
                             },
                           }}
                         >
-                          <Box sx={{ display: "flex" }}>
+                          <Box
+                            sx={{ display: "flex" }}
+                            flexDirection={{ xs: "column", md: "row" }}
+                          >
                             {interview.companyName ? (
                               <>
                                 <Box
@@ -446,7 +457,10 @@ const BeyondResumeInterviewList = () => {
                                 sx={{
                                   display: "flex",
                                   // flexDirection:'column',
-                                  justifyContent: "flex-end",
+                                  justifyContent: {
+                                    xs: "center",
+                                    md: "flex-end",
+                                  },
                                   flexGrow: 1,
                                   minHeight: "100px",
                                 }}
@@ -567,7 +581,7 @@ const BeyondResumeInterviewList = () => {
         )}
 
         <Box sx={{ maxWidth: "100%", ml: "auto", mb: 2 }}>
-          {Object.keys(interviewList).length !== 0 ? (
+          {Object.keys(interviewList).length !== 0 && !isUpcoming ? (
             <PaginationControlled
               page={page}
               setPage={setPage}
@@ -578,6 +592,20 @@ const BeyondResumeInterviewList = () => {
           )}
         </Box>
       </Box>
+
+      <Typography variant="h5" my={2} sx={{ textAlign: "center" }}>
+        Meanwhile, want to stay sharp? Try a quick Al-powered practice
+        interview.
+      </Typography>
+
+      <BeyondResumeButton
+        sx={{ m: "auto", display: "block", mb: 4, mt: 1 }}
+        onClick={() => {
+          history.push(`/beyond-resume-practicePools`);
+        }}
+      >
+        Start Practice Interview
+      </BeyondResumeButton>
     </Box>
   );
 };
@@ -627,19 +655,20 @@ const CustomToggleButton = styled(ToggleButton)(({ theme }) => ({
   borderRadius: "44px !important",
   padding: "6px 16px",
   fontWeight: 600,
-  fontSize: "18px",
+  fontSize: "12px", // default for xs
   textTransform: "none",
   color: "grey",
-  // boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.11)",
   marginRight: "8px",
+
+  [theme.breakpoints.up("md")]: {
+    fontSize: "18px", // override for md+
+  },
 
   "&.Mui-selected": {
     borderRadius: "12px",
     background: color.activeButtonBg,
     color: "white",
     boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.11)",
-
-    // boxShadow: "0px 4px 10px rgba(90, 128, 253, 0.49)",
   },
 }));
 

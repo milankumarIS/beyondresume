@@ -350,6 +350,8 @@ const BeyondResumeJobs = () => {
             }),
           ]);
 
+        console.log(result);
+
         const allActiveJobs = result?.data?.data.filter(
           (job) => !job.endDate || new Date(job.endDate) > now
         );
@@ -403,7 +405,7 @@ const BeyondResumeJobs = () => {
         { brJobStatus: "CLOSED" },
         "brJobId"
       );
-      showSnackbar("Job Deleted Successfully", "success");
+      showSnackbar("Job Closed Successfully", "success");
 
       await fetchJobs();
     } catch (error) {
@@ -513,34 +515,39 @@ const BeyondResumeJobs = () => {
       setSelectedApplicantsCount(applicantsCount);
     };
 
+    // useEffect(() => {
+    //   const fetchSavedJobs = async () => {
+    //     const userId = getUserId();
+    //     const savedSet = new Set<string>();
+
+    //     const promises = jobs.map((job) =>
+    //       searchListDataFromTable("brJobApplicant", {
+    //         brJobApplicantStatus: ["REQUESTED"],
+    //         brJobId: job.brJobId,
+    //         createdBy: userId,
+    //       }).then((res) => {
+    //         const hasRequested = res.data.data?.some(
+    //           (a) => a.brJobApplicantStatus === "REQUESTED"
+    //         );
+    //         if (hasRequested) savedSet.add(job.brJobId);
+    //       })
+    //     );
+
+    //     await Promise.all(promises);
+    //     setSavedJobsSet(savedSet);
+    //   };
+
+    //   fetchSavedJobs();
+    // }, []);
+
     useEffect(() => {
-      const fetchSavedJobs = async () => {
-        const userId = getUserId();
-        const savedSet = new Set<string>();
+      const userId = getUserId();
+      const savedSet = new Set<string>();
 
-        const promises = jobs.map((job) =>
-          searchListDataFromTable("brJobApplicant", {
-            brJobApplicantStatus: ["REQUESTED"],
-            brJobId: job.brJobId,
-            createdBy: userId,
-          }).then((res) => {
-            const hasRequested = res.data.data?.some(
-              (a) => a.brJobApplicantStatus === "REQUESTED"
-            );
-            if (hasRequested) savedSet.add(job.brJobId);
-          })
-        );
-
-        await Promise.all(promises);
-        setSavedJobsSet(savedSet);
-      };
-
-      fetchSavedJobs();
-    }, []);
-
-    useEffect(() => {
       (async () => {
-        const allMatches: {
+        setLoadingApplicants(true);
+
+        let allMatches: {
           userId: number;
           fullName: string;
           matchPercent: number;
@@ -551,64 +558,65 @@ const BeyondResumeJobs = () => {
           about?: string;
         }[] = [];
 
-        for (const job of jobs) {
-          const { matches } = await fetchMatchingUsers(job);
-
-          allMatches.push(
-            ...matches.map((m) => ({
-              ...m,
-              jobId: job.brJobId,
-            }))
-          );
+        if (isJobPage) {
+          for (const job of jobs) {
+            const { matches } = await fetchMatchingUsers(job);
+            allMatches.push(
+              ...matches.map((m) => ({
+                ...m,
+                jobId: job.brJobId,
+              }))
+            );
+          }
+          setMatchingUsers(allMatches);
         }
 
-        setMatchingUsers(allMatches);
+        const map: Record<string, any[]> = {};
+        const statusMap: Record<
+          string,
+          { label: string; count: number; color: string }[]
+        > = {};
 
-        const fetchApplicantsMap = async () => {
-          setLoadingApplicants(true);
-          const map: Record<string, any[]> = {};
-          const statusMap: Record<
-            string,
-            { label: string; count: number; color: string }[]
-          > = {};
-
-          const promises = jobs.map(async (job) => {
-            const res = await searchListDataFromTable("brJobApplicant", {
-              brJobId: job.brJobId,
-            });
-
-            const applicants = res.data.data || [];
-            map[job.brJobId] = applicants;
-
-            const counts: Record<string, number> = {};
-
-            counts["APPLIED"] = applicants.length;
-            counts["PENDING ASSESSMENT"] = applicants.filter(
-              (a) => a.brJobApplicantStatus === "APPLIED"
-            ).length;
-            counts["ASSESSED"] = applicants.filter(
-              (a) => a.brJobApplicantStatus === "CONFIRMED"
-            ).length;
-
-            counts["SUGGESTED"] = allMatches.filter(
-              (m) => m.jobId === job.brJobId
-            ).length;
-
-            statusMap[job.brJobId] = STATUS_CONFIG.map((status) => ({
-              ...status,
-              count: counts[status.label] ?? 0,
-            }));
+        const promises = jobs.map(async (job) => {
+          const res = await searchListDataFromTable("brJobApplicant", {
+            brJobId: job.brJobId,
           });
 
-          await Promise.all(promises);
-          setApplicantsMap(map);
-          setStatusCountsMap(statusMap);
-          setLoadingApplicants(false);
-        };
+          const applicants = res.data.data || [];
+          map[job.brJobId] = applicants;
 
-        await fetchApplicantsMap();
+          const hasRequested = applicants.some(
+            (a) =>
+              a.brJobApplicantStatus === "REQUESTED" && a.createdBy === userId
+          );
+          if (hasRequested) savedSet.add(job.brJobId);
+
+          const counts: Record<string, number> = {};
+          counts["APPLIED"] = applicants.length;
+          counts["PENDING ASSESSMENT"] = applicants.filter(
+            (a) => a.brJobApplicantStatus === "APPLIED"
+          ).length;
+          counts["ASSESSED"] = applicants.filter(
+            (a) => a.brJobApplicantStatus === "CONFIRMED"
+          ).length;
+
+          counts["SUGGESTED"] = allMatches.filter(
+            (m) => m.jobId === job.brJobId
+          ).length;
+
+          statusMap[job.brJobId] = STATUS_CONFIG.map((status) => ({
+            ...status,
+            count: counts[status.label] ?? 0,
+          }));
+        });
+
+        await Promise.all(promises);
+        setSavedJobsSet(savedSet);
+        setApplicantsMap(map);
+        setStatusCountsMap(statusMap);
+        setLoadingApplicants(false);
       })();
-    }, []);
+    }, [jobs, isJobPage]);
 
     const handleSaveJob = async (job: any) => {
       const jobId = job?.brJobId;
@@ -693,7 +701,7 @@ const BeyondResumeJobs = () => {
           sx={{
             p: 1,
             mt: getUserRole() === "TALENT PARTNER" ? 10 : 2,
-            width: jobs.length > 0 ? "35vw" : "100%",
+            width: { xs: "100%", md: jobs.length > 0 ? "35vw" : "100%" },
             height: detailsHeight || "auto",
             minHeight: "100vh",
             overflow: "auto",
@@ -801,7 +809,10 @@ const BeyondResumeJobs = () => {
         </Box>
 
         {jobs.length > 0 && (
-          <Box ref={detailsWrapperRef} sx={{ flexGrow: 1 }}>
+          <Box
+            ref={detailsWrapperRef}
+            sx={{ flexGrow: 1, display: { xs: "none", md: "block" } }}
+          >
             <AnimatePresence mode="wait">
               {selectedJob && (
                 <motion.div
@@ -1067,7 +1078,7 @@ const BeyondResumeJobs = () => {
         ) : (
           <>
             <Box display={"flex"} alignItems={"center"} gap={1} mb={0.5}>
-              {industryName === "translab.io" ? (
+              {industryName?.toLowerCase() === "translab.io" ? (
                 <Box
                   sx={{
                     // background: "white",
@@ -1115,13 +1126,14 @@ const BeyondResumeJobs = () => {
           justifyContent: "center",
           gap: 1,
         }}
+        flexDirection={{ xs: "column", md: "row" }}
       >
         <Box
           sx={{
             display: "flex",
             justifyContent: "center",
             gap: 2,
-            mb: 4,
+            mb: { xs: 2, md: 4 },
             zIndex: 2,
             position: "relative",
             mt: 4,
@@ -1139,7 +1151,11 @@ const BeyondResumeJobs = () => {
             }}
           >
             <TextField
-              placeholder="Search jobs by title or company"
+              placeholder={
+                getUserRole() === "CAREER SEEKER"
+                  ? "Search jobs by title or company"
+                  : "Search your posted jobs"
+              }
               fullWidth
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -1255,24 +1271,33 @@ const BeyondResumeJobs = () => {
                 style={{ position: "relative" }}
               >
                 <Box
-                  mt={2}
                   mb={2}
                   sx={{
                     position: "absolute",
                     top: 0,
-                    left: "7%",
+                    mt: tabFilteredJobs.length === 0 ? -10 : 2,
+                    left: {
+                      xs: "50%",
+                      md: tabFilteredJobs.length === 0 ? "50%" : "7%",
+                    },
+                    transform: {
+                      xs: "translateX(-50%)",
+                      md:
+                        tabFilteredJobs.length === 0
+                          ? "translateX(-50%)"
+                          : "none",
+                    },
                     // background:color.jobCardBg,
                     // borderRadius: "32px",
                     zIndex: 1000,
                   }}
                 >
-                  {tabFilteredJobs.length > 0 && (
-                    <CustomTabs
-                      selectedTab={selectedTab}
-                      onChange={handleTabChange}
-                      durationTabs={durationTabs}
-                    />
-                  )}
+                  {/* {tabFilteredJobs.length > 0 && ( */}
+                  <CustomTabs
+                    selectedTab={selectedTab}
+                    onChange={handleTabChange}
+                    durationTabs={durationTabs}
+                  />
                 </Box>
 
                 {/* {currentSection.jobs.length > 0 ? (
@@ -1290,7 +1315,7 @@ const BeyondResumeJobs = () => {
                 ) : (
                   <Typography
                     variant="body1"
-                    sx={{ textAlign: "center", mt: 4 }}
+                    sx={{ textAlign: "center", mt: 14 }}
                   >
                     No jobs available.
                   </Typography>
