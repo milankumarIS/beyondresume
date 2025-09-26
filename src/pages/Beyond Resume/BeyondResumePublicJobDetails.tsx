@@ -1,12 +1,11 @@
 import {
   faBriefcase,
   faBuilding,
-  faChevronCircleDown,
   faChevronCircleRight,
-  faClock,
+  faClock
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Box, Button, Typography } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useHistory, useLocation } from "react-router-dom";
 import { useNewSnackbar } from "../../components/shared/useSnackbar";
@@ -166,7 +165,8 @@ const BeyondResumePublicJobDetails = () => {
             }}
           >
             <Box display={"flex"} alignItems={"center"} gap={2} mb={0.5}>
-              {job?.companyName?.toLowerCase() === "translab.io".toLowerCase() ? (
+              {job?.companyName?.toLowerCase() ===
+              "translab.io".toLowerCase() ? (
                 <Box
                   sx={{
                     padding: "4px",
@@ -211,23 +211,51 @@ const BeyondResumePublicJobDetails = () => {
                   </div>
                 </Box>
               ) : (
-                <Box display={"flex"} gap={1} alignItems={"center"}>
-                  <FontAwesomeIcon
-                    icon={faBuilding}
-                    style={{
-                      fontSize: "16px",
-                      background: "white",
-                      borderRadius: "4px",
-                      padding: "4px",
-                      color: color.newbg,
-                    }}
-                  />
-                  <Typography
-                    fontSize={"20px"}
-                    sx={{ fontFamily: "montserrat-Regular" }}
-                  >
-                    {job?.companyName}
-                  </Typography>
+                <Box display={"flex"} flexDirection={"column"}>
+                  <Box display={"flex"} gap={1} alignItems={"center"}>
+                    <FontAwesomeIcon
+                      icon={faBuilding}
+                      style={{
+                        fontSize: "16px",
+                        background: "white",
+                        borderRadius: "4px",
+                        padding: "4px",
+                        color: color.newbg,
+                      }}
+                    />
+                    <Typography
+                      fontSize={"20px"}
+                      sx={{ fontFamily: "montserrat-Regular" }}
+                    >
+                      {job?.companyName}
+                    </Typography>
+                  </Box>
+                  <div>
+                    <Typography
+                      mb={0.5}
+                      mt={1}
+                      sx={{
+                        fontSize: "24px",
+                        cursor: "pointer",
+                        color:
+                          theme === "dark"
+                            ? color.titleColor
+                            : color.titleLightColor,
+                      }}
+                    >
+                      {job?.jobTitle}
+                    </Typography>
+
+                    <div>
+                      <Typography
+                        fontSize={"16px"}
+                        mt={0}
+                        sx={{ fontFamily: "montserrat-regular" }}
+                      >
+                        {job?.location} ({job?.jobMode})
+                      </Typography>
+                    </div>
+                  </div>
                 </Box>
               )}
               {/* 
@@ -238,7 +266,8 @@ const BeyondResumePublicJobDetails = () => {
                 {job?.companyName}
               </Typography> */}
             </Box>
-            {job?.companyName?.toLowerCase() === "translab.io".toLowerCase() && (
+            {job?.companyName?.toLowerCase() ===
+              "translab.io".toLowerCase() && (
               <div>
                 <Typography
                   mb={0.5}

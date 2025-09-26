@@ -1,30 +1,21 @@
 import {
   Autocomplete,
   Box,
+  CircularProgress,
   Slider,
   Stack,
   TextField,
-  Typography,
+  Typography
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { commonFormTextFieldSx } from "../../../components/util/CommonFunctions";
+import {
+  BeyondResumeButton
+} from "../../../components/util/CommonStyle";
+import { getUserAnswerFromAi } from "../../../services/services";
 import color from "../../../theme/color";
 
-const defaultCategories = [
-  "Technical Mastery",
-  "Cognitive Excellence",
-  "Impactful Communication & Collaboration",
-  "Leadership & Drive",
-  "Cultural Alignment & Integrity",
-  "Expertise & Mastery",
-  "Strategic Thinking",
-  "Collaboration & Influence",
-  "Leadership Impact",
-  "Values & Integrity",
-];
-
 const allPossibleCategories = [
-  ...defaultCategories,
   "Agility & Resilience",
   "Critical Insight",
 
@@ -39,6 +30,16 @@ const allPossibleCategories = [
   "Time Mastery",
 
   "Creative Ingenuity",
+  "Technical Mastery",
+  "Cognitive Excellence",
+  "Impactful Communication & Collaboration",
+  "Leadership & Drive",
+  "Cultural Alignment & Integrity",
+  "Expertise & Mastery",
+  "Strategic Thinking",
+  "Collaboration & Influence",
+  "Leadership Impact",
+  "Values & Integrity",
 
   "Constructive Resolution",
 
@@ -122,6 +123,7 @@ interface CustomEvaluationDriverProps {
   percentages: Record<string, number>;
   setPercentages: React.Dispatch<React.SetStateAction<Record<string, number>>>;
   setIsTotalValid: (valid: boolean) => void;
+  roundData?: any;
 }
 
 export default function CustomEvaluationDriver({
@@ -129,9 +131,10 @@ export default function CustomEvaluationDriver({
   percentages,
   setPercentages,
   setIsTotalValid,
+  roundData,
 }: CustomEvaluationDriverProps) {
   const selectedDuration = durationTabs[selectedTabIndex] ?? 20;
-
+  const [loading, setLoading] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState<string[]>(
     Object.keys(percentages)
   );
@@ -151,6 +154,8 @@ export default function CustomEvaluationDriver({
     categories.forEach((cat, idx) => {
       newPercentages[cat] = base + (idx < remainder ? 1 : 0);
     });
+
+    
 
     setPercentages(newPercentages);
   };
@@ -174,6 +179,8 @@ export default function CustomEvaluationDriver({
       [category]: newValue,
     }));
   };
+
+  
 
   const totalPercentage = selectedCategories.reduce(
     (sum, cat) => sum + (percentages[cat] ?? 0),
@@ -204,6 +211,41 @@ export default function CustomEvaluationDriver({
   const circumference = 2 * Math.PI * radius;
   const offset = circumference * (1 - progress);
 
+  const handleGenerateCategories = async () => {
+    setLoading(true);
+    const fullCommand = `
+  Given this interview round:
+  - Name: ${roundData?.name || "N/A"}
+  - Purpose: ${roundData?.purpose || "N/A"}
+  
+  Generate exactly 5 evaluation categories relevant to this round. Based upon these categories our system will generate further interview questions.
+  So make these categories relevant.
+  Return them as a simple JSON object where each key is the category name and each value is 20.
+  Make sure total = 100.
+  Example:
+  {
+    "Cognitive Ability": 20,
+    "Communication & Collaboration": 20,
+    "Cultural Fit & Integrity": 20,
+    "Leadership & Initiative": 20,
+    "Technical Competence": 20
+  }
+  `;
+
+    try {
+      const aiRes = await getUserAnswerFromAi({ question: fullCommand });
+      const rawText =
+        aiRes?.data?.data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+      const cleanedText = rawText.replace(/```json|```/g, "").trim();
+      const parsed = JSON.parse(cleanedText);
+      setSelectedCategories(Object.keys(parsed));
+      setLoading(false);
+      setPercentages(parsed);
+    } catch (err) {
+      console.error("Failed to generate categories:", err);
+    }
+  };
+
   return (
     <Box textAlign={"center"}>
       <Typography
@@ -212,33 +254,72 @@ export default function CustomEvaluationDriver({
         fontWeight="bold"
         mb={0}
         mt={4}
-        fontFamily={"montserrat-regular"}
+        // fontFamily={"montserrat-regular"}
       >
-        Which skills and qualities matter most for this role? (Pick up to 10)
+        Which skills and qualities matter most for this round? (Pick up to 10)
       </Typography>
 
-      <Autocomplete
-        multiple
-        options={allPossibleCategories}
-        value={selectedCategories}
-        onChange={handleCategoryChange}
-        renderInput={(params) => <TextField {...params} />}
+      <Box display={"flex"}>
+        <Autocomplete
+          multiple
+          options={allPossibleCategories}
+          value={selectedCategories}
+          onChange={handleCategoryChange}
+          renderInput={(params) => (
+            <>
+              <TextField {...params} />
+            </>
+          )}
+          sx={{
+            ...commonFormTextFieldSx,
+            borderRadius: "12px",
+            maxWidth: 700,
+            margin: "auto",
+            mb: 2,
+            mt: 2,
+            py: 1,
+            pt: 1.5,
+          }}
+        />
+      </Box>
+
+      <BeyondResumeButton
+        variant="contained"
+        onClick={handleGenerateCategories}
         sx={{
-          ...commonFormTextFieldSx,
-          borderRadius: "12px",
-          maxWidth: 700,
-          margin: "auto",
-          mb: 6,
-          mt: 2,
+          mb: 4,
+          mt: 1,
+          textTransform: "none",
+          fontSize: "12px",
+          borderRadius: "999px",
         }}
-      />
+      >
+        {" "}
+        {loading ? (
+          <Box
+            display={"flex"}
+            alignItems={"center"}
+            justifyContent={"center"}
+            color={"white"}
+            gap={2}
+          >
+            Analyzing <CircularProgress sx={{ color: "white" }} size={18} />
+          </Box>
+        ) : (
+          "Let our system generate relevant categories"
+        )}
+      </BeyondResumeButton>
 
       <Typography>
         Here’s our recommended scoring split across categories.
       </Typography>
 
-      <Typography gutterBottom fontFamily={"montserrat-regular"}>
-        Adjust freely to match your hiring priorities — just ensure the total
+      <Typography
+        gutterBottom
+        variant="body2"
+        fontFamily={"montserrat-regular"}
+      >
+        Adjust freely to match your hiring priorities, just make sure the total
         equals 100%.
       </Typography>
 

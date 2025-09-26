@@ -5,18 +5,14 @@ import BasicDatePicker from "../../../../../components/form/DatePicker";
 import FormAutocomplete2 from "../../../../../components/form/FormAutocompleteWithoutFiltering";
 import FormSelect from "../../../../../components/form/FormSelect";
 import FormTextField from "../../../../../components/form/FormTextField";
-import {
-  jobFunctions,
-  jobMode,
-  jobType,
-  payroll,
-} from "../../../../../components/form/data";
+import { jobMode, jobType, payroll } from "../../../../../components/form/data";
 import { commonFormTextFieldSx } from "../../../../../components/util/CommonFunctions";
 import { BeyondResumeButton } from "../../../../../components/util/CommonStyle";
 import { getUserId } from "../../../../../services/axiosClient";
 import {
   getUserAnswerFromAi,
   insertDataInTable,
+  searchListDataFromTable,
   updateByIdDataInTable,
 } from "../../../../../services/services";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -54,6 +50,7 @@ const PostJobForm: React.FC<PostJobFormProps> = ({
 }) => {
   const [loading, setLoading] = useState(false);
   const { industryName } = useIndustry();
+  const [jobFunctions, setJobFunctions] = useState<any[]>([]);
 
   const {
     control,
@@ -65,7 +62,7 @@ const PostJobForm: React.FC<PostJobFormProps> = ({
     resolver: zodResolver(beyondResumeSchema),
     defaultValues: {
       jobTitle: "",
-      companyName: industryName || '',
+      companyName: industryName || "",
       skills: "",
       experience: "",
       jobType: "",
@@ -86,6 +83,23 @@ const PostJobForm: React.FC<PostJobFormProps> = ({
   const [lastDateError, setLastDateError] = useState("");
 
   useEffect(() => {
+    const fetchJobFunctions = async () => {
+      try {
+        const res: any = await searchListDataFromTable("brJobFunction", {
+          jobFunctionStatus: "ACTIVE",
+        });
+
+        const resData = res?.data?.data || [];
+        setJobFunctions(resData);
+      } catch (error) {
+        console.error("Error fetching job functions:", error);
+      }
+    };
+
+    fetchJobFunctions();
+  }, []);
+
+  useEffect(() => {
     setValue("jobTitle", selectedJobTitle);
     setValue("endDate", lastDateOfApply);
   }, [selectedJobTitle, setValue, lastDateOfApply]);
@@ -95,7 +109,6 @@ const PostJobForm: React.FC<PostJobFormProps> = ({
   const onSubmitHandler: SubmitHandler<BeyondResumeSchemaType> = async (
     data
   ) => {
-
     if (!lastDateOfApply) {
       setLastDateError("Application deadline is required");
       return;
@@ -134,7 +147,6 @@ const PostJobForm: React.FC<PostJobFormProps> = ({
         console.log(res);
         generatedDescription =
           res?.data?.data?.candidates[0]?.content?.parts[0]?.text || "";
-          
       } catch (err) {
         console.error("AI generation failed:", err);
         generatedDescription =
@@ -165,7 +177,10 @@ const PostJobForm: React.FC<PostJobFormProps> = ({
         jobId = result?.data?.data?.brJobId;
       }
 
-     onSuccess(jobId!, generatedDescription, { ...data, endDate: lastDateOfApply });
+      onSuccess(jobId!, generatedDescription, {
+        ...data,
+        endDate: lastDateOfApply,
+      });
     } catch (error: any) {
       console.error("Error creating/updating job:", error);
     } finally {
@@ -181,7 +196,7 @@ const PostJobForm: React.FC<PostJobFormProps> = ({
           display: "flex",
           flexDirection: "column",
           // maxWidth: "60vw",
-          maxWidth:'800px',
+          maxWidth: "800px",
 
           margin: "auto",
         }}
@@ -196,7 +211,7 @@ const PostJobForm: React.FC<PostJobFormProps> = ({
               register={register}
               withValidationClass={false}
               sx={commonFormTextFieldSx}
-             readonly
+              readonly
             />
           </Grid2>
 
@@ -214,8 +229,8 @@ const PostJobForm: React.FC<PostJobFormProps> = ({
               label="Job Title"
               options={jobFunctions}
               defaultValue={selectedJobTitle}
-              labelProp="name"
-              primeryKey="id"
+              labelProp="jobFunctionName"
+              primeryKey="brJobFunctionId"
               setter={setSelectedJobTitle}
               sx={{ ...commonFormTextFieldSx }}
               px={2}

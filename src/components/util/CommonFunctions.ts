@@ -3,6 +3,8 @@ import { styled } from "@mui/material/styles";
 import { removeUserRole } from "../../services/axiosClient";
 import { logout } from "../../services/services";
 import * as XLSX from "xlsx";
+import CryptoJS from "crypto-js";
+
 // export async function getCountryCode() {
 //   try {
 //     const response = await fetch("https://ipapi.co/json/");
@@ -361,7 +363,7 @@ export const StyledBadge = styled(Badge)<StyledBadgeProps>(
   })
 );
 
-export const getContrastColor = (hex) => {
+export const getContrastColor = (hex: string) => {
   if (!hex) return "white";
 
   const r = parseInt(hex.substring(1, 3), 16);
@@ -789,6 +791,32 @@ export const getFormattedDateKey = (dateString: string) => {
   return `${day}${suffix} ${month} at ${time}`;
 };
 
+export const getFormattedDateKey1 = (dateString: any) => {
+  const date = new Date(dateString);
+  const today = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(today.getDate() - 1);
+
+  const isToday = date.toDateString() === today.toDateString();
+  const isYesterday = date.toDateString() === yesterday.toDateString();
+
+  if (isToday) return "Today";
+  if (isYesterday) return "Yesterday";
+
+  // Format as "28th May"
+  const day = date.getDate();
+  const month = date.toLocaleString("default", { month: "short" }); // "May"
+  const suffix =
+    day % 10 === 1 && day !== 11
+      ? "st"
+      : day % 10 === 2 && day !== 12
+      ? "nd"
+      : day % 10 === 3 && day !== 13
+      ? "rd"
+      : "th";
+  return `${day}${suffix} ${month}`;
+};
+
 export const getRemark = (score: number) => {
   if (score >= 85)
     return {
@@ -875,4 +903,29 @@ export const getTextColor = (bgcolor: string) => {
     return "white"; // Needs Improvement - red
 
   return "black"; // Default fallback
+};
+
+export function formatRoundTS(input: unknown): string {
+  if (typeof input !== 'string') return String(input);
+  const m = input.trim().match(/round[\s\-_:–—]*([A-Za-z0-9]+)$/i);
+  if (m) return `Round ${m[1]}`;
+  return input.replace(/^(\w)/, s => s.toUpperCase());
+}
+
+
+
+export const encryptPayload = (payload: Record<string, any>, secret: string) => {
+  const encrypted = CryptoJS.AES.encrypt(JSON.stringify(payload), secret).toString();
+  return encodeURIComponent(encrypted); // URL-safe
+};
+
+export const decryptPayload = (encrypted: string, secret: string) => {
+  if (!encrypted) return null;
+  try {
+    const decrypted = CryptoJS.AES.decrypt(decodeURIComponent(encrypted), secret).toString(CryptoJS.enc.Utf8);
+    return JSON.parse(decrypted);
+  } catch (err) {
+    console.error("Invalid token", err);
+    return null;
+  }
 };

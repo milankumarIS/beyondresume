@@ -41,6 +41,7 @@ const ExamSessionWritten: React.FC<SecureExamProps> = ({
   interviewDuration,
   isAdaptive,
   jobsData,
+  roundData
 }) => {
   const [parsedData, setParsedData] = useState<TextContent | null>(null);
   const [currentCategoryIndex, setCurrentCategoryIndex] = useState(0);
@@ -663,6 +664,7 @@ Return only:
       openSnackBar,
       setLoading,
       jobsData,
+      roundData
     });
   };
 
@@ -823,7 +825,7 @@ Return only:
             gap={2}
             flexWrap="wrap"
           >
-            {parsedData && !isAdaptive && (
+            {parsedData && !isAdaptive && !isLastQuestion && (
               <BeyondResumeButton
                 variant="contained"
                 color="success"
@@ -1096,4 +1098,5 @@ interface SecureExamProps {
   interviewDuration?: number;
   isAdaptive?: boolean;
   jobsData?: any;
+  roundData?: any;
 }

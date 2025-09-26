@@ -2,9 +2,8 @@ import { faDownload } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Box, CircularProgress, Tab, Tabs, Typography } from "@mui/material";
 import React, { useEffect, useState } from "react";
-import { useHistory, useLocation } from "react-router";
+import { useLocation } from "react-router";
 import { evaluationCategories } from "../../../../../components/form/data";
-import { useSnackbar } from "../../../../../components/shared/SnackbarProvider";
 import {
   normalizeHTMLToText,
   readExcelFileAsJson,
@@ -17,19 +16,28 @@ import {
 import {
   getUserAnswerFromAi,
   searchDataFromTable,
-  updateByIdDataInTable
+  updateByIdDataInTable,
 } from "../../../../../services/services";
 import color from "../../../../../theme/color";
 import CustomEvaluationDriver from "../../../Beyond Resume Components/CustomEvaluationDriver";
 import FileUpload from "../../../Beyond Resume Components/FileUpload";
 import BeyondResumeAdaptiveEvaluation from "../BeyondResumeAdaptiveEvaluation";
-
 interface SmartEvaluationTabProps {
+  defaultDuration?: number;
+  roundData?: any;
   response: string;
-  onSave?: (updatedContent: string) => void;
+  onSave: (updatedContent: {
+    jobInterviewQuestions: any;
+    interviewDuration: number;
+    percentageList?: {
+      name: string;
+      percent: number;
+      estimatedQuestions: number;
+    }[];
+  }) => void;
+
   jobId?: string | null;
   onJobUpdate?: () => void;
-
   onNext?: (qnResponse: string) => void;
 }
 
@@ -39,6 +47,7 @@ const SmartEvaluationTab: React.FC<SmartEvaluationTabProps> = ({
   jobId,
   onJobUpdate,
   onNext,
+  roundData,
 }) => {
   const location = useLocation();
   const isJobPage = location.pathname.startsWith("/beyond-resume-jobs");
@@ -97,11 +106,11 @@ const SmartEvaluationTab: React.FC<SmartEvaluationTabProps> = ({
   const handleClick = async () => {
     setLoading(true);
     setQnResponse("");
+    const durationTime = durationTabs[selectedTab];
 
     try {
       if (addQuestionFile && questionFile) {
         const fileData = await readExcelFileAsJson(questionFile);
-        // console.log(`Parsed JSON:\n${JSON.stringify(fileData, null, 2)}`);
 
         if (Array.isArray(fileData)) {
           const transformed = {
@@ -143,24 +152,28 @@ const SmartEvaluationTab: React.FC<SmartEvaluationTabProps> = ({
 
           const payload = {
             jobInterviewQuestions: qnaJsonString,
+            interviewDuration: durationTime,
           };
 
-          // console.log(payload);
-          
+          // await updateByIdDataInTable("brJobs", jobId, payload, "brJobId");
 
-          await updateByIdDataInTable("brJobs", jobId, payload, "brJobId");
+          if (onSave) {
+            onSave(payload);
+          } else {
+            await updateByIdDataInTable("brJobs", jobId, payload, "brJobId");
+          }
 
-        onNext?.(qnaJsonString);
-
+          onNext?.(qnaJsonString);
 
           setTimeout(() => {
-            document
-              .getElementById("questionSection")
-              ?.scrollIntoView({ behavior: "smooth" });
+            const el =
+              document.getElementById("questionSection") ||
+              document.getElementById(`${roundData.roundId}`);
+
+            el?.scrollIntoView({ behavior: "smooth" });
           }, 100);
         }
       } else {
-        const durationTime = durationTabs[selectedTab];
         const totalQuestions = Math.floor(durationTime / 2);
 
         const newFilteredList = Object.entries(percentages)
@@ -220,37 +233,34 @@ const SmartEvaluationTab: React.FC<SmartEvaluationTabProps> = ({
 
         setQnResponse(generatedText);
 
+        // console.log(generatedText);
+
         setTimeout(() => {
-          document
-            .getElementById("questionSection")
-            ?.scrollIntoView({ behavior: "smooth" });
+          const el =
+            document.getElementById("questionSection") ||
+            document.getElementById(`${roundData.roundId}`);
+
+          el?.scrollIntoView({ behavior: "smooth" });
         }, 100);
 
-        const payload = {
+        let payload: any = {
           jobInterviewQuestions: generatedText,
           interviewDuration: durationTime,
           percentageList: newFilteredList,
         };
-        await updateByIdDataInTable("brJobs", jobId, payload, "brJobId");
 
-        onNext?.(generatedText);
-
-        // const updatedRecord = await searchDataFromTable("brJobs", {
-        //   brJobId: jobId,
-        // });
-        // console.log("Updated Record:", updatedRecord?.data?.data);
+        if (onSave) {
+          onSave(payload);
+        } else {
+          await updateByIdDataInTable("brJobs", jobId, payload, "brJobId");
+        }
       }
     } catch (error: any) {
       console.error("Error generating interview questions:", error);
     } finally {
       setLoading(false);
-      // if (onJobUpdate) {
-      //   onJobUpdate();
-      // }
     }
   };
-
-
 
   return (
     <Box id="responseSection">
@@ -268,7 +278,7 @@ const SmartEvaluationTab: React.FC<SmartEvaluationTabProps> = ({
             }}
           >
             <Typography align="center" gutterBottom mb={2}>
-              Choose How You Want to Run the Interview?
+              Choose How You Want to Run the Interview for this round?
             </Typography>
             <CustomToggleButtonGroup
               value={simulatorMode}
@@ -290,15 +300,15 @@ const SmartEvaluationTab: React.FC<SmartEvaluationTabProps> = ({
             </CustomToggleButtonGroup>
           </Box>
 
-          <Box  py={2} mt={4}>
+          <Box py={2} mt={4}>
             <Typography
               gutterBottom
               align="center"
               fontWeight="bold"
               mb={2}
-              fontFamily={"montserrat-regular"}
+              // fontFamily={"montserrat-regular"}
             >
-              How long should the interview last?
+              How long should the interview last for this round?
             </Typography>
 
             <Tabs
@@ -349,6 +359,9 @@ const SmartEvaluationTab: React.FC<SmartEvaluationTabProps> = ({
               <BeyondResumeAdaptiveEvaluation
                 jobId={jobId}
                 duration={durationTabs[selectedTab]}
+                onPostJob={async ({ payload }) => {
+                  onSave(payload);
+                }}
               />
             </>
           )}
@@ -359,6 +372,7 @@ const SmartEvaluationTab: React.FC<SmartEvaluationTabProps> = ({
               percentages={percentages}
               setPercentages={setPercentages}
               setIsTotalValid={setIsTotalValid}
+              roundData={roundData}
             />
           )}
 
@@ -423,13 +437,7 @@ const SmartEvaluationTab: React.FC<SmartEvaluationTabProps> = ({
                   />
                 </>
               ) : (
-                <>
-                  Generate Interview Questions
-                  {/* <FontAwesomeIcon
-                  style={{ marginLeft: "6px" }}
-                  icon={faArrowCircleRight}
-                /> */}
-                </>
+                <>Generate Interview Questions For This Round</>
               )}
             </BeyondResumeButton>
           )}

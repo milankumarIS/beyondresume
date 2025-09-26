@@ -693,3 +693,71 @@ export const CustomThumbComponent = (props: CustomThumbProps) => {
     </SliderThumb>
   );
 };
+
+
+export function CutoffInfo() {
+  return (
+    <Box>
+      {/* <Divider sx={{ mb: 2 }} /> */}
+
+      <Box mb={2}>
+        <Typography variant="subtitle1" fontWeight="bold">
+          Cutoff Type
+        </Typography>
+        <Typography variant="body2">
+          - <strong>Fixed</strong>: A predefined cutoff percentage (e.g., 60%).{" "}
+          <br />- <strong>Dynamic</strong>: Adjusts based on performance
+          distribution with extra flexibility.
+        </Typography>
+      </Box>
+
+      <Box mb={2}>
+        <Typography variant="subtitle1" fontWeight="bold">
+          Cutoff % (Fixed)
+        </Typography>
+        <Typography variant="body2">
+          Enter a fixed percentage. Candidates scoring below this will not pass.
+        </Typography>
+      </Box>
+
+      <Box mb={2}>
+        <Typography variant="subtitle1" fontWeight="bold">
+          Target Cutoff % (Dynamic)
+        </Typography>
+        <Typography variant="body2">
+          Desired threshold percentage. Actual cutoff may shift depending on
+          flexibility.
+        </Typography>
+      </Box>
+
+      <Box mb={2}>
+        <Typography variant="subtitle1" fontWeight="bold">
+          Flexibility (%) (Dynamic)
+        </Typography>
+        <Typography variant="body2">
+          Allowed variation around target cutoff. <br />
+          Example: Target = 70%, Flexibility = 5% → Actual cutoff may range
+          65–70%.
+        </Typography>
+      </Box>
+
+      <Box mb={2}>
+        <Typography variant="subtitle1" fontWeight="bold">
+          Minimum Pass Count (Dynamic)
+        </Typography>
+        <Typography variant="body2">
+          Minimum number of candidates who must pass, even if cutoff rules are
+          strict.
+        </Typography>
+      </Box>
+      <Box mb={2}>
+        <Typography variant="subtitle1" fontWeight="bold">
+          Round Window
+        </Typography>
+        <Typography variant="body2">
+          The no. of days this round stays open before results are finalized
+        </Typography>
+      </Box>
+    </Box>
+  );
+}

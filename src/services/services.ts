@@ -461,3 +461,6 @@ export function brAnalytics(query: any) {
   return client.get(`brAnalytics`, { params: query });
 }
 
+export function evaluateStatus(payload: any) {
+  return client.post(`br/evaluateStatus`, payload);
+}

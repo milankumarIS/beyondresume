@@ -1,36 +1,42 @@
 import {
+  faArrowsRotate,
   faBriefcase,
   faBuilding,
-  faChevronCircleDown,
+  faCheckCircle,
   faChevronCircleRight,
-  faClock,
-  faHourglass,
-  faLocationDot,
-  faLocationPin,
+  faHourglass1,
+  faXmarkCircle,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   Box,
-  Button,
   Card,
   CardContent,
   Grid,
-  styled,
-  ToggleButton,
-  ToggleButtonGroup,
+  Step,
+  StepContent,
+  StepLabel,
+  Stepper,
   Typography,
+  useMediaQuery,
+  useTheme as useTheme1,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { useHistory } from "react-router";
 import PaginationControlled from "../../../components/shared/Pagination";
 import {
+  countTotalQuestions,
+  formatRoundTS,
+  getFormattedDateKey,
+  getFormattedDateKey1,
+} from "../../../components/util/CommonFunctions";
+import {
   BeyondResumeButton,
   BeyondResumeButton2,
   commonPillStyle,
   GradientFontAwesomeIcon,
-  StyledTypography,
 } from "../../../components/util/CommonStyle";
-import { useTheme } from "../../../components/util/ThemeContext";
+// import { useTheme } from "../../../components/util/ThemeContext";
 import { getUserId, getUserRole } from "../../../services/axiosClient";
 import {
   paginateDataFromTable,
@@ -38,28 +44,18 @@ import {
 } from "../../../services/services";
 import color from "../../../theme/color";
 import InterviewModeModal from "../Beyond Resume Components/BeyondResumeInterviewModeModal";
-import { countTotalQuestions } from "../../../components/util/CommonFunctions";
+import { useTheme } from "../../../components/util/ThemeContext";
 
 const BeyondResumeApplications = () => {
   const [interviewList, setInterviewList] = useState<any[]>([]);
   const [interviewListCount, setInterviewListCount] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isPractice, setIsPractice] = useState(false);
   const [page, setPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
-  const [reload, setReload] = useState(false);
   const [showModeModal, setShowModeModal] = useState(false);
   const [noOfQuestion, setNoOfQuestions] = useState<number | null>(null);
   const [duration, setDuration] = useState<number | null>(null);
-
-  const [savedJobs, setSavedJobs] = useState<any[]>([]);
-  const [searchedSavedJobs, setSearchedSavedJobs] = useState<any[]>([]);
-
-  const sortByNewest = (jobs: any[]) =>
-    jobs.sort(
-      (a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
+  const [roundData, setRoundData] = useState<any>({});
 
   useEffect(() => {
     const fetchData = async () => {
@@ -76,6 +72,8 @@ const BeyondResumeApplications = () => {
           pageSize: 10,
           data: {
             ...params,
+            // fieldName: "endDate",
+            // fieldValue: new Date().toISOString(),
             filter: "",
             fields: [],
           },
@@ -83,73 +81,186 @@ const BeyondResumeApplications = () => {
 
         setTotalCount(result?.data?.data?.count);
 
-        const sortedList = result?.data?.data?.rows?.sort((a: any, b: any) => {
-          return (
+        const sortedList = result?.data?.data?.rows?.sort(
+          (a: any, b: any) =>
             new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-          );
-        });
+        );
 
-        setInterviewListCount(sortedList);
+        const applicantsWithRoundStatus = await Promise.all(
+          sortedList.map(async (applicant: any) => {
+            const { brJobApplicantId, roundType } = applicant;
 
-        const grouped = sortedList.reduce((acc: any, item: any) => {
-          const dateKey = getFormattedDateKey(item.updatedAt);
-          if (!acc[dateKey]) {
-            acc[dateKey] = [];
-          }
-          acc[dateKey].push(item);
-          return acc;
-        }, {});
+            const roundDataRes: any = await searchListDataFromTable(
+              "brJobRounds",
+              {
+                brJobId: applicant.brJobId,
+              }
+            );
+
+            const rounds = roundDataRes?.data?.data || [];
+
+            if (roundType === "multiple") {
+              const roundRes: any = await searchListDataFromTable(
+                "brJobApplicantRounds",
+                { brJobApplicantId }
+              );
+
+              const roundData: any[] = roundRes?.data?.data || [];
+
+              let statusLabel = "";
+              let action: "START_NEXT" | "PENDING" | "FAIL" | "PASS" =
+                "PENDING";
+              let currentRound: any = null;
+
+              const jobEndDate = new Date(applicant.endDate);
+              let publishDate = new Date(jobEndDate);
+
+              if (!roundData.length) {
+                statusLabel = `Eligible to start ${rounds[0]?.roundName}`;
+                action = "START_NEXT";
+                currentRound = rounds[0];
+              } else {
+                for (let i = 0; i < rounds?.length; i++) {
+                  const round = rounds[i];
+                  const applicantRound = roundData.find(
+                    (r: any) => r.roundId === round.roundId
+                  );
+
+                  if (!applicantRound) {
+                    if (
+                      rounds
+                        .slice(0, i)
+                        .every((r) =>
+                          roundData.some(
+                            (rs: any) =>
+                              rs.roundId === r.roundId &&
+                              rs.roundStatus === "PASS"
+                          )
+                        )
+                    ) {
+                      statusLabel = `Eligible to start ${round.roundName}`;
+                      action = "START_NEXT";
+                      currentRound = round;
+                    }
+                    break;
+                  }
+
+                  if (applicantRound.roundStatus === "PENDING") {
+                    const totalWindowDays = rounds
+                      .slice(0, i + 1)
+                      .reduce((sum, r) => sum + (r.roundWindow || 0), 0);
+
+                    publishDate.setDate(
+                      publishDate.getDate() + totalWindowDays
+                    );
+
+                    statusLabel = `${formatRoundTS(
+                      round.roundId
+                    )} result will be published on ${getFormattedDateKey1(
+                      publishDate
+                    )}.`;
+                    action = "PENDING";
+                    currentRound = round;
+
+                    break;
+                  }
+
+                  if (applicantRound.roundStatus === "FAIL") {
+                    statusLabel = "Status rejected";
+                    action = "FAIL";
+                    currentRound = null;
+                    break;
+                  }
+
+                  if (
+                    i === rounds.length - 1 &&
+                    applicantRound.roundStatus === "PASS"
+                  ) {
+                    statusLabel = "All rounds completed";
+                    action = "PASS";
+                    currentRound = null;
+                  }
+                }
+              }
+
+              const timeline = rounds?.map((round, idx) => {
+                const applicantRound = roundData.find(
+                  (r: any) => r.roundId === round.roundId
+                );
+
+                const totalDays = rounds
+                  .slice(0, idx + 1)
+                  .reduce((acc, r) => acc + (r.roundWindow || 0), 0);
+
+                let endDate: Date | null = new Date(publishDate);
+                endDate.setDate(endDate.getDate() + totalDays);
+
+                const isExpired = endDate < new Date();
+
+                if (!applicantRound) {
+                  return {
+                    roundNumber: idx + 1,
+                    roundId: round.roundId,
+                    roundName: round.roundName,
+                    status: isExpired ? "EXPIRED" : "Not started",
+                    date: idx === 0 ? publishDate : null,
+                    endDate,
+                    score: null,
+                  };
+                }
+
+                return {
+                  roundNumber: idx + 1,
+                  roundId: round.roundId,
+                  roundName: round.roundName,
+                  window: round.roundWindow,
+                  status: applicantRound.roundStatus,
+                  date: idx === 0 ? publishDate : applicantRound.updatedAt,
+                  endDate,
+                  score: applicantRound.interviewScore || null,
+                };
+              });
+
+              return {
+                ...applicant,
+                isMultiRound: true,
+                roundData,
+                statusLabel,
+                action,
+                publishDate,
+                roundsCount: rounds.length,
+                currentRound,
+                timeline,
+              };
+            } else {
+              return {
+                ...applicant,
+                isMultiRound: false,
+                statusLabel: "Single round assessment",
+                action: "START_NEXT",
+                roundsCount: 1,
+                currentRound: null,
+                timeline: [],
+              };
+            }
+          })
+        );
+
+        setInterviewListCount(applicantsWithRoundStatus);
+
+        const grouped = applicantsWithRoundStatus.reduce(
+          (acc: any, item: any) => {
+            const dateKey = getFormattedDateKey(item.updatedAt);
+            if (!acc[dateKey]) acc[dateKey] = [];
+            acc[dateKey].push(item);
+            return acc;
+          },
+          {}
+        );
 
         setInterviewList(grouped);
-        // console.log(grouped);
 
         setLoading(false);
-
-        const now = new Date();
-        const createdBy = getUserId();
-
-        const [jobResult, confirmedJobs, appliedJobs, userSavedJobs] =
-          await Promise.all([
-            searchListDataFromTable("brJobs", { brJobStatus: "ACTIVE" }),
-            searchListDataFromTable("brJobApplicant", {
-              createdBy,
-              brJobApplicantStatus: "CONFIRMED",
-            }),
-            searchListDataFromTable("brJobApplicant", {
-              createdBy,
-              brJobApplicantStatus: "APPLIED",
-            }),
-            searchListDataFromTable("brJobApplicant", {
-              createdBy,
-              brJobApplicantStatus: "REQUESTED",
-            }),
-          ]);
-
-        const allActiveJobs = jobResult?.data?.data.filter(
-          (job) => !job.endDate || new Date(job.endDate) > now
-        );
-
-        const appliedJobIds = new Set([
-          ...(confirmedJobs?.data?.data || []).map((app) => app.brJobId),
-          ...(appliedJobs?.data?.data || []).map((app) => app.brJobId),
-        ]);
-
-        const jobsNotYetApplied = allActiveJobs.filter(
-          (job) => !appliedJobIds.has(job.brJobId)
-        );
-
-        const sortedActive = sortByNewest(jobsNotYetApplied);
-
-        const savedJobIds = new Set(
-          (userSavedJobs?.data?.data || []).map((job) => job.brJobId)
-        );
-
-        const savedJobsFromFiltered = sortedActive.filter((job) =>
-          savedJobIds.has(job.brJobId)
-        );
-
-        setSavedJobs(savedJobsFromFiltered);
-        setSearchedSavedJobs(savedJobsFromFiltered);
       } catch (err) {
         console.error("Error fetching data:", err);
         setLoading(false);
@@ -157,7 +268,7 @@ const BeyondResumeApplications = () => {
     };
 
     fetchData();
-  }, [isPractice, page, reload]);
+  }, [page]);
 
   const history = useHistory();
   const { theme } = useTheme();
@@ -169,7 +280,6 @@ const BeyondResumeApplications = () => {
     setSelectedJob(job);
     setApplicantId(job?.brJobApplicantId || null);
 
-    // clean and count questions
     if (job?.jobInterviewQuestions) {
       const cleanedContent = job.jobInterviewQuestions
         .replace(/```json/g, "")
@@ -204,6 +314,8 @@ const BeyondResumeApplications = () => {
         companyName: selectedJob?.companyName,
         jobTitle: selectedJob?.jobTitle,
         examMode: selectedJob?.examMode,
+        roundName: selectedJob?.currentRound?.roundName,
+        roundId: selectedJob?.currentRound?.roundId,
       });
     } else {
       history.push(
@@ -214,12 +326,12 @@ const BeyondResumeApplications = () => {
           companyName: selectedJob?.companyName,
           jobTitle: selectedJob?.jobTitle,
           examMode: selectedJob?.examMode,
+          roundName: selectedJob?.currentRound?.roundName,
+          roundId: selectedJob?.currentRound?.roundId,
         }
       );
     }
   };
-
-  // console.log(interviewList);
 
   return (
     <Box
@@ -230,29 +342,7 @@ const BeyondResumeApplications = () => {
         position: "relative",
       }}
     >
-      {/* <Typography variant="h6">Upcoming Interviews</Typography> */}
-
-      {/* <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          alignItems: "center",
-          mb: 3,
-          color: "inherit",
-        }}
-      >
-        <CustomToggleButtonGroup
-          value={isPractice ? "yes" : "no"}
-          exclusive
-          onChange={() => setIsPractice((prev) => !prev)}
-        >
-          <CustomToggleButton value="no">Pending Assessment</CustomToggleButton>
-        </CustomToggleButtonGroup>
-      </Box> */}
-
       {loading ? (
-        // Loader
         <Box
           sx={{
             minHeight: "70vh",
@@ -273,7 +363,6 @@ const BeyondResumeApplications = () => {
           </Typography>
         </Box>
       ) : Object.keys(interviewList).length === 0 ? (
-        // Pending Assessment: No Data
         <Box
           sx={{
             minHeight: "70vh",
@@ -293,31 +382,13 @@ const BeyondResumeApplications = () => {
           {Object.entries(interviewList).map(
             ([date, interviews]: [string, any[]]) => (
               <React.Fragment key={date}>
-                {/* <Grid item xs={12}>
-                  <Typography
-                    variant="h6"
-                    sx={{
-                      mt: 4,
-                      mb: 1,
-                      borderRadius: "999px !important",
-                      padding: "6px 16px",
-                      fontWeight: 600,
-                      background: color.activeButtonBg,
-                      color: "#fff",
-                      boxShadow: "0px 4px 10px rgba(90, 128, 253, 0.49)",
-                      width: "fit-content",
-                    }}
-                  >
-                    {date}
-                  </Typography>
-                </Grid> */}
-
                 {interviews.map((interview, index) => (
                   <Grid item xs={12} sm={12} md={12} key={index}>
                     <JobCard
                       job={interview}
                       theme={theme}
                       onStartAssessment={handleStartAssessment}
+                      roundsCount={interview.roundsCount}
                     />
                   </Grid>
                 ))}
@@ -339,6 +410,8 @@ const BeyondResumeApplications = () => {
 
       <Box sx={{ position: "relative", zIndex: 10000 }}>
         <InterviewModeModal
+          roundName={selectedJob?.currentRound?.roundName}
+          roundId={selectedJob?.currentRound?.roundId}
           rawJobData={selectedJob}
           open={showModeModal}
           onSelectMode={handleModeSelect}
@@ -356,16 +429,25 @@ export default BeyondResumeApplications;
 interface JobCardProps {
   job: any;
   theme: string;
+  roundsCount: number;
   onStartAssessment: (job: any) => void;
 }
 
-const JobCard: React.FC<JobCardProps> = ({ job, theme, onStartAssessment }) => {
-  const [showFullDescription, setShowFullDescription] = useState(false);
+const JobCard: React.FC<JobCardProps> = ({
+  job,
+  theme,
+  onStartAssessment,
+  roundsCount,
+}) => {
   const history = useHistory();
 
+  // console.log(job);
+  const theme1 = useTheme1();
+  const isMobile = useMediaQuery(theme1.breakpoints.down("sm"));
   return (
     <Card
       sx={{
+        position: "relative",
         borderRadius: "12px",
         boxShadow: "0px 0px 16px rgba(0, 0, 0, 0.1)",
         transition: "all 0.3s",
@@ -374,6 +456,8 @@ const JobCard: React.FC<JobCardProps> = ({ job, theme, onStartAssessment }) => {
         "&:hover": {
           transform: "scale(1.02)",
         },
+        opacity:
+          !job.isMultiRound && new Date(job.endDate) < new Date() ? 0.6 : 1,
       }}
     >
       <CardContent
@@ -383,6 +467,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, theme, onStartAssessment }) => {
           alignItems: "center",
           justifyContent: "center",
           flexDirection: { xs: "column", md: "row" },
+          flexWrap: "wrap",
           minWidth: 0,
         }}
         style={{
@@ -429,52 +514,41 @@ const JobCard: React.FC<JobCardProps> = ({ job, theme, onStartAssessment }) => {
             >
               {job.jobTitle}
             </Typography>
-            <Typography
-              fontSize={"14px"}
-              mt={-0.5}
-              mb={1}
-              sx={{ fontFamily: "montserrat-regular" }}
-            >
+            <Typography fontSize={"14px"} mt={-0.5} mb={1}>
               {job.companyName}
             </Typography>
-            <Typography
-              fontSize={"14px"}
-              mt={-0.5}
-              mb={1}
-              sx={{ fontFamily: "montserrat-regular" }}
-            >
+            <Typography fontSize={"14px"} mt={-0.5} mb={1}>
               {job.location}
             </Typography>
 
-            <Box
-              sx={{
-                display: "flex",
-                gap: 1,
-                flexWrap: "wrap",
-                ml: -1,
-                // paddingLeft: "60px",
-              }}
-            >
-              <Typography sx={commonPillStyle}>
-                <GradientFontAwesomeIcon size={14} icon={faHourglass} />{" "}
-                {job.interviewDuration} Mins Duration
-              </Typography>
+            <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", ml: -1 }}>
+              {job.roundType === "multiple" ? (
+                <Typography sx={commonPillStyle}>
+                  <GradientFontAwesomeIcon size={14} icon={faArrowsRotate} /> No
+                  of Rounds : {roundsCount}
+                </Typography>
+              ) : (
+                <Typography sx={commonPillStyle}>
+                  <GradientFontAwesomeIcon size={14} icon={faHourglass1} />{" "}
+                  {job.interviewDuration} Mins Duration
+                </Typography>
+              )}
               <Typography sx={commonPillStyle}>
                 <GradientFontAwesomeIcon size={14} icon={faBriefcase} />{" "}
                 {job.jobType}
               </Typography>
             </Box>
-
-            {/* <Typography fontSize={"14px"} mt={-0.5}>
-              {job.location}
-            </Typography> */}
+            {!job.isMultiRound && new Date(job.endDate) < new Date() && (
+              <Typography variant="body2" mt={1} color="red">
+                Job expired – you can no longer start this assessment
+              </Typography>
+            )}
           </div>
         </Box>
 
         <Box
           sx={{
             display: "flex",
-            // flexDirection:'column',
             justifyContent: "flex-end",
             gap: 1,
             flexGrow: 1,
@@ -495,102 +569,181 @@ const JobCard: React.FC<JobCardProps> = ({ job, theme, onStartAssessment }) => {
                 icon={faChevronCircleRight}
               />
             </BeyondResumeButton2>
-            <BeyondResumeButton
-              sx={{ fontSize: "12px" }}
-              onClick={() => onStartAssessment(job)}
-            >
-              Start Assessment
-              <FontAwesomeIcon
-                style={{ marginLeft: "8px" }}
-                icon={faChevronCircleRight}
-              />
-            </BeyondResumeButton>
+
+            {job.action === "START_NEXT" && (
+              <BeyondResumeButton
+                sx={{ fontSize: "12px" }}
+                onClick={() => onStartAssessment(job)}
+                disabled={
+                  job.isMultiRound
+                    ? job.timeline.some(
+                        (round: any) => round.status === "EXPIRED"
+                      )
+                    : new Date(job.endDate) < new Date()
+                }
+              >
+                {job.isMultiRound ? "Start Next Round" : "Start Assessment"}
+                <FontAwesomeIcon
+                  style={{ marginLeft: "8px" }}
+                  icon={faChevronCircleRight}
+                />
+              </BeyondResumeButton>
+            )}
           </div>
         </Box>
 
-        {/* Description */}
-        {/* <StyledTypography
-          sx={{
-            display: "-webkit-box",
-            WebkitLineClamp: showFullDescription ? "none" : 3,
-            WebkitBoxOrient: "vertical",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            mt:-2,
-            fontSize:'14px'
-          }}
-          dangerouslySetInnerHTML={{
-            __html: job.jobDescriptions?.replace(/```(?:html)?/g, "").trim(),
-          }}
-        /> */}
-
-        {/* <Button
-          sx={{
-            mt: 1,
-            mr: "auto",
-            display: "block",
-            fontSize: "12px",
-            px: 0,
-            py: 0.2,
-            textTransform: "none",
-          }}
-          onClick={() => setShowFullDescription((prev) => !prev)}
-        >
-          {showFullDescription ? "Show Less" : "Read More"}
-          <FontAwesomeIcon
-            style={{ marginLeft: "6px" }}
-            icon={
-              showFullDescription ? faChevronCircleDown : faChevronCircleRight
-            }
-          />
-        </Button> */}
+        {job.isMultiRound && job.timeline && (
+          <Box
+            p={2}
+            my={1}
+            width={{ xs: "auto", md: "100%" }}
+            sx={{
+              background: "#ffffff5f",
+              borderRadius: { xs: "4px", md: "12px" },
+            }}
+          >
+            <Stepper
+              orientation={isMobile ? "vertical" : "horizontal"}
+              alternativeLabel={!isMobile}
+            >
+              {job.timeline
+                .filter((round: any, idx: number, arr: any[]) => {
+                  const currentIdx = arr.findIndex(
+                    (r: any) => r.status !== "PASS"
+                  );
+                  return round.status === "PASS" || idx === currentIdx;
+                })
+                .map((round: any, idx: number) => (
+                  <Step
+                    key={round.roundNumber}
+                    active
+                    sx={{
+                      "& .MuiStepConnector-line": {
+                        borderColor: "green",
+                        borderWidth: 2,
+                        ml: 0.4,
+                      },
+                      "& .MuiStepLabel-label": {
+                        color:
+                          theme === "dark"
+                            ? "white"
+                           
+                            : "#000000a8",
+                      },
+                    }}
+                    // active={round.status === "PENDING"}
+                    // completed={round.status === "PASS"}
+                  >
+                    <StepLabel
+                      sx={{ cursor: "pointer", color: "inherit" }}
+                      onClick={() => {
+                        if (
+                          round.status === "PASS" ||
+                          round.status === "FAIL"
+                        ) {
+                          history.push(
+                            `/beyond-resume-interview-overview/${job?.brJobApplicantId}-${round?.roundId}?type=multiround`
+                          );
+                        }
+                      }}
+                      StepIconComponent={() => (
+                        <CustomStepIcon status={round.status} />
+                      )}
+                    >
+                      <Typography color="inherit" variant="body2">
+                        {`Round ${round.roundNumber}: ${round.roundName}`}
+                      </Typography>
+                    </StepLabel>
+                    <StepContent
+                      sx={{
+                        border: "none",
+                        textAlign: { xs: "left", md: "center" },
+                        mt: { xs: -1, md: 0 },
+                      }}
+                    >
+                      {round.status === "PASS" && (
+                        <Typography variant="caption" color="green">
+                          Passed {getFormattedDateKey1(round.date)}
+                        </Typography>
+                      )}
+                      {round.status === "FAIL" && (
+                        <Typography variant="caption" color="red">
+                          Failed (
+                          {job.publishDate
+                            ? getFormattedDateKey1(job.publishDate)
+                            : "TBD"}
+                          )
+                        </Typography>
+                      )}
+                      {round.status === "PENDING" && (
+                        <Typography variant="caption" color="orange">
+                          Result pending – will be published on{" "}
+                          {job.publishDate
+                            ? getFormattedDateKey1(job.publishDate)
+                            : "TBD"}
+                        </Typography>
+                      )}
+                      {round.status === "Not started" && (
+                        <Typography variant="caption" color="green">
+                          You can finish the interview before {""}
+                          {getFormattedDateKey1(round.endDate)}
+                        </Typography>
+                      )}
+                      {round.status === "EXPIRED" && (
+                        <Typography variant="caption" color="red">
+                          Job expired – you can no longer start this round.
+                        </Typography>
+                      )}
+                    </StepContent>
+                  </Step>
+                ))}
+            </Stepper>
+          </Box>
+        )}
       </CardContent>
     </Card>
   );
 };
 
-const CustomToggleButtonGroup = styled(ToggleButtonGroup)(() => ({
-  backgroundColor: "rgba(94, 94, 94, 0.15)",
-  borderRadius: "999px",
-  padding: "8px",
-}));
+const CustomStepIcon = (props: any) => {
+  const { status } = props;
 
-const CustomToggleButton = styled(ToggleButton)(() => ({
-  border: "none",
-  borderRadius: "999px !important",
-  padding: "6px 16px",
-  fontWeight: 600,
-  fontSize: "18px",
-  textTransform: "none",
-  color: "grey",
-  "&.Mui-selected": {
-    background: color.activeButtonBg,
-    color: "#fff",
-    boxShadow: "0px 4px 10px rgba(90, 128, 253, 0.49)",
-  },
-}));
-
-const getFormattedDateKey = (dateString: string) => {
-  const date = new Date(dateString);
-  const today = new Date();
-  const yesterday = new Date();
-  yesterday.setDate(today.getDate() - 1);
-
-  const isToday = date.toDateString() === today.toDateString();
-  const isYesterday = date.toDateString() === yesterday.toDateString();
-
-  if (isToday) return "Today";
-  if (isYesterday) return "Yesterday";
-
-  const day = date.getDate();
-  const month = date.toLocaleString("default", { month: "short" });
-  const suffix =
-    day % 10 === 1 && day !== 11
-      ? "st"
-      : day % 10 === 2 && day !== 12
-      ? "nd"
-      : day % 10 === 3 && day !== 13
-      ? "rd"
-      : "th";
-  return `${day}${suffix} ${month}`;
+  if (status === "PASS") {
+    return (
+      <FontAwesomeIcon
+        icon={faCheckCircle}
+        style={{ color: "green", fontSize: "24px" }}
+      />
+    );
+  }
+  if (status === "FAIL") {
+    return (
+      <FontAwesomeIcon
+        icon={faXmarkCircle}
+        style={{ color: "red", fontSize: "24px" }}
+      />
+    );
+  }
+  if (status === "PENDING") {
+    return (
+      <FontAwesomeIcon
+        icon={faHourglass1}
+        style={{ color: "orange", fontSize: "24px" }}
+      />
+    );
+  }
+  if (status === "EXPIRED") {
+    return (
+      <FontAwesomeIcon
+        icon={faHourglass1}
+        style={{ color: "red", fontSize: "24px" }}
+      />
+    );
+  }
+  return (
+    <FontAwesomeIcon
+      icon={faHourglass1}
+      style={{ color: "green", fontSize: "24px" }}
+    />
+  );
 };

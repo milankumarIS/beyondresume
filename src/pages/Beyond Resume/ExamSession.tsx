@@ -3,22 +3,29 @@ import {
   faInfoCircle,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Box, CircularProgress, Grid2, Typography } from "@mui/material";
+import {
+  Box,
+  CircularProgress,
+  Grid2,
+  TextField,
+  Typography,
+} from "@mui/material";
 import React, { useEffect, useRef, useState } from "react";
 import { useHistory } from "react-router";
 import { useSnackbar } from "../../components/shared/SnackbarProvider";
+import { commonFormTextFieldSx } from "../../components/util/CommonFunctions";
 import { BeyondResumeButton } from "../../components/util/CommonStyle";
-import ConfirmationPopup from "../../components/util/ConfirmationPopup";
 import {
   getUserAnswerFromAi,
   updateByIdDataInTable,
 } from "../../services/services";
 import color from "../../theme/color";
+import BeyondResumeLoader from "./Beyond Resume Components/BeyondResumeLoader";
 import ExamSessionVideoCamBox, {
   ExamSessionVideoCamBoxHandle,
 } from "./Beyond Resume Components/ExamSessionVideoCamBox";
 import { evaluateInterviewResponses } from "./Beyond Resume Components/interviewEvaluator";
-import BeyondResumeLoader from "./Beyond Resume Components/BeyondResumeLoader";
+import ConfirmationPopup from "../../components/util/ConfirmationPopup";
 
 const ExamSession: React.FC<ExamSessionProps> = ({
   response,
@@ -28,6 +35,7 @@ const ExamSession: React.FC<ExamSessionProps> = ({
   isAdaptive,
   interviewDuration,
   jobsData,
+  roundData,
 }) => {
   const [parsedData, setParsedData] = useState<TextContent | null>(null);
   const [currentCategoryIndex, setCurrentCategoryIndex] = useState(0);
@@ -280,7 +288,7 @@ const ExamSession: React.FC<ExamSessionProps> = ({
   };
 
   useEffect(() => {
-    const match = response.match(/<pre>\s*([\s\S]*?)\s*<\/pre>/);
+    const match = response?.match(/<pre>\s*([\s\S]*?)\s*<\/pre>/);
     const jsonString = match ? match[1] : null;
 
     try {
@@ -434,14 +442,16 @@ const ExamSession: React.FC<ExamSessionProps> = ({
     });
   };
 
+  const [answerReady, setAnswerReady] = useState(false);
+  const [editableAnswer, setEditableAnswer] = useState("");
+
   const startRecording = async () => {
     try {
       const SpeechRecognitionAPI =
         window.SpeechRecognition || window.webkitSpeechRecognition;
 
       if (!SpeechRecognitionAPI) {
-        console.error("Speech Recognition API not supported in this browser.");
-        alert("Speech Recognition is not supported in this browser.");
+        alert("Speech Recognition not supported in this browser.");
         return;
       }
 
@@ -451,46 +461,29 @@ const ExamSession: React.FC<ExamSessionProps> = ({
       recognition.continuous = true;
       recognition.lang = "en-US";
       recognition.interimResults = true;
-      recognition.maxAlternatives = 1;
 
       let finalTranscript = "";
 
-      recognition.onstart = () => {
-        setIsRecording(true);
-      };
+      recognition.onstart = () => setIsRecording(true);
 
       recognition.onresult = (event: SpeechRecognitionEvent) => {
-        let interimTranscript = "";
-
         for (let i = event.resultIndex; i < event.results.length; ++i) {
           const result = event.results[i];
           if (result.isFinal) {
             finalTranscript += result[0].transcript + " ";
-          } else {
-            interimTranscript += result[0].transcript;
           }
         }
 
-        setUserLatestResponse(finalTranscript.trim());
-
         if (finalTranscript.trim() !== "") {
-          setConversation((prev) => [
-            ...prev,
-            { speaker: "You", text: finalTranscript.trim() },
-          ]);
-
-          const updated = [...userResponses];
-          updated[currentCategoryIndex][currentQuestionIndex] =
-            finalTranscript.trim();
-          setUserResponses(updated);
-
           recognition.stop();
+
+          setIsRecording(false);
+          setAnswerReady(true); // now show editable step
+          setEditableAnswer(finalTranscript.trim());
         }
       };
 
-      recognition.onend = () => {
-        setIsRecording(false);
-      };
+      recognition.onend = () => setIsRecording(false);
 
       recognition.onerror = (event: any) => {
         console.error("Speech Recognition Error:", event.error);
@@ -502,6 +495,20 @@ const ExamSession: React.FC<ExamSessionProps> = ({
     } catch (error) {
       console.error("Speech recognition failed:", error);
     }
+  };
+
+  const confirmAnswer = () => {
+    const updated = [...userResponses];
+    updated[currentCategoryIndex][currentQuestionIndex] = editableAnswer;
+    setUserResponses(updated);
+
+    setConversation((prev) => [
+      ...prev,
+      { speaker: "You", text: editableAnswer },
+    ]);
+
+    setAnswerReady(false);
+    moveToNextQuestion();
   };
 
   const getNextLevel = (level) => {
@@ -723,11 +730,9 @@ const ExamSession: React.FC<ExamSessionProps> = ({
 
     return result;
   };
-  
+
   const handleSubmit = async () => {
     setLoading(true);
-    
-
 
     // let videoLink: string = "";
 
@@ -771,6 +776,7 @@ const ExamSession: React.FC<ExamSessionProps> = ({
         setLoading,
         redirectToSuccess: true,
         jobsData,
+        roundData,
       });
     } catch (error) {
       console.error("Error in handleSubmit:", error);
@@ -899,69 +905,114 @@ const ExamSession: React.FC<ExamSessionProps> = ({
         </Box>
       </Grid2>
 
-      <Box
-        mt={4}
-        display="flex"
-        gap={2}
-        justifyContent={"center"}
-        flexWrap={"wrap"}
-      >
-        <BeyondResumeButton
-          variant="contained"
-          color="primary"
-          disabled={isSpeaking || isRecording || !questionSpoken || loading}
-          onClick={startRecording}
+      {answerReady ? (
+        <Box
+          mt={2}
+          display="flex"
+          flexDirection="column"
+          sx={{
+            maxWidth: "96%",
+            mx: "auto",
+          }}
+          gap={2}
         >
-          Start Answering
-        </BeyondResumeButton>
+          <TextField
+            label="Your Answer"
+            value={editableAnswer}
+            onChange={(e) => setEditableAnswer(e.target.value)}
+            fullWidth
+            multiline
+            sx={{
+              ...commonFormTextFieldSx,
+            }}
+          />
+          {parsedData && (
+            <BeyondResumeButton
+              variant="contained"
+              color="success"
+              disabled={!editableAnswer.trim()}
+              onClick={confirmAnswer}
+            >
+              {(currentCategoryIndex === parsedData.categories.length - 1 &&
+                currentQuestionIndex ===
+                  parsedData.categories[currentCategoryIndex].questions.length -
+                    1) ||
+              (isAdaptive && adaptiveProgression.length === maxQuestions)
+                ? "Confirm & Submit"
+                : "Confirm & Next"}
+            </BeyondResumeButton>
+          )}
+        </Box>
+      ) : (
+        <Box
+          mt={4}
+          display="flex"
+          gap={2}
+          justifyContent={"center"}
+          flexWrap={"wrap"}
+        >
+          <BeyondResumeButton
+            variant="contained"
+            color="primary"
+            disabled={isSpeaking || isRecording || !questionSpoken || loading}
+            onClick={startRecording}
+          >
+            Start Answering
+          </BeyondResumeButton>
 
-        {parsedData && (
-          <>
-            {loading ? (
-              <BeyondResumeButton>
-                Submitting Interview
-                <CircularProgress
-                  color="inherit"
-                  style={{ marginLeft: "4px" }}
-                  size={18}
+          {parsedData && (
+            <>
+              {loading ? (
+                <BeyondResumeButton>
+                  Submitting Interview
+                  <CircularProgress
+                    color="inherit"
+                    style={{ marginLeft: "4px" }}
+                    size={18}
+                  />
+                </BeyondResumeButton>
+              ) : (
+                <BeyondResumeButton
+                  variant="contained"
+                  color="success"
+                  disabled={isSpeaking || isRecording || loading}
+                  onClick={moveToNextQuestion}
+                >
+                  {(currentCategoryIndex === parsedData.categories.length - 1 &&
+                    currentQuestionIndex ===
+                      parsedData.categories[currentCategoryIndex].questions
+                        .length -
+                        1) ||
+                  (isAdaptive && adaptiveProgression.length === maxQuestions)
+                    ? "Submit"
+                    : "Next Question"}
+                </BeyondResumeButton>
+              )}
+            </>
+          )}
+
+          {!isAdaptive &&
+            parsedData &&
+            !(
+              currentCategoryIndex === parsedData.categories.length - 1 &&
+              currentQuestionIndex ===
+                parsedData.categories[currentCategoryIndex].questions.length - 1
+            ) && (
+              <BeyondResumeButton
+                variant="outlined"
+                disabled={isSpeaking || isRecording || loading}
+                onClick={skipQuestion}
+                sx={{ background: "transparent", color: "inherit" }}
+              >
+                Skip{" "}
+                <FontAwesomeIcon
+                  style={{ marginLeft: "10px" }}
+                  icon={faChevronRight}
                 />
               </BeyondResumeButton>
-            ) : (
-              <BeyondResumeButton
-                variant="contained"
-                color="success"
-                disabled={isSpeaking || isRecording || loading}
-                onClick={moveToNextQuestion}
-              >
-                {(currentCategoryIndex === parsedData.categories.length - 1 &&
-                  currentQuestionIndex ===
-                    parsedData.categories[currentCategoryIndex].questions
-                      .length -
-                      1) ||
-                (isAdaptive && adaptiveProgression.length === maxQuestions)
-                  ? "Submit"
-                  : "Next Question"}
-              </BeyondResumeButton>
             )}
-          </>
-        )}
 
-        {!isAdaptive && (
-          <BeyondResumeButton
-            variant="outlined"
-            disabled={isSpeaking || isRecording || loading}
-            onClick={skipQuestion}
-            sx={{ background: "transparent", color: "inherit" }}
-          >
-            Skip{" "}
-            <FontAwesomeIcon
-              style={{ marginLeft: "10px" }}
-              icon={faChevronRight}
-            ></FontAwesomeIcon>
-          </BeyondResumeButton>
-        )}
-
-        {/* <BeyondResumeButton
+          {/* <BeyondResumeButton
           variant="outlined"
           onClick={handleSubmit}
           sx={{ background: "transparent", color: "inherit" }}
@@ -972,65 +1023,66 @@ const ExamSession: React.FC<ExamSessionProps> = ({
             icon={faChevronRight}
           ></FontAwesomeIcon>
         </BeyondResumeButton> */}
+        </Box>
+      )}
 
-        <ConfirmationPopup
-          open={popupOpen}
-          onClose={() => setPopupOpen(false)}
-          onConfirm={async () => {
-            setPopupOpen(false);
-            await handleSubmit();
-          }}
-          color={"#50bcf6"}
-          message="Are you sure you want to leave?"
-          warningMessage="Exiting now will submit your answers. You won’t be able to return to this interview session."
-          yesText="Submit & Exit"
-          noText="Stay & Continue"
-          icon={
-            <FontAwesomeIcon
-              color={"#0b8bb8"}
-              fontSize={"68px"}
-              style={{ marginTop: "16px", marginBottom: "-8px" }}
-              icon={faInfoCircle}
-            />
-          }
-        />
+      <ConfirmationPopup
+        open={popupOpen}
+        onClose={() => setPopupOpen(false)}
+        onConfirm={async () => {
+          setPopupOpen(false);
+          await handleSubmit();
+        }}
+        color={"#50bcf6"}
+        message="Are you sure you want to leave?"
+        warningMessage="Exiting now will submit your answers. You won’t be able to return to this interview session."
+        yesText="Submit & Exit"
+        noText="Stay & Continue"
+        icon={
+          <FontAwesomeIcon
+            color={"#0b8bb8"}
+            fontSize={"68px"}
+            style={{ marginTop: "16px", marginBottom: "-8px" }}
+            icon={faInfoCircle}
+          />
+        }
+      />
 
-        <ConfirmationPopup
-          open={popupOpen1}
-          onClose={() => setPopupOpen1(false)}
-          onConfirm={() => {
-            setPopupOpen1(false);
-            handleSubmit();
-          }}
-          color="#50bcf6"
-          message="Do you want to submit your exam?"
-          warningMessage="This will submit your responses. You cannot return to the exam."
-        />
+      <ConfirmationPopup
+        open={popupOpen1}
+        onClose={() => setPopupOpen1(false)}
+        onConfirm={() => {
+          setPopupOpen1(false);
+          handleSubmit();
+        }}
+        color="#50bcf6"
+        message="Do you want to submit your exam?"
+        warningMessage="This will submit your responses. You cannot return to the exam."
+      />
 
-        <ConfirmationPopup
-          open={popupOpen2}
-          onClose={() => setPopupOpen2(false)}
-          onConfirm={() => {
-            setPopupOpen2(false);
-            handleSubmit();
-          }}
-          disableOutsideClose={true}
-          color="#f65050ff"
-          message="Unusual activity has been detected."
-          warningMessage="Your responses will now be submitted, and you will not be able to re-enter the exam."
-          yesText="Okay"
-          noText="No"
-          noButton={false}
-          icon={
-            <FontAwesomeIcon
-              color="#f65050ff"
-              fontSize="68px"
-              style={{ marginTop: "16px", marginBottom: "-8px" }}
-              icon={faInfoCircle}
-            />
-          }
-        />
-      </Box>
+      <ConfirmationPopup
+        open={popupOpen2}
+        onClose={() => setPopupOpen2(false)}
+        onConfirm={() => {
+          setPopupOpen2(false);
+          handleSubmit();
+        }}
+        disableOutsideClose={true}
+        color="#f65050ff"
+        message="Unusual activity has been detected."
+        warningMessage="Your responses will now be submitted, and you will not be able to re-enter the exam."
+        yesText="Okay"
+        noText="No"
+        noButton={false}
+        icon={
+          <FontAwesomeIcon
+            color="#f65050ff"
+            fontSize="68px"
+            style={{ marginTop: "16px", marginBottom: "-8px" }}
+            icon={faInfoCircle}
+          />
+        }
+      />
       <BeyondResumeLoader open={!proctoringInitialized} progress={progress} />
     </Box>
   );
@@ -1068,4 +1120,5 @@ interface ExamSessionProps {
   interviewDuration?: number;
   isAdaptive?: boolean;
   jobsData?: any;
+  roundData?: any;
 }

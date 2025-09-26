@@ -20,6 +20,7 @@ import {
   getProfile,
   getUserAnswerFromAiThroughPdf,
   searchDataFromTable,
+  searchListDataFromTable,
   syncByTwoUniqueKeyData,
 } from "../../../../services/services";
 import InterviewModeModal from "../../Beyond Resume Components/BeyondResumeInterviewModeModal";
@@ -79,6 +80,7 @@ const BeyondResumeJobInterviewForm = () => {
   const [jobs, setJobs] = useState<any>({});
   const [resume, setResume] = useState<File | string | null>(null);
   const [resumeError, setResumeError] = useState<string | null>(null);
+  const [rounds, setRounds] = useState<any>([]);
 
   const [currentUser, setCurrentUser] = useState<any>();
   useEffect(() => {
@@ -146,7 +148,6 @@ const BeyondResumeJobInterviewForm = () => {
           urls: [resumeLink],
         });
 
-        // console.log(response);
         extractedResumeText =
           response?.data?.data?.candidates[0]?.content?.parts[0].text || "";
       } catch (err) {
@@ -155,21 +156,29 @@ const BeyondResumeJobInterviewForm = () => {
 
       const result: any = await searchDataFromTable("brJobs", { brJobId });
       const rawJobData = result?.data?.data || {};
-      // console.log(rawJobData);
 
-      const cleanedContent = rawJobData?.jobInterviewQuestions
+      const result1: any = await searchListDataFromTable("brJobRounds", {
+        brJobId,
+      });
+      const rawRoundData = result1?.data?.data || {};
+
+
+      const isMultiple = rawJobData?.roundType === "multiple";
+      const jobData = isMultiple ? rawRoundData[0] : rawJobData;
+
+      let cleanedContent = jobData?.jobInterviewQuestions
         .replace(/```json/g, "")
         .replace(/```/g, "")
         .replace(/<[^>]*>?/gm, "")
         .trim();
 
-      // console.log(cleanedContent);
+      const data1 = JSON.parse(cleanedContent || "{}");
 
-      const data1 = JSON.parse(cleanedContent);
-      const totalQuestions = countTotalQuestions(data1);
-      setNoOfQuestions(totalQuestions);
-      setDuration(rawJobData?.interviewDuration);
+      setNoOfQuestions(countTotalQuestions(data1));
+      setDuration(jobData?.interviewDuration);
       setJobs(rawJobData);
+      setRounds(rawRoundData);
+
       const excludedFields = [
         "createdBy",
         "createdAt",
@@ -180,6 +189,7 @@ const BeyondResumeJobInterviewForm = () => {
         // "percentageList",
         // "interviewDuration",
       ];
+
       const filteredJobData = Object.keys(rawJobData)
         .filter((key) => !excludedFields.includes(key))
         .reduce((obj, key) => {
@@ -200,8 +210,6 @@ const BeyondResumeJobInterviewForm = () => {
         candidateResume: extractedResumeText,
       };
 
-      // console.log(payload);
-
       const insertResult: any = await syncByTwoUniqueKeyData(
         "brJobApplicant",
         payload,
@@ -209,14 +217,11 @@ const BeyondResumeJobInterviewForm = () => {
         "brJobId"
       );
 
-      // console.log(insertResult);
-
       const brJobApplicantId = insertResult?.data?.data?.brJobApplicantId;
       setApplicantId(brJobApplicantId);
       setOpen(true);
       setLoading(false);
     } catch (error: any) {
-      // openSnackBar(error?.response?.data?.msg || "Something went wrong.");
       console.error(error?.response?.data?.msg);
     }
   };
@@ -234,6 +239,8 @@ const BeyondResumeJobInterviewForm = () => {
         companyName: jobs?.companyName,
         jobTitle: jobs?.jobTitle,
         examMode: jobs?.examMode,
+        roundName: rounds[0]?.roundName,
+        roundId: rounds[0]?.roundId,
       });
     } else {
       history.push(
@@ -244,6 +251,8 @@ const BeyondResumeJobInterviewForm = () => {
           companyName: jobs?.companyName,
           jobTitle: jobs?.jobTitle,
           examMode: jobs?.examMode,
+          roundName: rounds[0]?.roundName,
+        roundId: rounds[0]?.roundId,
         }
       );
     }
@@ -362,7 +371,7 @@ const BeyondResumeJobInterviewForm = () => {
             type="submit"
             variant="contained"
             color="secondary"
-            sx={{ mt: 2, py: 1,  mx: 2 }}
+            sx={{ mt: 2, py: 1, mx: 2 }}
           >
             {loading ? (
               <>
@@ -396,6 +405,8 @@ const BeyondResumeJobInterviewForm = () => {
       </Container>
 
       <InterviewModeModal
+        roundName={rounds?.[0]?.roundName}
+        roundId={rounds?.[0]?.roundId}
         rawJobData={jobs}
         open={showModeModal}
         onSelectMode={handleModeSelect}

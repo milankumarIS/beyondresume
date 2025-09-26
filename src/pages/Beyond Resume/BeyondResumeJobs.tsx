@@ -350,7 +350,7 @@ const BeyondResumeJobs = () => {
             }),
           ]);
 
-        console.log(result);
+        // console.log(result);
 
         const allActiveJobs = result?.data?.data.filter(
           (job) => !job.endDate || new Date(job.endDate) > now
@@ -371,7 +371,7 @@ const BeyondResumeJobs = () => {
         const filtered = applyFilters(sortedActive);
         setFilteredJobs(filtered);
         setSeekerJobs(filtered);
-        console.log(filtered);
+        // console.log(filtered);
 
         const savedJobIds = new Set(
           (userSavedJobs?.data?.data || []).map((job) => job.brJobId)
@@ -421,33 +421,6 @@ const BeyondResumeJobs = () => {
     spaceIndustryName ||
     ""
   ).toLowerCase();
-
-  // useEffect(() => {
-  //   if (!isJobPage) {
-  //     const term = searchTerm.toLowerCase();
-  //     if (term === "") {
-  //       setSeekerJobs(filteredJobs);
-  //       setSearchedSavedJobs(savedJobs);
-  //     } else {
-  //       const results = filteredJobs.filter(
-  //         (job) =>
-  //           job.jobTitle?.toLowerCase().includes(term) ||
-  //           job.description?.toLowerCase().includes(term) ||
-  //           job.location?.toLowerCase().includes(term) ||
-  //           job.companyName?.toLowerCase().includes(term)
-  //       );
-  //       const results1 = savedJobs.filter(
-  //         (job) =>
-  //           job.jobTitle?.toLowerCase().includes(term) ||
-  //           job.description?.toLowerCase().includes(term) ||
-  //           job.location?.toLowerCase().includes(term) ||
-  //           job.companyName?.toLowerCase().includes(term)
-  //       );
-  //       setSeekerJobs(results);
-  //       setSearchedSavedJobs(results1);
-  //     }
-  //   }
-  // }, [searchTerm, spaceIndustryName]);
 
   useEffect(() => {
     if (isJobPage) return;
@@ -514,31 +487,6 @@ const BeyondResumeJobs = () => {
       setSelectedJob(job);
       setSelectedApplicantsCount(applicantsCount);
     };
-
-    // useEffect(() => {
-    //   const fetchSavedJobs = async () => {
-    //     const userId = getUserId();
-    //     const savedSet = new Set<string>();
-
-    //     const promises = jobs.map((job) =>
-    //       searchListDataFromTable("brJobApplicant", {
-    //         brJobApplicantStatus: ["REQUESTED"],
-    //         brJobId: job.brJobId,
-    //         createdBy: userId,
-    //       }).then((res) => {
-    //         const hasRequested = res.data.data?.some(
-    //           (a) => a.brJobApplicantStatus === "REQUESTED"
-    //         );
-    //         if (hasRequested) savedSet.add(job.brJobId);
-    //       })
-    //     );
-
-    //     await Promise.all(promises);
-    //     setSavedJobsSet(savedSet);
-    //   };
-
-    //   fetchSavedJobs();
-    // }, []);
 
     useEffect(() => {
       const userId = getUserId();
@@ -694,6 +642,47 @@ const BeyondResumeJobs = () => {
       "SUGGESTED" | "ASSESSED" | "PENDING ASSESSMENT"
     >("ASSESSED");
 
+    type TabKey = "SUGGESTED" | "ASSESSED" | "PENDING ASSESSMENT";
+
+    interface TabConfig {
+      key: TabKey;
+      label: string;
+      color: string;
+      count: (
+        matchingUsers: any[],
+        selectedJob: any,
+        statusCountsMap: Record<string, any>
+      ) => number;
+    }
+
+    const tabs: TabConfig[] = [
+      {
+        key: "SUGGESTED",
+        label: "Suggested Matches",
+        color: "#16a34a",
+        count: (matchingUsers, selectedJob) =>
+          matchingUsers.filter((m) => m.jobId === selectedJob.brJobId).length,
+      },
+      {
+        key: "ASSESSED",
+        label: "Assessed Candidates",
+        color: "#16a34a",
+        count: (_, selectedJob, statusCountsMap) =>
+          statusCountsMap[selectedJob.brJobId]?.find(
+            (s: any) => s.label === "ASSESSED"
+          )?.count ?? 0,
+      },
+      {
+        key: "PENDING ASSESSMENT",
+        label: "Pending Assessment",
+        color: "#f97316",
+        count: (_, selectedJob, statusCountsMap) =>
+          statusCountsMap[selectedJob.brJobId]?.find(
+            (s: any) => s.label === "PENDING ASSESSMENT"
+          )?.count ?? 0,
+      },
+    ];
+
     return (
       <Box mb={4} mt={2} display="flex" gap={2} alignItems="flex-start">
         <Box
@@ -841,105 +830,49 @@ const BeyondResumeJobs = () => {
                     <Box>
                       <Box
                         display="flex"
-                        alignItems={"center"}
-                        width={"100%"}
-                        justifyContent={"center"}
+                        alignItems="center"
+                        width="100%"
+                        justifyContent="center"
                         gap={2}
                         mb={2}
                         p={2}
                       >
-                        <div
-                          onClick={() => setActiveTab("SUGGESTED")}
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            background:
-                              activeTab === "SUGGESTED" ? "#16a34a" : "grey",
-                            borderRadius: "6px",
-                            padding: "6px 10px",
-                            color: "#fff",
-                            fontWeight: "bold",
-                            fontSize: "14px",
-                            cursor: "pointer",
-                          }}
-                        >
-                          <span
-                            style={{
-                              background: "rgba(255, 255, 255, 0.2)",
-                              padding: "4px 8px",
-                              borderRadius: "4px",
-                              marginRight: "6px",
-                            }}
-                          >
-                            {
-                              matchingUsers.filter(
-                                (m) => m.jobId === selectedJob.brJobId
-                              ).length
-                            }
-                          </span>
-                          Suggested Matches
-                        </div>
-
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            background:
-                              activeTab === "ASSESSED" ? "#16a34a" : "grey",
-                            borderRadius: "6px",
-                            padding: "6px 10px",
-                            color: "#fff",
-                            fontWeight: "bold",
-                            fontSize: "14px",
-                            cursor: "pointer",
-                          }}
-                          onClick={() => setActiveTab("ASSESSED")}
-                        >
-                          <span
-                            style={{
-                              background: "rgba(255, 255, 255, 0.2)",
-                              padding: "4px 8px",
-                              borderRadius: "4px",
-                              marginRight: "6px",
-                            }}
-                          >
-                            {statusCountsMap[selectedJob.brJobId]?.find(
-                              (s) => s.label === "ASSESSED"
-                            )?.count ?? 0}
-                          </span>
-                          Assessed Candidates
-                        </div>
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            background:
-                              activeTab === "PENDING ASSESSMENT"
-                                ? "#f97316"
-                                : "grey",
-                            borderRadius: "6px",
-                            padding: "6px 10px",
-                            color: "#fff",
-                            fontWeight: "bold",
-                            fontSize: "14px",
-                            cursor: "pointer",
-                          }}
-                          onClick={() => setActiveTab("PENDING ASSESSMENT")}
-                        >
-                          <span
-                            style={{
-                              background: "rgba(255, 255, 255, 0.2)",
-                              padding: "4px 8px",
-                              borderRadius: "4px",
-                              marginRight: "6px",
-                            }}
-                          >
-                            {statusCountsMap[selectedJob.brJobId]?.find(
-                              (s) => s.label === "PENDING ASSESSMENT"
-                            )?.count ?? 0}
-                          </span>
-                          Pending Assement
-                        </div>
+                        {tabs.map(({ key, label, color, count }) => {
+                          const isActive = activeTab === key;
+                          return (
+                            <div
+                              key={key}
+                              onClick={() => setActiveTab(key)}
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                background: isActive ? color : "grey",
+                                borderRadius: "6px",
+                                padding: "6px 10px",
+                                color: "#fff",
+                                fontWeight: "bold",
+                                fontSize: "14px",
+                                cursor: "pointer",
+                              }}
+                            >
+                              <span
+                                style={{
+                                  background: "rgba(255, 255, 255, 0.2)",
+                                  padding: "4px 8px",
+                                  borderRadius: "4px",
+                                  marginRight: "6px",
+                                }}
+                              >
+                                {count(
+                                  matchingUsers,
+                                  selectedJob,
+                                  statusCountsMap
+                                )}
+                              </span>
+                              {label}
+                            </div>
+                          );
+                        })}
                       </Box>
 
                       {activeTab === "SUGGESTED" ? (
@@ -996,6 +929,7 @@ const BeyondResumeJobs = () => {
 
   const [selectedTab, setSelectedTab] = useState(0);
   const durationTabs = ["Live", "Draft", "Closed"];
+
   const jobSections = [
     {
       key: "activeJobs",
@@ -1195,7 +1129,6 @@ const BeyondResumeJobs = () => {
               borderRadius: "12px",
               background: showSavedJobs ? color.activeButtonBg : "white",
               color: showSavedJobs ? "white" : "black",
-              // boxShadow: "0px 0px 10px rgba(90, 128, 253, 0.49)",
               ml: 1,
               textTransform: "none",
               fontSize: "14px",
@@ -1210,10 +1143,6 @@ const BeyondResumeJobs = () => {
           >
             {" "}
             Saved Jobs
-            {/* <FontAwesomeIcon
-              style={{ marginLeft: "4px" }}
-              icon={faBookmark}
-            ></FontAwesomeIcon>{" "} */}
           </BeyondResumeButton>
         )}
       </Box>
@@ -1287,25 +1216,16 @@ const BeyondResumeJobs = () => {
                           ? "translateX(-50%)"
                           : "none",
                     },
-                    // background:color.jobCardBg,
-                    // borderRadius: "32px",
+
                     zIndex: 1000,
                   }}
                 >
-                  {/* {tabFilteredJobs.length > 0 && ( */}
                   <CustomTabs
                     selectedTab={selectedTab}
                     onChange={handleTabChange}
                     durationTabs={durationTabs}
                   />
                 </Box>
-
-                {/* {currentSection.jobs.length > 0 ? (
-                  <JobsSection
-                    title={currentSection.title}
-                    jobs={currentSection.jobs}
-                    type={currentSection.type}
-                  /> */}
 
                 {tabFilteredJobs.length > 0 ? (
                   <JobsSection

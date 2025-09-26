@@ -9,19 +9,21 @@ interface GeneratedAiQnaResponseProps {
   response: string;
   jobId?: string | null;
   status?: string | null;
+  roundId?: any;
 }
 
 const GeneratedAiQnaResponse: React.FC<GeneratedAiQnaResponseProps> = ({
   response,
   jobId,
   status,
+  roundId,
 }) => {
   const location = useLocation();
   const [hasParseError, setHasParseError] = useState(false);
 
-  
-
-  const isJobPage = location.pathname.startsWith("/beyond-resume-myjobs") || location.pathname.startsWith("/beyond-resume-jobdetails");
+  const isJobPage =
+    location.pathname.startsWith("/beyond-resume-myjobs") ||
+    location.pathname.startsWith("/beyond-resume-jobdetails");
 
   const processedResponse = response
     .replace(/\*\*(.*?)\*\*/g, "")
@@ -39,7 +41,7 @@ const GeneratedAiQnaResponse: React.FC<GeneratedAiQnaResponseProps> = ({
   const [displayContent, setDisplayContent] = useState(processedResponse);
   const openSnackBar = useSnackbar();
   const history = useHistory();
-// console.log(displayContent);
+  // console.log(displayContent);
 
   const [isEditing, setIsEditing] = useState(false);
 
@@ -78,26 +80,28 @@ const GeneratedAiQnaResponse: React.FC<GeneratedAiQnaResponseProps> = ({
     }
   };
 
-const handleClick = async () => {
-  try {
-    const result = await updateByIdDataInTable(
-      "brJobs",
-      jobId,
-      { brJobStatus: "ACTIVE" },
-      "brJobId"
-    );
-    // console.log(jobId);
-    // console.log(result);
-    
-    window.location.href = "/beyond-resume-myjobs";
-  } catch (error: any) {
-    console.error("Error updating job status:", error);
-    openSnackBar(error?.response?.data?.msg || "An error occurred");
-  }
-};
+  const handleClick = async () => {
+    try {
+      const result = await updateByIdDataInTable(
+        "brJobs",
+        jobId,
+        { brJobStatus: "ACTIVE" },
+        "brJobId"
+      );
+      // console.log(jobId);
+      // console.log(result);
+
+      window.location.href = "/beyond-resume-myjobs";
+    } catch (error: any) {
+      console.error("Error updating job status:", error);
+      openSnackBar(error?.response?.data?.msg || "An error occurred");
+    }
+  };
+
+  const id = roundId ? roundId : "questionSection";
 
   return (
-    <Box m={4} id="questionSection">
+    <Box m={4} id={id}>
       <Typography mb={2} variant="h5">
         System Generated Interview Questions:
       </Typography>
@@ -164,7 +168,7 @@ const handleClick = async () => {
         )}
       </Box>
 
-      {(!isJobPage || (isJobPage && status === "INPROGRESS")) &&
+      {/* {(!isJobPage || (isJobPage && status === "INPROGRESS")) &&
         !hasParseError && displayContent && (
           <BeyondResumeButton
             onClick={handleClick}
@@ -173,12 +177,9 @@ const handleClick = async () => {
             sx={{ display: "block", m: "auto" }}
           >
             Publish Job
-            {/* <FontAwesomeIcon
-              style={{ marginLeft: "6px" }}
-              icon={faArrowCircleRight}
-            /> */}
+  
           </BeyondResumeButton>
-        )}
+        )} */}
     </Box>
   );
 };
@@ -216,7 +217,7 @@ const HtmlParserExample = ({
 }) => {
   let parsedData: TextContent | null = null;
 
-// console.log(htmlString);
+  // console.log(htmlString);
 
   try {
     const match = htmlString.match(/<pre>\s*([\s\S]*?)\s*<\/pre>/);

@@ -12,18 +12,32 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useHistory, useLocation, useParams } from "react-router";
 import Webcam from "react-webcam";
+import {
+  encryptPayload,
+  formatRoundTS,
+} from "../../components/util/CommonFunctions";
 import GradientText, {
   BeyondResumeButton,
   BeyondResumeButton2,
 } from "../../components/util/CommonStyle";
 import { useUserData } from "../../components/util/UserDataContext";
+import CYS from "../../services/Secret";
+import AIProfileInterview from "./Beyond Resume Carrer Seeker/Beyond Resume Job Apply/AIProfileInterview";
 import BeyondResumeLoader from "./Beyond Resume Components/BeyondResumeLoader";
 import { useProctoringSuite } from "./Beyond Resume Components/useProctoringSuite";
-import AIProfileInterview from "./Beyond Resume Carrer Seeker/Beyond Resume Job Apply/AIProfileInterview";
-import theme from "quill/core/theme";
 
 const BeyondResumeReadyToJoin = () => {
-  const location = useLocation();
+  type ExamState = {
+    noOfQuestions?: number;
+    duration?: number;
+    jobTitle?: string;
+    companyName?: string;
+    examMode?: string;
+    roundId?: string;
+    roundName?: string;
+  };
+
+  const location = useLocation() as Location & { state: ExamState };
   const { brJobId } = useParams<any>();
   const query = new URLSearchParams(location.search);
   const noOfQuestions = location?.state?.noOfQuestions;
@@ -31,6 +45,8 @@ const BeyondResumeReadyToJoin = () => {
   const jobTitle = location?.state?.jobTitle;
   const companyName = location?.state?.companyName;
   const examMode = location?.state?.examMode;
+  const roundId = location?.state?.roundId;
+  const roundName = location?.state?.roundName;
   const { userData } = useUserData();
 
   const sessionType = query.get("sessionType");
@@ -155,10 +171,10 @@ const BeyondResumeReadyToJoin = () => {
         : "interviewSession",
   }).toString();
 
+  const token = encryptPayload({ brJobId, roundId }, CYS);
+
   const handleJoin = () => {
-    history.push(
-      `/beyond-resume-jobInterviewSession/${brJobId}?${queryParams}`
-    );
+    history.push(`/beyond-resume-jobInterviewSession/${token}`);
   };
 
   const videoConstraints = {
@@ -179,11 +195,10 @@ const BeyondResumeReadyToJoin = () => {
     return () => unlisten();
   }, [history]);
 
-  return (
-    <Box
-      className="full-screen-div"
+  const safeDuration = duration ?? 0;
 
-    >
+  return (
+    <Box className="full-screen-div">
       <Box
         display="flex"
         gap={1}
@@ -225,7 +240,7 @@ const BeyondResumeReadyToJoin = () => {
               width: { xs: "80vw", sm: "50vw" },
               position: "relative",
               borderRadius: "12px",
-              // overflow: "hidden",
+              overflow: "hidden",
               background: "black",
             }}
           >
@@ -317,18 +332,22 @@ const BeyondResumeReadyToJoin = () => {
             </BeyondResumeButton2>
             <BeyondResumeButton
               onClick={() => {
-                sessionType === "writtenExamSession"
-                  ? history.push(
-                      `/beyond-resume-jobInterviewSession-written/${brJobId}`
-                    )
-                  : sessionType === "practiceSession"
-                  ? history.push(
-                      `/beyond-resume-practiceInterviewSession/${brJobId}?${queryParams}`
-                    )
-                  : //  history.push(
-                    //       `/beyond-resume-jobInterviewSession/${brJobId}`
-                    //     );
-                    setModalOpen(true);
+                if (sessionType === "writtenExamSession") {
+                  history.push(
+                    `/beyond-resume-jobInterviewSession-written/${token}`
+                  );
+                } else if (sessionType === "practiceSession") {
+                  history.push(
+                    `/beyond-resume-practiceInterviewSession/${token}?${queryParams}`
+                  );
+                } else {
+                  // history.push(
+                  //   `/beyond-resume-jobInterviewSession/${encryptedJobId}${
+                  //     roundId ? `?roundId=${encryptedRoundId }` : ""
+                  //   }`
+                  // );
+                  setModalOpen(true);
+                }
               }}
               disabled={!isManualRead || !!detectionError}
             >
@@ -378,10 +397,20 @@ const BeyondResumeReadyToJoin = () => {
                 lineHeight: "1.6",
               }}
             >
-              <li>
-                You are applying for <strong>{jobTitle}</strong> position at{" "}
-                <strong> {companyName}</strong>.
-              </li>
+              {sessionType !== "practiceSession" && (
+                <li>
+                  You are interviewing for the <strong>{jobTitle}</strong> role
+                  at <strong>{companyName}</strong>
+                  {roundId && roundName && (
+                    <>
+                      , currently in <strong>{formatRoundTS(roundId)}</strong> :{" "}
+                      {""}
+                      <strong>{roundName}</strong>
+                    </>
+                  )}
+                  .
+                </li>
+              )}
               <li>
                 {examMode === "Adaptive" && (
                   <>
@@ -391,7 +420,7 @@ const BeyondResumeReadyToJoin = () => {
                 )}
                 Your interview will have{" "}
                 {examMode === "Adaptive" ? (
-                  <strong>{duration / 2} Questions</strong>
+                  <strong>{safeDuration / 2} Questions</strong>
                 ) : (
                   <strong>{noOfQuestions} Questions</strong>
                 )}{" "}

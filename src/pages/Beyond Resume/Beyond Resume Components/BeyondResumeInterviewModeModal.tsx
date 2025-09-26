@@ -17,12 +17,15 @@ import React from "react";
 import { BeyondResumeButton } from "../../../components/util/CommonStyle";
 import { useTheme } from "../../../components/util/ThemeContext";
 import color from "../../../theme/color";
+import { formatRoundTS } from "../../../components/util/CommonFunctions";
 
 interface InterviewModeModalProps {
   open: boolean;
   rawJobData: any;
   noOQuestion?: any;
   duration?: any;
+  roundId?: any;
+  roundName?: any;
   onSelectMode: (mode: "AI_VIDEO" | "BASIC_EXAM") => void;
   disableOutsideClick?: boolean;
   onClose?: () => void;
@@ -36,6 +39,8 @@ const InterviewModeModal: React.FC<InterviewModeModalProps> = ({
   duration,
   disableOutsideClick = true,
   onClose,
+  roundName,
+  roundId
 }) => {
   const { theme } = useTheme();
 
@@ -86,6 +91,24 @@ const InterviewModeModal: React.FC<InterviewModeModalProps> = ({
             You are applying for
           </Typography> */}
           <Typography
+            variant="h6"
+            sx={{
+              fontFamily: "custom-regular",
+              color:
+                theme === "dark" ? color.titleColor : color.titleLightColor,
+              background:
+                theme === "dark" ? color.jobCardBg : color.jobCardBgLight,
+              borderRadius: "8px",
+              width: "fit-content",
+              px: 2,
+              m: "auto",
+            }}
+          >
+            {rawJobData?.jobTitle} Positon at {rawJobData?.companyName}
+          </Typography>
+
+          {roundId && roundName &&
+          <Typography
             variant="body1"
             sx={{
               fontFamily: "custom-regular",
@@ -97,11 +120,11 @@ const InterviewModeModal: React.FC<InterviewModeModalProps> = ({
               width: "fit-content",
               px: 2,
               m: "auto",
-              mt: 1,
+              mt: 2,
             }}
-          >
-            {rawJobData?.jobTitle} Positon at {rawJobData?.companyName}
-          </Typography>
+          > {formatRoundTS(roundId)}: {''}
+             {roundName}
+          </Typography>}
           <Typography
             variant="h5"
             align="center"

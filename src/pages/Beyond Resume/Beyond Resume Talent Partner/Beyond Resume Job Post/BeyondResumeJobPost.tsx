@@ -15,6 +15,7 @@ import GeneratedAiQnaResponse from "./GeneratedAiQnaResponse";
 import JobDescriptionTab from "./Tabs/JobDescriptionTab";
 import PostJobForm from "./Tabs/PostJobFormTab";
 import SmartEvaluationTab from "./Tabs/SmartEvaluationTab";
+import BeyondResumeInterviewRounds from "./BeyondResumeInterviewRounds";
 
 const BeyondResumeJobPost: React.FC = () => {
   const [open, setOpen] = useState(false);
@@ -107,7 +108,7 @@ const BeyondResumeJobPost: React.FC = () => {
     "About Job",
     "Job Description",
     "Smart Evaluation",
-    "Post Job",
+    // "Post Job",
   ];
 
   return (
@@ -178,19 +179,25 @@ const BeyondResumeJobPost: React.FC = () => {
             />
           )}
           {activeTab === 2 && jobId && jdResponse && (
-            <SmartEvaluationTab
+            // <SmartEvaluationTab
+            //   jobId={jobId}
+            //   response={jdResponse}
+            //   onNext={(qn) => {
+            //     setQnResponse(qn);
+            //     goToStep(3);
+            //   }}
+            // />
+
+            <BeyondResumeInterviewRounds
               jobId={jobId}
-              response={jdResponse}
-              onNext={(qn) => {
-                setQnResponse(qn);
-                goToStep(3);
-              }}
+              jobDescription={jdResponse}
+              jobFormData={jobFormData}
             />
           )}
 
-          {activeTab === 3 && qnResponse && (
+          {/* {activeTab === 3 && qnResponse && (
             <GeneratedAiQnaResponse jobId={jobId!} response={qnResponse} />
-          )}
+          )} */}
         </Box>
       </Box>
 

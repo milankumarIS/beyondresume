@@ -11,6 +11,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router";
 import { jobKeywordIcons } from "../../../components/form/data";
 import {
+  formatRoundTS,
   generateInterviewReportExcel,
   getFormattedDateKey,
 } from "../../../components/util/CommonFunctions";
@@ -36,6 +37,7 @@ interface QuestionItem {
 }
 
 interface InterviewData {
+  roundId: any;
   interviewScore: number;
   interviewOverview: string;
   interviewSuggestion: string;
@@ -65,18 +67,69 @@ const BeyondResumeInterviewOverview = () => {
   const { id } = useParams<{ id: string }>();
   const queryParams = new URLSearchParams(location.search);
   const type = queryParams.get("type");
-
+  const [brJobApplicantId, ...rest] = id.split("-");
+  const roundId = rest.join("-");
   useEffect(() => {
-    const tableName = type === "practice" ? "brInterviews" : "brJobApplicant";
-    const params =
-      type === "practice" ? { brInterviewId: id } : { brJobApplicantId: id };
+    const fetchData = async () => {
+      try {
+        let combinedData: any = {};
 
-    searchListDataFromTable(tableName, params).then((result: any) => {
-      setData(result?.data?.data[0]);
-      console.log(result?.data?.data[0]);
-      setLoading(false);
-    });
-  }, [type, id]);
+        if (type === "practice") {
+          const result: any = await searchListDataFromTable("brInterviews", {
+            brInterviewId: id,
+          });
+          combinedData = result?.data?.data[0] || {};
+        } else if (type === "multiround") {
+          // Fetch brJobApplicantRounds
+          const roundsResult: any = await searchListDataFromTable(
+            "brJobApplicantRounds",
+            {
+              brJobApplicantId,
+              roundId,
+            }
+          );
+          const roundsData = roundsResult?.data?.data[0] || {};
+
+          const applicantResult: any = await searchListDataFromTable(
+            "brJobApplicant",
+            {
+              brJobApplicantId,
+            }
+          );
+          let applicantData = applicantResult?.data?.data[0] || {};
+
+          const {
+            interviewQuestionAnswer,
+            interviewScore,
+            interviewOverview,
+            interviewSuggestion,
+            brInterviewLevel,
+            ...filteredApplicantData
+          } = applicantData;
+
+          // Combine both
+          combinedData = {
+            ...filteredApplicantData,
+            ...roundsData,
+          };
+        } else {
+          const result: any = await searchListDataFromTable("brJobApplicant", {
+            brJobApplicantId,
+          });
+          combinedData = result?.data?.data[0] || {};
+        }
+
+        setData(combinedData);
+        console.log(combinedData);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [type, id, brJobApplicantId, roundId]);
 
   // console.log(data);
 
@@ -153,7 +206,8 @@ const BeyondResumeInterviewOverview = () => {
         }}
         variant="h4"
       >
-        Interview Summary
+        Interview Summary{data?.roundId ? ` - ${formatRoundTS(data.roundId)}` : ''}
+
       </Typography>
 
       <Box

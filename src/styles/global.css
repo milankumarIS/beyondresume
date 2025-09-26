@@ -77,6 +77,18 @@ html, body {
   color: white !important;
 }
 
+.capsule {
+  border: solid 2px #0c83b7;
+  /* background: rgba(94, 94, 94, 0.15); */
+  border-radius: 44px;
+  padding: 0px 10px;
+  display: flex;
+  gap: 10px;
+  width: fit-content;
+  font-family: 'custom-regular';
+  font-size: 14px;
+}
+
 .input-field::placeholder {
   color: rgba(
     255,

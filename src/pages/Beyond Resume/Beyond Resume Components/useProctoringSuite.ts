@@ -23,22 +23,19 @@ export const useProctoringSuite = (
   const faceDetectorRef = useRef<faceDetection.FaceDetector | null>(null);
   const [proctoringReady, setProctoringReady] = useState(false);
 
-  
-
+  // Load models once
   useEffect(() => {
     const loadModels = async () => {
+      await tf.setBackend("webgl");
       await tf.ready();
 
       const faceDetector = await faceDetection.createDetector(
         SupportedModels.MediaPipeFaceDetector,
-        {
-          runtime: "tfjs",
-          maxFaces: 5,
-        }
+        { runtime: "tfjs", maxFaces: 3 }
       );
       faceDetectorRef.current = faceDetector;
 
-      const cocoModel = await cocoSsd.load();
+      const cocoModel = await cocoSsd.load({ base: "lite_mobilenet_v2" });
       cocoModelRef.current = cocoModel;
 
       setProctoringReady(true);
@@ -47,65 +44,59 @@ export const useProctoringSuite = (
     loadModels();
   }, []);
 
-  // Proctoring readiness checker
-  // useEffect(() => {
-  //   const checkReady = setInterval(() => {
-  //     const video = videoRef.current;
-  //     if (
-  //       cocoModelRef.current &&
-  //       faceDetectorRef.current &&
-  //       video?.readyState === 4 
-  //     ) {
-  //       setProctoringReady(true);
-  //       clearInterval(checkReady);
-  //     }
-  //   }, 500);
-
-  //   return () => clearInterval(checkReady);
-  // }, [videoRef]);
-
-  // Main detection loop
   useEffect(() => {
-    let interval: NodeJS.Timeout;
-      if (!proctoringReady) return;
+    if (!proctoringReady) return;
+    let lastDetection = 0;
+    let stop = false;
 
-    const detect = async () => {
+    const detect = async (time: number) => {
+      if (stop) return;
       const video = videoRef.current;
       const canvas = canvasRef.current;
-      if (
-        !video ||
-        !canvas ||
-        !cocoModelRef.current ||
-        !faceDetectorRef.current ||
-        !proctoringReady
-      )
-        return;
+      if (!video || !canvas) return;
 
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return;
+      if (time - lastDetection > 200) {
+        lastDetection = time;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
 
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
+        // Resize canvas to video
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
 
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        // Downscale input for performance (internal detection only)
+        const tempCanvas = document.createElement("canvas");
+        const scale = 0.4; // ~40% of original
+        tempCanvas.width = video.videoWidth * scale;
+        tempCanvas.height = video.videoHeight * scale;
+        const tmpCtx = tempCanvas.getContext("2d");
+        tmpCtx?.drawImage(video, 0, 0, tempCanvas.width, tempCanvas.height);
 
-      const faces = await faceDetectorRef.current.estimateFaces(video, {
-        flipHorizontal: false,
-      });
+        const input = tf.browser.fromPixels(tempCanvas);
 
-      const predictions = await cocoModelRef.current.detect(video);
-      const objects = predictions.map((pred) => pred.class);
+        // Run both detectors
+        const [faces, predictions] = await Promise.all([
+          faceDetectorRef.current?.estimateFaces(input),
+          cocoModelRef.current?.detect(tempCanvas),
+        ]);
 
-      setResults({ faces, objects });
+        const objects = predictions?.map((pred) => pred.class) || [];
+        setResults({ faces: faces || [], objects });
+
+        input.dispose(); // free GPU memory
+
+        // Draw video back
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      }
+
+      requestAnimationFrame(detect);
     };
 
-    interval = setInterval(detect, 1000);
-    return () => clearInterval(interval);
+    requestAnimationFrame(detect);
+    return () => {
+      stop = true;
+    };
   }, [videoRef, proctoringReady]);
 
-  return {
-    canvasRef,
-    results,
-    proctoringReady,
-  };
+  return { canvasRef, results, proctoringReady };
 };

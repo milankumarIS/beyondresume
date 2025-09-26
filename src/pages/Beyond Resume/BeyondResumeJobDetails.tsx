@@ -1,3 +1,5 @@
+import { Capacitor } from "@capacitor/core";
+import { Share } from "@capacitor/share";
 import {
   faBriefcase,
   faBuilding,
@@ -7,10 +9,17 @@ import {
   faEdit,
   faShareNodes,
   faUserTie,
-  faXmarkCircle,
+  faXmarkCircle
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Box, Button, Typography } from "@mui/material";
+import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
+  Box,
+  Button,
+  Typography
+} from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 import { useHistory, useLocation, useParams } from "react-router-dom";
 import { copyToClipboard } from "../../components/shared/Clipboard";
@@ -21,24 +30,24 @@ import GradientText, {
   BeyondResumeButton2,
   commonPillStyle,
   GradientFontAwesomeIcon,
-  StyledTypography,
+  StyledTypography
 } from "../../components/util/CommonStyle";
+import ConfirmationPopup from "../../components/util/ConfirmationPopup";
 import CustomSnackbar from "../../components/util/CustomSnackbar";
+import { useIndustry } from "../../components/util/IndustryContext";
 import { useTheme } from "../../components/util/ThemeContext";
 import { getUserRole } from "../../services/axiosClient";
 import {
   searchDataFromTable,
+  searchListDataFromTable,
   updateByIdDataInTable,
 } from "../../services/services";
 import color from "../../theme/color";
+import JobFitmentPage from "./Beyond Resume Carrer Seeker/Beyond Resume Job Apply/JobFitmentAnalysis";
+import JobTimelineStepper from "./Beyond Resume Components/JobTimelineStepper";
 import MatchingUserCard from "./Beyond Resume Components/MatchingUserCard";
 import { fetchMatchingUsers } from "./Beyond Resume Components/MatchingUsersList";
-import JobFitmentPage from "./Beyond Resume Carrer Seeker/Beyond Resume Job Apply/JobFitmentAnalysis";
 import GeneratedAiQnaResponse from "./Beyond Resume Talent Partner/Beyond Resume Job Post/GeneratedAiQnaResponse";
-import { Capacitor } from "@capacitor/core";
-import { Share } from "@capacitor/share";
-import ConfirmationPopup from "../../components/util/ConfirmationPopup";
-import { useIndustry } from "../../components/util/IndustryContext";
 type Props = {
   job: any;
   applicantsCount: number;
@@ -63,6 +72,7 @@ const BeyondResumeJobDetails = ({
   const fitmentRef = useRef<HTMLDivElement | null>(null);
   const questionRef = useRef<HTMLDivElement | null>(null);
   const [job, setJob] = useState<any>(initialJob);
+  const [rounds, setRounds] = useState<any>([]);
   const [loading, setLoading] = useState<boolean>(!initialJob);
 
   const location = useLocation();
@@ -77,7 +87,9 @@ const BeyondResumeJobDetails = ({
   const [displayContent, setDisplayContent] = useState("");
   const [showQuestion, setShowQuestions] = useState(false);
   const isJobPage = location.pathname.startsWith("/beyond-resume-myjobs");
-  const myJobsJD = location.pathname.startsWith("/beyond-resume-myjobs-jobdetails");
+  const myJobsJD = location.pathname.startsWith(
+    "/beyond-resume-myjobs-jobdetails"
+  );
   const isApplicationJDPage = location.pathname.startsWith(
     "/beyond-resume-applicationJD"
   );
@@ -93,6 +105,10 @@ const BeyondResumeJobDetails = ({
           setLoading(true);
           const result: any = await searchDataFromTable("brJobs", { brJobId });
           setJob(result?.data?.data);
+          const result1: any = await searchListDataFromTable("brJobRounds", {
+            brJobId,
+          });
+          setRounds(result1?.data?.data);
         } catch (error) {
           console.error("Error fetching job by brJobId:", error);
         } finally {
@@ -266,10 +282,11 @@ const BeyondResumeJobDetails = ({
     (job?.brJobStatus === "ACTIVE" || job?.brJobStatus === "INPROGRESS") &&
     !!job?.endDate &&
     new Date(job?.endDate) >= new Date();
+
   return (
     <Box>
       <Box
-        display={myJobsJD ?'flex': "none"}
+        display={myJobsJD ? "flex" : "none"}
         alignItems={"center"}
         justifyContent={"center"}
         mt={2}
@@ -318,7 +335,8 @@ const BeyondResumeJobDetails = ({
               }}
             >
               <Box display={"flex"} alignItems={"center"} gap={1} mb={0.5}>
-                {job?.companyName?.toLowerCase() === "translab.io".toLowerCase() ? (
+                {job?.companyName?.toLowerCase() ===
+                "translab.io".toLowerCase() ? (
                   <Box
                     sx={{
                       background: "white",
@@ -600,6 +618,23 @@ const BeyondResumeJobDetails = ({
                       {formatDateJob(job?.endDate)}{" "}
                     </span>
                   </Typography>
+
+                  {rounds?.length > 0 && (
+                    <Typography
+                      sx={{
+                        textTransform: "none",
+                        fontSize: "16px",
+                        borderRadius: "999px",
+                        mt: 1,
+                        fontFamily: "montserrat-regular",
+                      }}
+                    >
+                      Round(s) Of Interview:{" "}
+                      <span style={{ fontFamily: "custom-bold" }}>
+                        {rounds?.length ?? 0} Rounds
+                      </span>
+                    </Typography>
+                  )}
                 </>
               ) : (
                 !isApplicationJDPage && (
@@ -665,7 +700,7 @@ const BeyondResumeJobDetails = ({
                 {getUserRole() === "TALENT PARTNER" &&
                   job?.examMode !== "Adaptive" && (
                     <BeyondResumeButton2
-                      sx={{ mt: 0, fontSize: "12px" }}
+                      sx={{ mt: 0, mb: 4, fontSize: "12px" }}
                       onClick={() => {
                         setShowQuestions((prev) => {
                           const next = !prev;
@@ -680,9 +715,7 @@ const BeyondResumeJobDetails = ({
                         });
                       }}
                     >
-                      {showQuestion
-                        ? "Hide Interview Questions"
-                        : "Show Interview Questions"}
+                      {showQuestion ? "Hide Details" : "Show More details"}
 
                       <FontAwesomeIcon
                         style={{ marginLeft: "6px" }}
@@ -695,7 +728,7 @@ const BeyondResumeJobDetails = ({
                     </BeyondResumeButton2>
                   )}
 
-                {showQuestion && (
+                {/* {showQuestion && (
                   <Box ref={questionRef} sx={{ m: -4, mt: 2 }}>
                     <GeneratedAiQnaResponse
                       status={job?.brJobStatus}
@@ -703,8 +736,140 @@ const BeyondResumeJobDetails = ({
                       jobId={job.brJobId}
                     />
                   </Box>
+                )} */}
+
+                {showQuestion && rounds?.length > 0 && (
+                  <Box
+                    mb={4}
+                    display={"flex"}
+                    justifyContent={"space-between"}
+                    alignItems={"flex-start"}
+                    flexWrap={"wrap"}
+                  >
+                    <JobTimelineStepper job={job} rounds={rounds} />
+                  </Box>
                 )}
 
+                {showQuestion &&
+                  rounds.map((round: any, index: number) => (
+                    <Accordion
+                      key={round?.roundId}
+                      disableGutters
+                      sx={{
+                        mb: 2,
+                        borderRadius: "16px !important",
+                        boxShadow: "0px 0px 36px rgba(0, 0, 0, 0.10)",
+                        overflow: "hidden",
+                        background: "transparent",
+                        color: "inherit",
+                      }}
+                    >
+                      <AccordionSummary
+                        sx={{
+                          color: "inherit",
+                          "& .MuiAccordionSummary-expandIconWrapper": {
+                            color: "inherit",
+                          },
+                        }}
+                        expandIcon={
+                          <FontAwesomeIcon
+                            style={{ color: "inherit" }}
+                            icon={faChevronCircleDown}
+                          />
+                        }
+                      >
+                        <Typography
+                          color="inherit"
+                          variant="h6"
+                          textAlign={"center"}
+                          ml={2}
+                        >
+                          {`Round ${index + 1} - ${round.roundName}`}
+                        </Typography>
+                      </AccordionSummary>
+
+                      <AccordionDetails
+                        sx={{
+                          background: "transparent",
+                        }}
+                      >
+                        <Box px={2}>
+                          <Typography>Purpose:</Typography>
+                          <Typography variant="body2">
+                            {round?.purpose}
+                          </Typography>
+                          <Typography variant="body2">
+                            {round?.cutoffType}
+                          </Typography>
+
+                          <Box
+                            sx={{
+                              display: "flex",
+                              flexWrap: "wrap",
+                              gap: 2,
+                              mt: 3,
+                              mb: -1,
+                            }}
+                          >
+                            {round?.cutoffType && (
+                              <div className="capsule">
+                                Cutoff Type: {round.cutoffType}
+                              </div>
+                            )}
+
+                            {round?.cutoffType === "fixed" &&
+                              round?.cutoffValue != null && (
+                                <div className="capsule">
+                                  Cutoff Value: {round.cutoffValue}%
+                                </div>
+                              )}
+
+                            {round?.cutoffType === "dynamic" && (
+                              <>
+                                {round?.targetCutoff != null && (
+                                  <div className="capsule">
+                                    Target Cutoff: {round.targetCutoff}%
+                                  </div>
+                                )}
+                                {round?.flexibility != null && (
+                                  <div className="capsule">
+                                    Flexibility Range: {round.flexibility}%
+                                  </div>
+                                )}
+                                {round?.minPassCount != null && (
+                                  <div className="capsule">
+                                    Min Passing Candidate Count: {round.minPassCount}
+                                  </div>
+                                )}
+                              </>
+                            )}
+
+                            {round?.interviewDuration != null && (
+                              <div className="capsule">
+                                Interview Duration: {round.interviewDuration}{" "}
+                                Minutes
+                              </div>
+                            )}
+
+                            {round?.roundWindow != null &&
+                              round?.roundId !== "round-1" && (
+                                <div className="capsule">
+                                  Round Window: {round.roundWindow} Days
+                                </div>
+                              )}
+                          </Box>
+                        </Box>
+
+                        {round?.examMode !== "Adaptive" && (
+                          <GeneratedAiQnaResponse
+                            jobId={job.jobId}
+                            response={round.jobInterviewQuestions}
+                            roundId={round.roundId}
+                          />
+                        )}
+                      </AccordionDetails>
+                    </Accordion>
+                  ))}
                 {matchingUsers.length > 0 &&
                   getUserRole() !== "CAREER SEEKER" &&
                   selectedTab === 0 && (

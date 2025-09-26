@@ -4,13 +4,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Avatar, Box, Grid2, Typography } from "@mui/material";
-import {
-  forwardRef,
-  useEffect,
-  useMemo,
-  useRef,
-  useState
-} from "react";
+import { forwardRef, useEffect, useMemo, useRef, useState } from "react";
 import Webcam from "react-webcam";
 import { ListeningAvatar } from "../../../components/util/CommonStyle";
 import { useProctoringSuite } from "./useProctoringSuite";
@@ -160,7 +154,6 @@ const ExamSessionVideoCamBox = forwardRef<
     return () => clearInterval(interval);
   }, []);
 
-  
   return (
     <>
       {isWrittenPage ? (
@@ -218,7 +211,8 @@ const ExamSessionVideoCamBox = forwardRef<
                 position: "relative",
                 borderRadius: "12px",
                 overflow: "hidden",
-                background: "linear-gradient(145deg, #0d0d0d, #2D3436)",
+                height: "250px",
+                // background: "linear-gradient(145deg, #0d0d0d, #2D3436)",
               }}
             >
               {isVideoOn ? (
@@ -232,6 +226,7 @@ const ExamSessionVideoCamBox = forwardRef<
                       height: "100%",
                       objectFit: "fill",
                       borderRadius: "12px",
+                      overflow: "hidden",
                     }}
                   />
                   <canvas

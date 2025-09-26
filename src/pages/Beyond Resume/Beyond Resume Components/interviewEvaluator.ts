@@ -1,3 +1,5 @@
+import { evaluateStatus, insertDataInTable } from "../../../services/services";
+
 type QuestionResult = {
   question: string;
   userAnswer: string;
@@ -18,9 +20,11 @@ export const evaluateInterviewResponses = async ({
   speakText,
   setLoading,
   jobsData,
+  roundData,
 }: {
   parsedData: any;
   jobsData?: any;
+  roundData?: any;
   userResponses: string[][];
   brJobId?: number;
   brInterviewId?: number;
@@ -43,8 +47,6 @@ export const evaluateInterviewResponses = async ({
       );
     }
 
-    
-
     const output = parsedData?.categories.flatMap(
       (category: any, catIndex: number) =>
         category.questions.map((q: any, qIndex: number) => ({
@@ -57,66 +59,59 @@ export const evaluateInterviewResponses = async ({
         }))
     );
 
-    let generatedResume: string | null = null;
-    let generatedCoverLetter: string | null = null;
+    //     let generatedResume: string | null = null;
+    //     let generatedCoverLetter: string | null = null;
 
+    //     if (jobsData?.[0]?.candidateResume) {
+    //       const resumePrompt = `
+    // I have found a job opportunity for the role of "${
+    //         jobsData[0]?.jobTitle
+    //       }" and I would like to apply for it. Before proceeding, I want to assess my suitability for the position.
 
+    // I am providing the following for your evaluation:
+    // - My complete resume
+    // - The full job description
+    // - A JSON file containing a simulation of interview questions and my responses
 
-    if  (jobsData?.[0]?.candidateResume) {
-      const resumePrompt = `
-I have found a job opportunity for the role of "${
-        jobsData[0]?.jobTitle
-      }" and I would like to apply for it. Before proceeding, I want to assess my suitability for the position.
+    // Please analyze the information and return your evaluation in **exactly** the format specified below.
 
-I am providing the following for your evaluation:
-- My complete resume
-- The full job description
-- A JSON file containing a simulation of interview questions and my responses
+    // Resume:
+    // ${jobsData[0]?.candidateResume}
 
-Please analyze the information and return your evaluation in **exactly** the format specified below.
+    // Job Description:
+    // ${jobsData[0]?.jobDescriptions}
 
+    // Simulation JSON (Questions and Answers):
+    // ${JSON.stringify(output)}
 
-Resume:
-${jobsData[0]?.candidateResume}
+    // ### Response Format (Return in exactly this JSON structure):
 
+    // {
+    //   "generatedResume": "Generate a fully formatted and polished HTML version of my resume, tailored especially to the job description and my simulation responses. Ensure it is refined, visually structured, and ready to render on a webpage, preserving all original formatting including headings, bullet points, and line breaks.",
+    //   "generatedCoverLetter": "Write a fully polished and ready-to-use HTML cover letter addressed to the hiring manager at ${
+    //     jobsData[0]?.companyName
+    //   }. Ensure it is fully personalized with no placeholders or dummy content.
+    //    Highlight how my skills align with the specific requirements of the job and explain how I can contribute to the company’s success. Include a real-life example where I overcame a challenging task, resolved it effectively, and what I learned from the experience. The final output should be professional, tailored, and suitable for direct submission without further edits."
 
-Job Description:
-${jobsData[0]?.jobDescriptions}
+    // }
+    // `;
 
+    //       try {
+    //         const resumeRes = await getUserAnswerFromAi({ question: resumePrompt });
+    //         const rawResumeText =
+    //           resumeRes?.data?.data?.candidates?.[0]?.content?.parts?.[0]?.text;
 
-Simulation JSON (Questions and Answers):
-${JSON.stringify(output)}
+    //         if (rawResumeText) {
+    //           const cleanedText = rawResumeText.replace(/```json|```/g, "").trim();
+    //           const parsed = JSON.parse(cleanedText);
+    //           generatedResume = parsed.generatedResume || null;
+    //           generatedCoverLetter = parsed.generatedCoverLetter || null;
+    //         }
+    //       } catch (error) {
+    //         console.error("Failed to parse AI resume/cover letter:", error);
+    //       }
+    //     }
 
-
-### Response Format (Return in exactly this JSON structure):
-
-{
-  "generatedResume": "Generate a fully formatted and polished HTML version of my resume, tailored especially to the job description and my simulation responses. Ensure it is refined, visually structured, and ready to render on a webpage, preserving all original formatting including headings, bullet points, and line breaks.",
-  "generatedCoverLetter": "Write a fully polished and ready-to-use HTML cover letter addressed to the hiring manager at ${
-    jobsData[0]?.companyName
-  }. Ensure it is fully personalized with no placeholders or dummy content. 
-   Highlight how my skills align with the specific requirements of the job and explain how I can contribute to the company’s success. Include a real-life example where I overcame a challenging task, resolved it effectively, and what I learned from the experience. The final output should be professional, tailored, and suitable for direct submission without further edits."
-
-}
-`;
-
-      try {
-        const resumeRes = await getUserAnswerFromAi({ question: resumePrompt });
-        const rawResumeText =
-          resumeRes?.data?.data?.candidates?.[0]?.content?.parts?.[0]?.text;
-
-        if (rawResumeText) {
-          const cleanedText = rawResumeText.replace(/```json|```/g, "").trim();
-          const parsed = JSON.parse(cleanedText);
-          generatedResume = parsed.generatedResume || null;
-          generatedCoverLetter = parsed.generatedCoverLetter || null;
-        }
-      } catch (error) {
-        console.error("Failed to parse AI resume/cover letter:", error);
-      }
-    }
-
-    
     // console.log(generatedResume);
     // console.log(generatedCoverLetter);
 
@@ -177,8 +172,6 @@ ${JSON.stringify(output)}
 
     // console.log(rawText);
 
-
-
     let interviewScore: number | null = null;
     let interviewOverview: string | null = null;
     let interviewSuggestion: string | null = null;
@@ -222,21 +215,48 @@ ${JSON.stringify(output)}
 
     try {
       if (brJobId) {
-        await updateByIdDataInTable(
-          "brJobApplicant",
-          brJobId,
-          {
+        if (jobsData?.[0]?.roundType === "multiple") {
+          console.log(interviewScore);
+
+          const payload = {
+            brJobApplicantId: jobsData?.[0]?.brJobApplicantId,
+            brJobId: jobsData?.[0]?.brJobId,
+            roundId: roundData?.roundId,
             interviewQuestionAnswer: updatedOutput,
             interviewScore,
             interviewOverview,
             interviewSuggestion,
             brInterviewLevel,
-            brJobApplicantStatus: "CONFIRMED",
-            generatedResume,
-            generatedCoverLetter,
-          },
-          "brJobApplicantId"
-        );
+            roundStatus: "PENDING",
+            brJobRoundId: 0, // required bt not there
+          };
+
+          console.log(payload);
+
+          const res = await evaluateStatus(payload);
+          const updatedStatus = res?.data?.data;
+          console.log(res);
+
+          payload.roundStatus = updatedStatus || payload.roundStatus;
+
+          await insertDataInTable("brJobApplicantRounds", payload);
+        } else {
+          await updateByIdDataInTable(
+            "brJobApplicant",
+            brJobId,
+            {
+              interviewQuestionAnswer: updatedOutput,
+              interviewScore,
+              interviewOverview,
+              interviewSuggestion,
+              brInterviewLevel,
+              brJobApplicantStatus: "CONFIRMED",
+              // generatedResume,
+              // generatedCoverLetter,
+            },
+            "brJobApplicantId"
+          );
+        }
       }
 
       if (brInterviewId) {

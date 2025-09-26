@@ -1,4 +1,6 @@
-import { Box, Typography } from "@mui/material";
+import { faCheckCircle } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { Box, CircularProgress, Typography } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { useHistory, useLocation } from "react-router";
 import MultipleSelectWithAutoComplete from "../../../../components/form/MultiSelectAutocomplete";
@@ -8,20 +10,19 @@ import {
   getRandomQuestions,
   searchDataFromTable,
   searchListGroupDataFromTableWithInclude,
-  updateByIdDataInTable,
 } from "../../../../services/services";
 import color from "../../../../theme/color";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCheckCircle } from "@fortawesome/free-solid-svg-icons";
 
 interface GeneratedAiQnaResponseProps {
   jobId?: string | null;
   duration?: number | null;
+  onPostJob?: (payload: any) => void;
 }
 
 const BeyondResumeAdaptiveEvaluation: React.FC<GeneratedAiQnaResponseProps> = ({
   jobId,
   duration,
+  onPostJob,
 }) => {
   const location = useLocation();
   const isJobPage = location.pathname.startsWith("/beyond-resume-myjobs");
@@ -33,6 +34,7 @@ const BeyondResumeAdaptiveEvaluation: React.FC<GeneratedAiQnaResponseProps> = ({
   const [formattedQuestions, setFormattedQuestions] = useState<any>(null);
   const [hasParseError, setHasParseError] = useState(false);
   const [questionsGenerated, setQuestionsGenerated] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const handleGetJob = async () => {
@@ -63,11 +65,14 @@ const BeyondResumeAdaptiveEvaluation: React.FC<GeneratedAiQnaResponseProps> = ({
   }, [jobId]);
 
   const handleGenerateQuestions = async () => {
+    setLoading(true);
     try {
       const response = await getRandomQuestions({
         category: selectedSkills.join(","),
       });
       const data = response?.data?.data || [];
+
+      
 
       const formatted = {
         categories: [
@@ -85,36 +90,29 @@ const BeyondResumeAdaptiveEvaluation: React.FC<GeneratedAiQnaResponseProps> = ({
       setFormattedQuestions(formatted);
       setQuestionsGenerated(true);
 
+      const formattedString = `<pre>${JSON.stringify(
+        formatted,
+        null,
+        2
+      )}</pre>`;
 
+      const payload = {
+        jobInterviewQuestions: formattedString,
+        interviewDuration: duration,
+        examMode: "Adaptive",
+      };      
+
+      if (onPostJob) {
+        onPostJob({
+          jobId,
+          payload,
+        });
+      }
+      setLoading(false);
     } catch (err: any) {
       console.error("Error generating questions", err);
     }
   };
-
-
-const handleClick = async () => {
-  try {
-    const formattedString = `<pre>${JSON.stringify(formattedQuestions, null, 2)}</pre>`;
-
-    await updateByIdDataInTable(
-      "brJobs",
-      jobId,
-      {
-        brJobStatus: "ACTIVE",
-        jobInterviewQuestions: formattedString,
-        interviewDuration: duration,
-        examMode:'Adaptive'
-      },
-      "brJobId"
-    );
-
-    window.location.href = "/beyond-resume-myjobs";
-  } catch (error: any) {
-    console.error("Error updating job status:", error);
-    openSnackBar(error?.response?.data?.msg || "An error occurred");
-  }
-};
-
 
   return (
     <Box m={4} id="questionSection">
@@ -177,38 +175,37 @@ const handleClick = async () => {
               color="green"
               sx={{
                 fontFamily: "montserrat-regular",
-                fontSize:'14px'
+                fontSize: "14px",
               }}
             >
               Adaptive interview questions have been successfully generated. You
-              can now proceed to post the job.
+              can now proceed further.
             </Typography>
           </Box>
         )}
 
         {!questionsGenerated && selectedSkills.length > 0 && (
           <Box mt={3} display="flex" justifyContent="center">
-            <BeyondResumeButton
-              onClick={handleGenerateQuestions}
-              variant="contained"
-              color="primary"
-            >
-              Generate Questions
-            </BeyondResumeButton>
-          </Box>
-        )}
-      </Box>
-
-      <Box mt={3}>
-        {questionsGenerated && (
-          <Box mt={4} display="flex" justifyContent="center">
-            <BeyondResumeButton
-              onClick={() => handleClick()}
-              variant="contained"
-              color="secondary"
-            >
-              Post the Job
-            </BeyondResumeButton>
+            {!loading ? (
+              <BeyondResumeButton
+                onClick={handleGenerateQuestions}
+                variant="contained"
+                color="primary"
+              >
+                Generate Questions
+              </BeyondResumeButton>
+            ) : (
+              <>
+                <BeyondResumeButton variant="contained">
+                  Analyzing...{" "}
+                  <CircularProgress
+                    color="inherit"
+                    style={{ marginLeft: "4px" }}
+                    size={18}
+                  />
+                </BeyondResumeButton>
+              </>
+            )}
           </Box>
         )}
       </Box>

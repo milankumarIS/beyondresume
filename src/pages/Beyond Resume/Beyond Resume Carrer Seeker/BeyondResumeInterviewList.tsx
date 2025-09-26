@@ -17,7 +17,7 @@ import {
 import React, { useEffect, useState } from "react";
 import { useHistory } from "react-router";
 import PaginationControlled from "../../../components/shared/Pagination";
-import { getFormattedDateKey } from "../../../components/util/CommonFunctions";
+import { getFormattedDateKey, getFormattedDateKey1 } from "../../../components/util/CommonFunctions";
 import {
   BeyondResumeButton,
   BeyondResumeButton2,
@@ -37,6 +37,8 @@ const BeyondResumeInterviewList = () => {
   const [page, setPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [reload, setReload] = useState(false);
+  const history = useHistory();
+  const { theme } = useTheme();
 
   useEffect(() => {
     setLoading(true);
@@ -62,7 +64,6 @@ const BeyondResumeInterviewList = () => {
       },
     }).then((result: any) => {
       setTotalCount(result?.data?.data?.count);
-      // console.log(result?.data?.data?.rows)
       const sortedList = result?.data?.data?.rows?.sort((a: any, b: any) => {
         return (
           new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
@@ -77,17 +78,11 @@ const BeyondResumeInterviewList = () => {
         acc[dateKey].push(item);
         return acc;
       }, {});
-
-      // console.log(grouped);
-
       setInterviewList(grouped);
       setLoading(false);
     });
   }, [isPractice, page, reload]);
 
-  const history = useHistory();
-
-  const { theme } = useTheme();
 
   return (
     <Box
@@ -111,7 +106,7 @@ const BeyondResumeInterviewList = () => {
         sx={{
           // background: color.cardBg,
           p: { xs: 0, md: 4 },
-          mb: 4,
+          mb: 0,
           mt: { xs: 2, md: 0 },
           borderRadius: 4,
         }}
@@ -672,31 +667,7 @@ const CustomToggleButton = styled(ToggleButton)(({ theme }) => ({
   },
 }));
 
-const getFormattedDateKey1 = (dateString: string) => {
-  const date = new Date(dateString);
-  const today = new Date();
-  const yesterday = new Date();
-  yesterday.setDate(today.getDate() - 1);
 
-  const isToday = date.toDateString() === today.toDateString();
-  const isYesterday = date.toDateString() === yesterday.toDateString();
-
-  if (isToday) return "Today";
-  if (isYesterday) return "Yesterday";
-
-  // Format as "28th May"
-  const day = date.getDate();
-  const month = date.toLocaleString("default", { month: "short" }); // "May"
-  const suffix =
-    day % 10 === 1 && day !== 11
-      ? "st"
-      : day % 10 === 2 && day !== 12
-      ? "nd"
-      : day % 10 === 3 && day !== 13
-      ? "rd"
-      : "th";
-  return `${day}${suffix} ${month}`;
-};
 
 const getColor = (score: number) => {
   if (score < 40) return "#e53935"; // Red
