@@ -1245,7 +1245,6 @@ const beyondResumeSchema = z.object({
   payroll: z.string().nonempty("Job Mode is required"),
   compensation: z.string().nonempty("Compensation is required"),
   location: z.string().nonempty("Location is required"),
-
 });
 
 const interviewFormSchema = z.object({
@@ -1262,9 +1261,104 @@ const interviewFormSchema = z.object({
       "Inalid Number"
     ),
   previousCompany: z.string().optional(),
-  yearsExperience:
-  z.coerce.number().min(0, "Years of experience required"),
+  yearsExperience: z.coerce.number().min(0, "Years of experience required"),
   linkedIn: z.string().url("Must be a valid URL").or(z.literal("")),
+});
+
+const companySchema = z.object({
+  industryName: z
+    .string()
+    .min(2, { message: "Industry name must be at least 2 characters long." }),
+  industryCategory: z
+    .string()
+    .min(2, { message: "Industry category is required." }),
+  industryType: z.string().min(2, { message: "Industry type is required." }),
+  industryClassification: z
+    .string()
+    .min(2, { message: "Industry classification is required." }),
+  description: z
+    .string()
+    .min(10, { message: "Description must be at least 10 characters long." }),
+  establishedYear: z.any(),
+  headquartersCity: z
+    .string()
+    .min(2, { message: "City must be at least 2 characters long." }),
+  headquartersState: z
+    .string()
+    .min(2, { message: "State must be at least 2 characters long." }),
+  headquartersCountry: z
+    .string()
+    .min(2, { message: "Country must be at least 2 characters long." }),
+  website: z.string().url({
+    message: "Please enter a valid website URL (e.g., https://example.com).",
+  }),
+  logoUrl: z.string().url({
+    message:
+      "Please provide a valid logo image URL (e.g., https://example.com/logo.png).",
+  }),
+  bannerUrl: z.string().url({
+    message:
+      "Please provide a valid banner image URL (e.g., https://example.com/banner.jpg).",
+  }),
+  primaryContactName: z.string().min(2, {
+    message: "Primary contact name must be at least 2 characters long.",
+  }),
+  primaryContactEmail: z
+    .string()
+    .email({ message: "Please enter a valid email address." }),
+  primaryContactPhone: z
+    .string()
+    .trim()
+    .min(1, "Comapany contact number is required")
+    .refine(
+      (value) =>
+        /^(\+\d{1,2}\s?)?1?\-?\.?\s?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$/.test(
+          value
+        ),
+      "Inalid Number"
+    ),
+  companyContactEmail: z
+    .string()
+    .email({ message: "Please enter a valid email address." }),
+  companyContactPhone: z
+    .string()
+    .trim()
+    .min(1, "Comapany contact number is required")
+    .refine(
+      (value) =>
+        /^(\+\d{1,2}\s?)?1?\-?\.?\s?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$/.test(
+          value
+        ),
+      "Inalid Number"
+    ),
+});
+
+const gallerySchema = z.object({
+  gallery: z.array(
+    z.object({
+      imageUrl: z.string().url(),
+    })
+  ),
+});
+
+const awardSchema = z.object({
+  awards: z.array(
+    z.object({
+      title: z.string().min(2),
+      description: z.string().min(10),
+      imageURL: z.string().url(),
+    })
+  ),
+});
+
+const newsSchema = z.object({
+  news: z.array(
+    z.object({
+      title: z.string().min(2),
+      description: z.string().min(10),
+      imageURL: z.string().url(),
+    })
+  ),
 });
 
 export {
@@ -1275,17 +1369,20 @@ export {
   adminHealthOnBoardSchema,
   appointmentSchema,
   availabilitySchema,
+  awardSchema,
+  beyondResumeSchema,
   cancelFormSchema,
   communitySchema,
+  companySchema,
   complaintSchema,
   contactSchema,
   councilLicenseSchema,
   courseContentSchema,
   courseDescriptionSchema,
   createCourseschema,
+  dailyEducationChapterSchema,
   dailyEducationSchema,
   dailyEducationSubjectSchema,
-  dailyEducationChapterSchema,
   digitalClinicSchema,
   digitalMarketSchema,
   digitalStandSchema,
@@ -1297,8 +1394,10 @@ export {
   fitnessCardSchema,
   forgotPasswordSchema,
   g2iRegisterSchema,
+  gallerySchema,
   healthOnBoardSchema,
   insuranceCardSchema,
+  interviewFormSchema,
   jobAddSchema,
   jobApplySchema,
   jobPostSchema,
@@ -1309,6 +1408,7 @@ export {
   marketSchema,
   NationalIdCardSchema,
   newJobSchema,
+  newsSchema,
   nursingCertificateSchema,
   panCardSchema,
   patientSchema,
@@ -1323,9 +1423,7 @@ export {
   userSchema,
   vehicleCatagorySchema,
   vehiclePermitSchema,
-  vehicleSchema,
-  beyondResumeSchema,
-  interviewFormSchema,
+  vehicleSchema
 };
 
 type loginInput = TypeOf<typeof loginSchema>;
@@ -1398,6 +1496,7 @@ export type {
   adminHealthOnBoardSchemaType,
   AppointmentType,
   AvailabilitySchemaType,
+  BeyondResumeSchemaType,
   CancelFormValues,
   CommunitySchemaType,
   ComplaintRegisterType,
@@ -1406,6 +1505,7 @@ export type {
   courseContentSchemaType,
   courseDescriptionSchemaType,
   createCourseschemaType,
+  dailyEducationChapterSchemaType,
   dailyEducationSchemaType,
   dailyEducationSubjectSchemaType,
   DigitalClinicSchemaType,
@@ -1421,6 +1521,7 @@ export type {
   G2iRegisterSchemaType,
   HealthOnBoardSchemaType,
   InsuranceCardType,
+  InterviewFormSchemaType,
   JobAddSchemaType,
   JobApplySchemaType,
   JobPostSchemaType,
@@ -1444,8 +1545,6 @@ export type {
   testVideoSchemaType,
   UserInput,
   VehicleCatagoryType,
-  VehiclePermitType,
-  dailyEducationChapterSchemaType,
-  BeyondResumeSchemaType,
-  InterviewFormSchemaType,
+  VehiclePermitType
 };
+

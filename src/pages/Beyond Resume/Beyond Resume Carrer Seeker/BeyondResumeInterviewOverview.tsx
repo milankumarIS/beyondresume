@@ -6,8 +6,8 @@ import {
   faUserTie,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Box, Typography } from "@mui/material";
-import { useEffect, useState } from "react";
+import { Box, Button, Typography } from "@mui/material";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router";
 import { jobKeywordIcons } from "../../../components/form/data";
 import {
@@ -24,6 +24,9 @@ import { searchListDataFromTable } from "../../../services/services";
 import color from "../../../theme/color";
 import BeyondResumeInterviewOverviewQA from "../Beyond Resume Components/BeyondResumeInterviewOverviewQA";
 import HtmlToPdfViewer from "../Beyond Resume Components/HtmlToPdfViewer";
+import { getUserRole } from "../../../services/axiosClient";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
 interface QuestionItem {
   categoryName: string;
@@ -69,6 +72,50 @@ const BeyondResumeInterviewOverview = () => {
   const type = queryParams.get("type");
   const [brJobApplicantId, ...rest] = id.split("-");
   const roundId = rest.join("-");
+  const { theme } = useTheme();
+  const profileRef = useRef<HTMLDivElement>(null);
+  const [hideSensitive, setHideSensitive] = useState(false);
+
+  const generatePDF = async () => {
+    setHideSensitive(true);
+
+    await new Promise((resolve) => setTimeout(resolve, 300));
+
+    if (profileRef.current) {
+      const canvas = await html2canvas(profileRef.current, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: theme === "dark" ? color.newbg : "white",
+      });
+
+      const imgData = canvas.toDataURL("image/png");
+
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+
+      const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, "PNG", 0, position, pdfWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight; // shift up
+        pdf.addPage();
+        pdf.addImage(imgData, "PNG", 0, position, pdfWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      const pdfBlob = pdf.output("blob");
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+      window.open(pdfUrl, "_blank");
+    }
+    setHideSensitive(false);
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -183,10 +230,10 @@ const BeyondResumeInterviewOverview = () => {
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference * (1 - progress);
-  const { theme } = useTheme();
 
   return (
     <Box
+      ref={profileRef}
       sx={{
         p: 4,
         px: { xs: 2, md: 4 },
@@ -206,8 +253,8 @@ const BeyondResumeInterviewOverview = () => {
         }}
         variant="h4"
       >
-        Interview Summary{data?.roundId ? ` - ${formatRoundTS(data.roundId)}` : ''}
-
+        Interview Summary
+        {data?.roundId ? ` - ${formatRoundTS(data.roundId)}` : ""}
       </Typography>
 
       <Box
@@ -307,22 +354,25 @@ const BeyondResumeInterviewOverview = () => {
               </Typography>
             </Box>
 
-            <Typography
-              my={2}
-              textAlign={"center"}
-              onClick={() => generateInterviewReportExcel(data)}
-              sx={{
-                color:
-                  theme === "dark" ? color.titleColor : color.titleLightColor,
-                cursor: "pointer",
-              }}
-            >
-              Download Report
-              <FontAwesomeIcon
-                style={{ marginLeft: "4px" }}
-                icon={faDownload}
-              ></FontAwesomeIcon>
-            </Typography>
+            {!hideSensitive && (
+              <Typography
+                my={2}
+                textAlign={"center"}
+                // onClick={() => generateInterviewReportExcel(data)}
+                onClick={() => generatePDF()}
+                sx={{
+                  color:
+                    theme === "dark" ? color.titleColor : color.titleLightColor,
+                  cursor: "pointer",
+                }}
+              >
+                Download Report
+                <FontAwesomeIcon
+                  style={{ marginLeft: "4px" }}
+                  icon={faDownload}
+                ></FontAwesomeIcon>
+              </Typography>
+            )}
           </Box>
         </Box>
 
@@ -336,7 +386,7 @@ const BeyondResumeInterviewOverview = () => {
         >
           {type !== "practice" && (
             <>
-              {type === "candidateResult" ? (
+              {getUserRole() === "TALENT PARTNER" ? (
                 <Box
                   display={"flex"}
                   flexDirection={"column"}
@@ -587,9 +637,10 @@ const BeyondResumeInterviewOverview = () => {
       <BeyondResumeInterviewOverviewQA
         examMode={data?.examMode}
         groupedQuestions={groupedQuestions}
+        hideSensitive={hideSensitive}
       />
 
-      {type === "candidateResult" && (
+      {getUserRole() === "TALENT PARTNER" && !hideSensitive && (
         <Box
           flexDirection={{ xs: "column", md: "row" }}
           sx={{

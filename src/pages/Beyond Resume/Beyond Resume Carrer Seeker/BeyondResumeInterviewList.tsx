@@ -33,7 +33,7 @@ const BeyondResumeInterviewList = () => {
   const [interviewList, setInterviewList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isPractice, setIsPractice] = useState(false);
-  const [isUpcoming, setIsUpcoming] = useState(false);
+  const [isUpcoming, setIsUpcoming] = useState(true);
   const [page, setPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [reload, setReload] = useState(false);
@@ -233,15 +233,15 @@ const BeyondResumeInterviewList = () => {
                         position={"relative"}
                       >
                         <Card
-                          onClick={() =>
-                            history.push(
-                              `/beyond-resume-interview-overview/${
-                                isPractice
-                                  ? interview?.brInterviewId
-                                  : interview?.brJobApplicantId
-                              }?type=${isPractice ? "practice" : "job"}`
-                            )
-                          }
+                          // onClick={() =>
+                          //   history.push(
+                          //     `/beyond-resume-interview-overview/${
+                          //       isPractice
+                          //         ? interview?.brInterviewId
+                          //         : interview?.brJobApplicantId
+                          //     }?type=${isPractice ? "practice" : "job"}`
+                          //   )
+                          // }
                           sx={{
                             borderRadius: 3,
                             textAlign: "center",

@@ -1,5 +1,5 @@
 import { Box, Typography } from "@mui/material";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useHistory, useLocation } from "react-router";
 import { useSnackbar } from "../../../../components/shared/SnackbarProvider";
 import { BeyondResumeButton } from "../../../../components/util/CommonStyle";
@@ -25,20 +25,29 @@ const GeneratedAiQnaResponse: React.FC<GeneratedAiQnaResponseProps> = ({
     location.pathname.startsWith("/beyond-resume-myjobs") ||
     location.pathname.startsWith("/beyond-resume-jobdetails");
 
-  const processedResponse = response
-    .replace(/\*\*(.*?)\*\*/g, "")
-    .replace(/^```html\s*|\s*```$/g, "")
-    .replace(/^```json\s*|\s*```$/g, "")
-    .replace(/^\n```json\s*|\s*```$/g, "")
-    .replace(/^\n```json\n\s*|\s*```$/g, "")
-    .trim()
-    .replace(/(?<!\*)\*(?!\*)/g, "<br/>");
+  const processResponse = (resp: string) =>
+    resp
+      ?.replace(/\*\*(.*?)\*\*/g, "")
+      ?.replace(/^```html\s*|\s*```$/g, "")
+      ?.replace(/^```json\s*|\s*```$/g, "")
+      ?.replace(/^\n```json\s*|\s*```$/g, "")
+      ?.replace(/^\n```json\n\s*|\s*```$/g, "")
+      ?.trim()
+      ?.replace(/(?<!\*)\*(?!\*)/g, "<br/>");
+
+  const [editorContent, setEditorContent] = useState(processResponse(response));
+  const [displayContent, setDisplayContent] = useState(processResponse(response));
+
+  // 🔑 Keep state in sync with new response
+  useEffect(() => {
+    const processed = processResponse(response);
+    setEditorContent(processed);
+    setDisplayContent(processed);
+  }, [response]);
 
   // console.log(processedResponse)
 
-  const [editorContent, setEditorContent] = useState(processedResponse);
 
-  const [displayContent, setDisplayContent] = useState(processedResponse);
   const openSnackBar = useSnackbar();
   const history = useHistory();
   // console.log(displayContent);

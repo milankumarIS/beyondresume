@@ -9,7 +9,7 @@ import {
   faEdit,
   faShareNodes,
   faUserTie,
-  faXmarkCircle
+  faXmarkCircle,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -18,7 +18,7 @@ import {
   AccordionSummary,
   Box,
   Button,
-  Typography
+  Typography,
 } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 import { useHistory, useLocation, useParams } from "react-router-dom";
@@ -30,13 +30,13 @@ import GradientText, {
   BeyondResumeButton2,
   commonPillStyle,
   GradientFontAwesomeIcon,
-  StyledTypography
+  StyledTypography,
 } from "../../components/util/CommonStyle";
 import ConfirmationPopup from "../../components/util/ConfirmationPopup";
 import CustomSnackbar from "../../components/util/CustomSnackbar";
 import { useIndustry } from "../../components/util/IndustryContext";
 import { useTheme } from "../../components/util/ThemeContext";
-import { getUserRole } from "../../services/axiosClient";
+import { getUserId, getUserRole } from "../../services/axiosClient";
 import {
   searchDataFromTable,
   searchListDataFromTable,
@@ -97,8 +97,31 @@ const BeyondResumeJobDetails = ({
   const { snackbarProps, showSnackbar } = useNewSnackbar();
   const [popupOpen, setPopupOpen1] = useState(false);
   const { industryName, setIndustryName, setSpaceIndustryName } = useIndustry();
+  const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
+    const fetchApplied = async () => {
+      try {
+        setLoading(true);
+        const appliedResult: any = await searchDataFromTable("brJobApplicant", {
+          createdBy: getUserId(),
+          brJobId,
+        });
+
+        const appliedData = appliedResult?.data?.data;
+
+        if (source === "from-externalLink" && appliedData) {
+          setMessage("You have already applied for this job.");
+          setLoading(false);
+          return true;
+        }
+        return false;
+      } catch (error) {
+        console.error("Error fetching job applicant:", error);
+        return false;
+      }
+    };
+
     const fetchJob = async () => {
       if (!initialJob && brJobId) {
         try {
@@ -119,7 +142,15 @@ const BeyondResumeJobDetails = ({
       }
     };
 
-    fetchJob();
+    const init = async () => {
+      if (!brJobId) return;
+      const alreadyApplied = await fetchApplied();
+      if (!alreadyApplied) {
+        await fetchJob();
+      }
+    };
+
+    init();
   }, [initialJob, location.search, setSelectedJobIdC, brJobId]);
 
   useEffect(() => {
@@ -249,6 +280,38 @@ const BeyondResumeJobDetails = ({
         </div>
         <Typography variant="h6" sx={{ mb: 2 }}>
           Loading
+        </Typography>
+      </Box>
+    );
+  }
+
+  if (message) {
+    return (
+      <Box
+        sx={{
+          minHeight: "100vh",
+          width: "100%",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          flexDirection: "column",
+          textAlign: "center",
+          px: 2,
+        }}
+      >
+        <Typography variant="h6" sx={{ mb: 1 }}>
+          You've already applied for the job.
+        </Typography>
+        <Typography variant="body2">
+          Please check your applications{" "}
+          <span
+            style={{ cursor: "pointer", color: color.activeColor }}
+            onClick={() => {
+              history.push(`/beyond-resume-interview-list`);
+            }}
+          >
+            here.
+          </span>{" "}
         </Typography>
       </Box>
     );
@@ -838,7 +901,8 @@ const BeyondResumeJobDetails = ({
                                 )}
                                 {round?.minPassCount != null && (
                                   <div className="capsule">
-                                    Min Passing Candidate Count: {round.minPassCount}
+                                    Min Passing Candidate Count:{" "}
+                                    {round.minPassCount}
                                   </div>
                                 )}
                               </>

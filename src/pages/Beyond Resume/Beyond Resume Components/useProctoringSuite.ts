@@ -23,7 +23,6 @@ export const useProctoringSuite = (
   const faceDetectorRef = useRef<faceDetection.FaceDetector | null>(null);
   const [proctoringReady, setProctoringReady] = useState(false);
 
-  // Load models once
   useEffect(() => {
     const loadModels = async () => {
       await tf.setBackend("webgl");
@@ -55,7 +54,7 @@ export const useProctoringSuite = (
       const canvas = canvasRef.current;
       if (!video || !canvas) return;
 
-      if (time - lastDetection > 200) {
+      if (time - lastDetection > 800) {
         lastDetection = time;
         const ctx = canvas.getContext("2d");
         if (!ctx) return;
@@ -66,7 +65,7 @@ export const useProctoringSuite = (
 
         // Downscale input for performance (internal detection only)
         const tempCanvas = document.createElement("canvas");
-        const scale = 0.4; // ~40% of original
+        const scale = 0.20; // ~40% of original
         tempCanvas.width = video.videoWidth * scale;
         tempCanvas.height = video.videoHeight * scale;
         const tmpCtx = tempCanvas.getContext("2d");

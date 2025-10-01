@@ -6,6 +6,7 @@ import {
   AccordionSummary,
   Box,
   Grid,
+  Paper,
   Tab,
   Tabs,
   Typography,
@@ -20,12 +21,11 @@ import {
   Pie,
   PieChart,
   ResponsiveContainer,
-  Tooltip,
   XAxis,
-  YAxis,
+  YAxis
 } from "recharts";
-import color from "../../../theme/color";
 import { useTheme } from "../../../components/util/ThemeContext";
+import color from "../../../theme/color";
 // import { CustomTooltip } from "../../Daily Education/Components/StudentGraphCanvas";
 
 type MCQOption = {
@@ -50,11 +50,13 @@ type GroupedQuestions = {
 type Props = {
   groupedQuestions: GroupedQuestions;
   examMode?: string;
+  hideSensitive?: boolean;
 };
 
 export default function BeyondResumeInterviewOverviewQA({
   groupedQuestions,
   examMode,
+  hideSensitive,
 }: Props) {
   const [selectedCategory, setSelectedCategory] = useState(
     Object.keys(groupedQuestions)[0]
@@ -73,8 +75,8 @@ export default function BeyondResumeInterviewOverviewQA({
     setSelectedCategory(newValue);
   };
 
-  const renderScoreSummary = () => {
-    const questions = groupedQuestions[selectedCategory] || [];
+  const renderScoreSummary = (category: string) => {
+    const questions = groupedQuestions[category] || [];
     const totalQuestions = questions.length;
     const correct = questions.filter((q) => q.isCorrect).length;
     const wrong = questions.filter((q) => q.userAnswer && !q.isCorrect).length;
@@ -94,35 +96,40 @@ export default function BeyondResumeInterviewOverviewQA({
         alignItems={"center"}
         justifyContent={"center"}
       >
-        <ResponsiveContainer width="100%" height={250}>
-          <PieChart>
-            <Pie
-              data={pieData}
-              cx="50%"
-              cy="50%"
-              label={({ name, percent }) =>
-                `${name}: ${(percent * 100).toFixed(0)}%`
-              }
-              outerRadius={80}
-              dataKey="value"
-            >
-              {pieData.map((entry, index) => (
-                <Cell
-                  style={{ fontFamily: "custom-regular" }}
-                  key={`cell-${index}`}
-                  fill={entry.color}
-                />
-              ))}
-            </Pie>
-          </PieChart>
-        </ResponsiveContainer>
+        {!hideSensitive && (
+          <div style={{ width: "100%", height: "250px" }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={pieData}
+                  cx="50%"
+                  cy="50%"
+                  label={({ name, percent }) =>
+                    `${name}: ${(percent * 100).toFixed(0)}%`
+                  }
+                  outerRadius={80}
+                  dataKey="value"
+                >
+                  {pieData.map((entry, index) => (
+                    <Cell
+                      style={{ fontFamily: "custom-regular" }}
+                      key={`cell-${index}`}
+                      fill={entry.color}
+                    />
+                  ))}
+                </Pie>
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        )}
 
         <Box
           mt={2}
           color="white"
           minWidth={"300px"}
           display={"flex"}
-          flexDirection={"column"}
+          flexDirection={!hideSensitive ? "column" : "row"}
+          flexWrap={!hideSensitive ? "nowrap" : "wrap"}
           gap={1}
         >
           <Typography
@@ -271,37 +278,83 @@ export default function BeyondResumeInterviewOverviewQA({
             </BarChart>
           </ResponsiveContainer>
 
-          <Tabs
-            value={selectedCategory}
-            onChange={handleTabChange}
-            variant="scrollable"
-            allowScrollButtonsMobile
-            sx={{
-              maxWidth: "80vw",
-              mt: 4,
-              mb: 2,
-              "& .MuiTab-root": {
-                color: "white",
-                background: "#2d3436",
-                borderRadius: "40px",
-                marginRight: "8px",
-                paddingX: "16px",
-                textTransform: "none",
-                border: "1px solid #ffffff44",
-              },
-              "& .Mui-selected": {
-                background: color.activeButtonBg,
-                color: "white !important",
-              },
-              "& .MuiTabs-indicator": {
-                backgroundColor: "transparent",
-              },
-            }}
-          >
-            {Object.keys(groupedQuestions).map((category) => (
-              <Tab key={category} value={category} label={category} />
-            ))}
-          </Tabs>
+          {!hideSensitive ? (
+            <Tabs
+              value={selectedCategory}
+              onChange={handleTabChange}
+              variant="scrollable"
+              allowScrollButtonsMobile
+              sx={{
+                maxWidth: "80vw",
+                mt: 4,
+                mb: 2,
+                "& .MuiTab-root": {
+                  color: "white",
+                  background: "#2d3436",
+                  borderRadius: "40px",
+                  marginRight: "8px",
+                  paddingX: "16px",
+                  textTransform: "none",
+                  border: "1px solid #ffffff44",
+                },
+                "& .Mui-selected": {
+                  background: color.activeButtonBg,
+                  color: "white !important",
+                },
+                "& .MuiTabs-indicator": {
+                  backgroundColor: "transparent",
+                },
+              }}
+            >
+              {Object.keys(groupedQuestions).map((category) => (
+                <Tab key={category} value={category} label={category} />
+              ))}
+            </Tabs>
+          ) : (
+            <Grid container spacing={2} mt={4}>
+              {Object.entries(groupedQuestions).map(([category, questions]) => (
+                <Grid item xs={12} sm={12} key={category}>
+                  <Paper
+                    sx={{
+                      // background: "#2d3436",
+                      borderRadius: "12px",
+                      p: 2,
+                      // color: "white",
+                      border: "solid 1px",
+                    }}
+                    elevation={3}
+                  >
+                    <Typography variant="h6" sx={{ mb: 1 }}>
+                      {category}
+                    </Typography>
+
+                    {questions.map((q, idx) => (
+                      <Box key={idx} sx={{ mb: 1.5 }}>
+                        <Typography variant="subtitle2">
+                          Q{idx + 1}: {q.question}
+                          <br />
+                          <span
+                            style={{
+                              color: q.isCorrect
+                                ? "green"
+                                : !q.userAnswer
+                                ? "yellow"
+                                : "red",
+                            }}
+                          >
+                            Ans:{" "}
+                            {q.userAnswer ? `${q.userAnswer}` : "No Ans Given"}
+                          </span>
+                        </Typography>
+                      </Box>
+                    ))}
+
+                    {renderScoreSummary(category)}
+                  </Paper>
+                </Grid>
+              ))}
+            </Grid>
+          )}
         </>
       ) : (
         <Typography textAlign={"center"} variant="h6" mb={4}>
@@ -319,143 +372,146 @@ export default function BeyondResumeInterviewOverviewQA({
           / {(groupedQuestions[selectedCategory]?.length || 0) * 10}
         </Typography> */}
 
-        {renderScoreSummary()}
+        {!hideSensitive && renderScoreSummary(selectedCategory)}
 
-        {groupedQuestions[selectedCategory]?.map((item, index) => {
-          let borderColor = "yellow";
-          let textColor = "black";
-          let statusText = "Ans Not Given";
+        {!hideSensitive &&
+          groupedQuestions[selectedCategory]?.map((item, index) => {
+            let borderColor = "yellow";
+            let textColor = "black";
+            let statusText = "Ans Not Given";
 
-          if (item.userAnswer) {
-            if (item.isCorrect) {
-              borderColor = "#00C853";
-              statusText = "Right Ans";
-              textColor = "#ffffff";
-            } else {
-              borderColor = "#D32F2F";
-              statusText = "Wrong Ans";
-              textColor = "#ffffff";
+            if (item.userAnswer) {
+              if (item.isCorrect) {
+                borderColor = "#00C853";
+                statusText = "Right Ans";
+                textColor = "#ffffff";
+              } else {
+                borderColor = "#D32F2F";
+                statusText = "Wrong Ans";
+                textColor = "#ffffff";
+              }
             }
-          }
 
-          return (
-            <Accordion
-              key={index}
-              style={{
-                marginTop: "12px",
-                boxShadow: "none",
-                background: color.cardBg,
-                // border: `2px solid ${borderColor}`,
-                borderRadius: "12px",
-                padding: "12px",
-                position: "relative",
-                overflow: "hidden",
-                color: "inherit",
-              }}
-              sx={{
-                "&.MuiAccordion-root::before": {
-                  content: '""',
-                  height: "0px",
-                },
-              }}
-            >
-              <AccordionSummary
+            return (
+              <Accordion
+                key={index}
+                style={{
+                  marginTop: "12px",
+                  boxShadow: "none",
+                  background: color.cardBg,
+                  // border: `2px solid ${borderColor}`,
+                  borderRadius: "12px",
+                  padding: "12px",
+                  position: "relative",
+                  overflow: "hidden",
+                  color: "inherit",
+                }}
                 sx={{
-                  "& .MuiAccordionSummary-content": {
-                    margin: 0,
-                  },
-                  "& .MuiAccordionSummary-content.Mui-expanded": {
-                    margin: 0,
-                  },
-                  "& .MuiAccordionSummary-root": {
-                    minHeight: 0,
+                  "&.MuiAccordion-root::before": {
+                    content: '""',
+                    height: "0px",
                   },
                 }}
-                expandIcon={
-                  <FontAwesomeIcon
-                    style={{
-                      color: "inherit",
-                    }}
-                    icon={faChevronDown}
-                  />
-                }
               >
-                <Typography
+                <AccordionSummary
                   sx={{
-                    position: "absolute",
-                    top: -14,
-                    right: -14,
-                    py: 0.4,
-                    fontSize: "10px",
-                    background: borderColor,
-                    px: 1,
-                    borderRadius: "0px 0px 4px 4px",
-                    color: textColor,
+                    "& .MuiAccordionSummary-content": {
+                      margin: 0,
+                    },
+                    "& .MuiAccordionSummary-content.Mui-expanded": {
+                      margin: 0,
+                    },
+                    "& .MuiAccordionSummary-root": {
+                      minHeight: 0,
+                    },
                   }}
+                  expandIcon={
+                    <FontAwesomeIcon
+                      style={{
+                        color: "inherit",
+                      }}
+                      icon={faChevronDown}
+                    />
+                  }
                 >
-                  {statusText}
-                </Typography>
-                <Typography fontWeight={600} maxWidth={"95%"}>
-                  {index + 1}. {item.question}
-                </Typography>
-              </AccordionSummary>
-              <AccordionDetails>
-                {item.options && (
-                  <Box>
-                    <Typography variant="subtitle2">Options:</Typography>
-                    <ul style={{ paddingLeft: 16, margin: "4px" }}>
-                      {item.options.map((opt, idx) => {
-                        const [key, value] = Object.entries(opt)[0];
-                        const isCorrect = key === `Option ${item.AnswerKey}`;
-                        const isUserAnswer =
-                          key === `Option ${item.userAnswer}`;
+                  <Typography
+                    sx={{
+                      position: "absolute",
+                      top: -14,
+                      right: -14,
+                      py: 0.4,
+                      fontSize: "10px",
+                      background: borderColor,
+                      px: 1,
+                      borderRadius: "0px 0px 4px 4px",
+                      color: textColor,
+                    }}
+                  >
+                    {statusText}
+                  </Typography>
+                  <Typography fontWeight={600} maxWidth={"95%"}>
+                    {index + 1}. {item.question}
+                  </Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                  {item.options && (
+                    <Box>
+                      <Typography variant="subtitle2">Options:</Typography>
+                      <ul style={{ paddingLeft: 16, margin: "4px" }}>
+                        {item.options.map((opt, idx) => {
+                          const [key, value] = Object.entries(opt)[0];
+                          const isCorrect = key === `Option ${item.AnswerKey}`;
+                          const isUserAnswer =
+                            key === `Option ${item.userAnswer}`;
 
-                        return (
-                          <li
-                            key={idx}
-                            style={{
-                              backgroundColor: isCorrect
-                                ? "#00C853"
-                                : isUserAnswer
-                                ? "#FF6F00"
-                                : "transparent",
-                              padding: "4px 8px",
-                              borderRadius: "6px",
-                              color:
-                                isCorrect || isUserAnswer ? "white" : "inherit",
-                              fontWeight: isCorrect ? "bold" : "normal",
-                              width: "fit-content",
-                            }}
-                          >
-                            <strong>{key}:</strong> {value}
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </Box>
-                )}
-                <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6}>
-                    <Typography variant="subtitle2" mb={0.5}>
-                      Suggested Answer:
-                    </Typography>
-                    <Typography variant="body2">
-                      {item.suggestedAnswer}
-                    </Typography>
+                          return (
+                            <li
+                              key={idx}
+                              style={{
+                                backgroundColor: isCorrect
+                                  ? "#00C853"
+                                  : isUserAnswer
+                                  ? "#FF6F00"
+                                  : "transparent",
+                                padding: "4px 8px",
+                                borderRadius: "6px",
+                                color:
+                                  isCorrect || isUserAnswer
+                                    ? "white"
+                                    : "inherit",
+                                fontWeight: isCorrect ? "bold" : "normal",
+                                width: "fit-content",
+                              }}
+                            >
+                              <strong>{key}:</strong> {value}
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </Box>
+                  )}
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={6}>
+                      <Typography variant="subtitle2" mb={0.5}>
+                        Suggested Answer:
+                      </Typography>
+                      <Typography variant="body2">
+                        {item.suggestedAnswer}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <Typography variant="subtitle2" mb={0.5}>
+                        Your Answer:
+                      </Typography>
+                      <Typography variant="body2">
+                        {item.userAnswer || "No Answer Given"}
+                      </Typography>
+                    </Grid>
                   </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <Typography variant="subtitle2" mb={0.5}>
-                      Your Answer:
-                    </Typography>
-                    <Typography variant="body2">
-                      {item.userAnswer || "No Answer Given"}
-                    </Typography>
-                  </Grid>
-                </Grid>
-              </AccordionDetails>
-            </Accordion>
-          );
-        })}
+                </AccordionDetails>
+              </Accordion>
+            );
+          })}
       </Box>
     </Box>
   );

@@ -29,37 +29,45 @@ const PendingAssessmentApplicants: React.FC<AssessedApplicantsProps> = ({
   const [loading, setLoading] = useState<boolean>(false);
   const history = useHistory();
 
-  useEffect(() => {
-    if (!brJobId) return;
+useEffect(() => {
+  if (!brJobId) return;
 
-    setLoading(true);
-    searchListDataFromTable("brJobApplicant", {
-      brJobApplicantStatus: "APPLIED",
-      brJobId,
-    }).then((result: any) => {
-      const rows = result?.data?.data || [];
+  setLoading(true);
+  searchListDataFromTable("brJobApplicant", {
+    brJobApplicantStatus: "APPLIED",
+    brJobId,
+  }).then((result: any) => {
+    const rows = result?.data?.data || [];
 
-      const levelOrder = ["complex", "advance", "intermediate", "beginner"];
-      const groupedByLevel: Record<string, any[]> = {};
-      levelOrder.forEach((level) => (groupedByLevel[level] = []));
-      rows.forEach((item: any) => {
-        const level = item.brInterviewLevel || "beginner";
-        groupedByLevel[level]?.push(item);
-      });
-      for (const level in groupedByLevel) {
-        groupedByLevel[level].sort((a: any, b: any) => b.score - a.score);
-      }
+    const levelOrder = ["complex", "advance", "intermediate", "beginner"];
+    const groupedByLevel: Record<string, any[]> = {};
+    levelOrder.forEach((level) => (groupedByLevel[level] = []));
 
-      setInterviews([
-        ...groupedByLevel.complex,
-        ...groupedByLevel.advance,
-        ...groupedByLevel.intermediate,
-        ...groupedByLevel.beginner,
-      ]);
-
-      setLoading(false);
+    rows.forEach((item: any) => {
+      const level = item.brInterviewLevel || "beginner";
+      groupedByLevel[level]?.push(item);
     });
-  }, [brJobId]);
+
+    for (const level in groupedByLevel) {
+      groupedByLevel[level].sort((a: any, b: any) => b.score - a.score);
+    }
+
+    const merged = [
+      ...groupedByLevel.complex,
+      ...groupedByLevel.advance,
+      ...groupedByLevel.intermediate,
+      ...groupedByLevel.beginner,
+    ];
+
+    merged.sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+
+    setInterviews(merged);
+    setLoading(false);
+  });
+}, [brJobId]);
+
 
   if (loading)
     return (
@@ -95,7 +103,6 @@ const PendingAssessmentApplicants: React.FC<AssessedApplicantsProps> = ({
                   boxShadow:'none',
                 }}
               >
-                {/* Header */}
                 <Box
                   sx={{
                     display: "flex",

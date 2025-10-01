@@ -863,6 +863,40 @@ const jobKeywordIcons = [
   },
 ];
 
+const industryType = ["Product Based", "Service Based"];
+const industryClassificationProduct = [
+  "Innovation Labs / MNCs",
+  "Product Startups",
+];
+const industryClassificationService = [
+  "Global Service MNCs / GCCs",
+  "Service Startups",
+  "Mid-sized Service Companies",
+];
+
+const industryCategories = [
+  "Software Development",
+  "Artificial Intelligence & Machine Learning",
+  "Cloud Computing",
+  "Cybersecurity",
+  "Data Analytics & Big Data",
+  "Blockchain & Cryptocurrency",
+  "Mobile App Development",
+  "Web Development",
+  "Enterprise Software",
+  "SaaS (Software as a Service)",
+  "DevOps & IT Infrastructure",
+  "Networking & Telecommunications",
+  "AR/VR & Gaming Technology",
+  "IoT (Internet of Things)",
+  "Robotics & Automation",
+  "E-commerce Technology",
+  "FinTech Technology",
+  "EdTech Technology",
+  "HealthTech Technology",
+  "Digital Marketing Technology",
+];
+
 export {
   addressType,
   STATUS_CONFIG,
@@ -917,5 +951,9 @@ export {
   workTypeArray,
   JobSeekerScriptLines,
   TalentPartnerScriptLines,
-  jobKeywordIcons
+  jobKeywordIcons,
+  industryClassificationService,
+  industryClassificationProduct,
+  industryType,
+  industryCategories,
 };

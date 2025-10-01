@@ -263,7 +263,6 @@ const BeyondResumeJobInterviewForm = () => {
       <Container
         sx={{ minHeight: "100vh", background: "transparent", color: "inherit" }}
       >
-        {/* <BlobAnimation /> */}
 
         <Form
           onSubmit={handleSubmit(onSubmitHandler)}
@@ -319,14 +318,6 @@ const BeyondResumeJobInterviewForm = () => {
             watch={watch}
             required
           />
-          {/* <FormTextField
-            label="Previous Employer / Company Name"
-            valueProp="previousCompany"
-            errors={errors}
-            register={register}
-            withValidationClass={false}
-            sx={commonFormTextFieldSx}
-          /> */}
 
           <FormTextField
             label="How many years of experience do you bring?"
@@ -338,14 +329,6 @@ const BeyondResumeJobInterviewForm = () => {
             sx={commonFormTextFieldSx}
           />
 
-          {/* <FormTextField
-            label="LinkedIn Profile"
-            valueProp="linkedIn"
-            errors={errors}
-            register={register}
-            withValidationClass={false}
-            sx={commonFormTextFieldSx}
-          /> */}
 
           <FileUpload
             sx={{ px: 0, mx: 2 }}
@@ -385,23 +368,12 @@ const BeyondResumeJobInterviewForm = () => {
             ) : (
               <>
                 Submit Application{" "}
-                {/* <FontAwesomeIcon
-                  style={{ marginLeft: "6px" }}
-                  icon={faArrowCircleRight}
-                /> */}
+     
               </>
             )}
           </BeyondResumeButton>
         </Form>
 
-        {/* <Typography
-          textAlign={"center"}
-          fontSize={'12px'}
-          // sx={{ fontFamily: "montserrat-regular" }}
-        >
-          * Your information is safe with us. We’ll only use it to connect you
-          with the right opportunities.
-        </Typography> */}
       </Container>
 
       <InterviewModeModal

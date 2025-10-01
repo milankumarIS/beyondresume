@@ -1,6 +1,6 @@
 import { faSearch } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Box, Card, Grid, TextField, Typography } from "@mui/material";
+import { Box, Grid, TextField, Typography } from "@mui/material";
 import { AnimatePresence, motion } from "framer-motion";
 import React, { useEffect, useRef, useState } from "react";
 import { useHistory } from "react-router";
@@ -14,6 +14,7 @@ import {
 } from "../../components/form/data";
 import PaginationControlled from "../../components/shared/Pagination";
 import { useSnackbar } from "../../components/shared/SnackbarProvider";
+import { useNewSnackbar } from "../../components/shared/useSnackbar";
 import { commonFormTextFieldSx } from "../../components/util/CommonFunctions";
 import GradientText, {
   BeyondResumeButton,
@@ -21,6 +22,8 @@ import GradientText, {
   slideLeftVariants,
 } from "../../components/util/CommonStyle";
 import ConfirmationPopup from "../../components/util/ConfirmationPopup";
+import CustomSnackbar from "../../components/util/CustomSnackbar";
+import { useIndustry } from "../../components/util/IndustryContext";
 import { useTheme } from "../../components/util/ThemeContext";
 import { useUserData } from "../../components/util/UserDataContext";
 import { getUserId, getUserRole } from "../../services/axiosClient";
@@ -37,13 +40,11 @@ import AssessedApplicants from "./Beyond Resume Components/AssessedApplicants";
 import BeyondResumeAvatar from "./Beyond Resume Components/BeyondResumeAvatar";
 import BeyondResumeJobFilterComponent from "./Beyond Resume Components/BeyondResumeJobFilterComponent";
 import JobCard from "./Beyond Resume Components/JobCard";
-import { fetchMatchingUsers } from "./Beyond Resume Components/MatchingUsersList";
-import BeyondResumeJobDetails from "./BeyondResumeJobDetails";
 import MatchingUserCard from "./Beyond Resume Components/MatchingUserCard";
-import { useNewSnackbar } from "../../components/shared/useSnackbar";
-import CustomSnackbar from "../../components/util/CustomSnackbar";
+import { fetchMatchingUsers } from "./Beyond Resume Components/MatchingUsersList";
+import MultiRoundApplicantsTabs from "./Beyond Resume Components/MultiRoundApplicantsTabs";
 import PendingAssessmentApplicants from "./Beyond Resume Components/PendingAssessmentApplicants";
-import { useIndustry } from "../../components/util/IndustryContext";
+import BeyondResumeJobDetails from "./BeyondResumeJobDetails";
 
 type Job = {
   companyName: any;
@@ -828,91 +829,99 @@ const BeyondResumeJobs = () => {
                   {isJobPage &&
                   (title === "Posted Jobs" || title === "Completed Jobs") ? (
                     <Box>
-                      <Box
-                        display="flex"
-                        alignItems="center"
-                        width="100%"
-                        justifyContent="center"
-                        gap={2}
-                        mb={2}
-                        p={2}
-                      >
-                        {tabs.map(({ key, label, color, count }) => {
-                          const isActive = activeTab === key;
-                          return (
-                            <div
-                              key={key}
-                              onClick={() => setActiveTab(key)}
-                              style={{
+                      {selectedJob.roundType === "multiple" ? (
+                        <MultiRoundApplicantsTabs jobId={selectedJob.brJobId} />
+                      ) : (
+                        <>
+                          <Box
+                            display="flex"
+                            alignItems="center"
+                            width="100%"
+                            justifyContent="center"
+                            gap={2}
+                            mb={2}
+                            p={2}
+                          >
+                            {tabs.map(({ key, label, color, count }) => {
+                              const isActive = activeTab === key;
+                              return (
+                                <div
+                                  key={key}
+                                  onClick={() => setActiveTab(key)}
+                                  style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    background: isActive ? color : "grey",
+                                    borderRadius: "6px",
+                                    padding: "6px 10px",
+                                    color: "#fff",
+                                    fontWeight: "bold",
+                                    fontSize: "14px",
+                                    cursor: "pointer",
+                                  }}
+                                >
+                                  <span
+                                    style={{
+                                      background: "rgba(255, 255, 255, 0.2)",
+                                      padding: "4px 8px",
+                                      borderRadius: "4px",
+                                      marginRight: "6px",
+                                    }}
+                                  >
+                                    {count(
+                                      matchingUsers,
+                                      selectedJob,
+                                      statusCountsMap
+                                    )}
+                                  </span>
+                                  {label}
+                                </div>
+                              );
+                            })}
+                          </Box>
+
+                          {activeTab === "SUGGESTED" ? (
+                            <Box
+                              sx={{
                                 display: "flex",
                                 alignItems: "center",
-                                background: isActive ? color : "grey",
-                                borderRadius: "6px",
-                                padding: "6px 10px",
-                                color: "#fff",
-                                fontWeight: "bold",
-                                fontSize: "14px",
-                                cursor: "pointer",
+                                gap: 2,
+                                flexWrap: "wrap",
+                                justifyContent: "center",
                               }}
                             >
-                              <span
-                                style={{
-                                  background: "rgba(255, 255, 255, 0.2)",
-                                  padding: "4px 8px",
-                                  borderRadius: "4px",
-                                  marginRight: "6px",
-                                }}
-                              >
-                                {count(
-                                  matchingUsers,
-                                  selectedJob,
-                                  statusCountsMap
-                                )}
-                              </span>
-                              {label}
-                            </div>
-                          );
-                        })}
-                      </Box>
-
-                      {activeTab === "SUGGESTED" ? (
-                        <Box
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 2,
-                            flexWrap: "wrap",
-                            justifyContent: "center",
-                          }}
-                        >
-                          {matchingUsers.filter(
-                            (m) => m.jobId === selectedJob.brJobId
-                          ).length > 0 ? (
-                            matchingUsers
-                              .filter((m) => m.jobId === selectedJob.brJobId)
-                              .map((applicant, idx) => (
-                                <MatchingUserCard
-                                  key={idx}
-                                  user={applicant}
-                                  color={color}
-                                />
-                              ))
+                              {matchingUsers.filter(
+                                (m) => m.jobId === selectedJob.brJobId
+                              ).length > 0 ? (
+                                matchingUsers
+                                  .filter(
+                                    (m) => m.jobId === selectedJob.brJobId
+                                  )
+                                  .map((applicant, idx) => (
+                                    <MatchingUserCard
+                                      key={idx}
+                                      user={applicant}
+                                      color={color}
+                                    />
+                                  ))
+                              ) : (
+                                <Typography width={"100%"} textAlign={"center"}>
+                                  No suggested candidates found.
+                                </Typography>
+                              )}
+                            </Box>
+                          ) : activeTab === "PENDING ASSESSMENT" ? (
+                            <PendingAssessmentApplicants
+                              brJobId={selectedJob.brJobId}
+                              color={color}
+                            />
                           ) : (
-                            <Typography width={"100%"} textAlign={"center"}>
-                              No suggested candidates found.
-                            </Typography>
+                            <AssessedApplicants
+                              brJobId={selectedJob.brJobId}
+                              color={color}
+                            />
                           )}
-                        </Box>
-                      ) : activeTab === "PENDING ASSESSMENT" ? (
-                        <PendingAssessmentApplicants
-                          brJobId={selectedJob.brJobId}
-                          color={color}
-                        />
-                      ) : (
-                        <AssessedApplicants
-                          brJobId={selectedJob.brJobId}
-                          color={color}
-                        />
+                        </>
                       )}
                     </Box>
                   ) : (

@@ -11,11 +11,9 @@ import {
 } from "../../../../services/services";
 import BeyondResumeAvatar from "../../Beyond Resume Components/BeyondResumeAvatar";
 import JobPostStepper from "../../Beyond Resume Components/JobPostStepper";
-import GeneratedAiQnaResponse from "./GeneratedAiQnaResponse";
+import BeyondResumeInterviewRounds from "./BeyondResumeInterviewRounds";
 import JobDescriptionTab from "./Tabs/JobDescriptionTab";
 import PostJobForm from "./Tabs/PostJobFormTab";
-import SmartEvaluationTab from "./Tabs/SmartEvaluationTab";
-import BeyondResumeInterviewRounds from "./BeyondResumeInterviewRounds";
 
 const BeyondResumeJobPost: React.FC = () => {
   const [open, setOpen] = useState(false);
@@ -179,14 +177,7 @@ const BeyondResumeJobPost: React.FC = () => {
             />
           )}
           {activeTab === 2 && jobId && jdResponse && (
-            // <SmartEvaluationTab
-            //   jobId={jobId}
-            //   response={jdResponse}
-            //   onNext={(qn) => {
-            //     setQnResponse(qn);
-            //     goToStep(3);
-            //   }}
-            // />
+
 
             <BeyondResumeInterviewRounds
               jobId={jobId}
