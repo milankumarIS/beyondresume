@@ -37,6 +37,7 @@ import {
   GradientFontAwesomeIcon,
 } from "../../../components/util/CommonStyle";
 // import { useTheme } from "../../../components/util/ThemeContext";
+import { useTheme } from "../../../components/util/ThemeContext";
 import { getUserId, getUserRole } from "../../../services/axiosClient";
 import {
   paginateDataFromTable,
@@ -44,7 +45,6 @@ import {
 } from "../../../services/services";
 import color from "../../../theme/color";
 import InterviewModeModal from "../Beyond Resume Components/BeyondResumeInterviewModeModal";
-import { useTheme } from "../../../components/util/ThemeContext";
 
 const BeyondResumeApplications = () => {
   const [interviewList, setInterviewList] = useState<any[]>([]);
@@ -280,8 +280,18 @@ const BeyondResumeApplications = () => {
     setSelectedJob(job);
     setApplicantId(job?.brJobApplicantId || null);
 
-    if (job?.jobInterviewQuestions) {
-      const cleanedContent = job.jobInterviewQuestions
+    const question =
+      job?.roundType === "multiple"
+        ? job?.currentRound?.jobInterviewQuestions
+        : job?.jobInterviewQuestions;
+    const duration =
+      job?.roundType === "multiple"
+        ? job?.currentRound?.interviewDuration
+        : job?.interviewDuration;
+    // console.log(question);
+
+    if (question) {
+      const cleanedContent = question
         .replace(/```json/g, "")
         .replace(/```/g, "")
         .replace(/<[^>]*>?/gm, "")
@@ -297,7 +307,7 @@ const BeyondResumeApplications = () => {
       }
     }
 
-    setDuration(job?.interviewDuration || null);
+    setDuration(duration || null);
     setShowModeModal(true);
   };
 
@@ -624,11 +634,7 @@ const JobCard: React.FC<JobCardProps> = ({
                         ml: 0.4,
                       },
                       "& .MuiStepLabel-label": {
-                        color:
-                          theme === "dark"
-                            ? "white"
-                           
-                            : "#000000a8",
+                        color: theme === "dark" ? "white" : "#000000a8",
                       },
                     }}
                     // active={round.status === "PENDING"}
@@ -652,6 +658,17 @@ const JobCard: React.FC<JobCardProps> = ({
                     >
                       <Typography color="inherit" variant="body2">
                         {`Round ${round.roundNumber}: ${round.roundName}`}
+
+                        {(round.status === "PASS" ||
+                          round.status === "FAIL") && (
+                          <FontAwesomeIcon
+                            style={{
+                              marginLeft: "4px",
+                              color: theme === "dark" ? "white" : "#000000",
+                            }}
+                            icon={faChevronCircleRight}
+                          ></FontAwesomeIcon>
+                        )}
                       </Typography>
                     </StepLabel>
                     <StepContent
@@ -668,11 +685,12 @@ const JobCard: React.FC<JobCardProps> = ({
                       )}
                       {round.status === "FAIL" && (
                         <Typography variant="caption" color="red">
-                          Failed (
+                          Failed
+                          {/* (
                           {job.publishDate
                             ? getFormattedDateKey1(job.publishDate)
                             : "TBD"}
-                          )
+                          ) */}
                         </Typography>
                       )}
                       {round.status === "PENDING" && (

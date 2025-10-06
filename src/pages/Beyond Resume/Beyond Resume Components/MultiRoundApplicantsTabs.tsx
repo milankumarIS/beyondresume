@@ -6,7 +6,10 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Box, Card, Tab, Tabs, Typography } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { useHistory } from "react-router";
-import { formatDateWithSuffix, formatRoundTS } from "../../../components/util/CommonFunctions";
+import {
+  formatDateWithSuffix,
+  formatRoundTS,
+} from "../../../components/util/CommonFunctions";
 import { BeyondResumeButton2 } from "../../../components/util/CommonStyle";
 import { searchListDataFromTable } from "../../../services/services";
 import color from "../../../theme/color";
@@ -83,14 +86,12 @@ const MultiRoundApplicantsTabs: React.FC<MultiRoundApplicantsTabsProps> = ({
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch rounds
         const roundDataRes: any = await searchListDataFromTable("brJobRounds", {
           brJobId: jobId,
         });
         const roundsData: Round[] = roundDataRes?.data?.data || [];
         setRounds(roundsData);
 
-        // Fetch applicant rounds
         const applicantRoundsRes: any = await searchListDataFromTable(
           "brJobApplicantRounds",
           { brJobId: jobId }
@@ -99,7 +100,6 @@ const MultiRoundApplicantsTabs: React.FC<MultiRoundApplicantsTabsProps> = ({
           applicantRoundsRes?.data?.data || [];
         setApplicantRounds(applicantRoundsData);
 
-        // Fetch applicants
         const applicantsRes: any = await searchListDataFromTable(
           "brJobApplicant",
           { brJobId: jobId }
@@ -122,18 +122,35 @@ const MultiRoundApplicantsTabs: React.FC<MultiRoundApplicantsTabsProps> = ({
     (r) => r.roundId === activeRound
   );
 
+  const unstartedApplicants = applicants.filter(
+    (a) =>
+      !roundApplicants.some((r) => r.brJobApplicantId === a.brJobApplicantId)
+  );
+
+  const unstartedApplicantRounds: ApplicantRound[] =
+    activeRound === rounds[0]?.roundId
+      ? unstartedApplicants.map((a) => ({
+          brJobApplicantId: a.brJobApplicantId,
+          brJobId: jobId,
+          roundId: activeRound,
+          roundStatus: "PENDING",
+          createdAt: new Date().toISOString(),
+        }))
+      : [];
+
+  const allRoundApplicants = [...roundApplicants, ...unstartedApplicantRounds];
+
+  // console.log(allRoundApplicants);
+
   const filteredApplicants =
-    statusTabs.find((s) => s.key === activeStatus)?.filter(roundApplicants) ??
-    [];
+    statusTabs
+      .find((s) => s.key === activeStatus)
+      ?.filter(allRoundApplicants) ?? [];
 
   const enrichedApplicants = filteredApplicants.map((ar) => {
-    // console.log(applicants);
-
     const details = applicants.find(
       (a) => a.brJobApplicantId === ar.brJobApplicantId
     );
-
-    // console.log(details);
 
     return {
       ...ar,
@@ -145,63 +162,31 @@ const MultiRoundApplicantsTabs: React.FC<MultiRoundApplicantsTabsProps> = ({
 
   return (
     <div>
-      <Tabs
-        variant="scrollable"
-        scrollButtons="auto"
-        allowScrollButtonsMobile
-        centered
-        value={activeRound}
-        onChange={(_, v) => setActiveRound(v)}
+      <Box
         sx={{
-          mt: 1,
-          "& .MuiTab-root": {
-            borderRadius: "999px",
-            mx: 'auto',
-            mr:1,
-            mt: 1,
-            minWidth: 80,
-            background: "#2d34363f",
-            color: "#555",
-            px: 3,
-            py: 1,
-            minHeight: 0,
-            textTransform: "none",
-          },
-          "& .Mui-selected": {
-            background: color.activeButtonBg,
-            color: "white !important",
-          },
-          "& .MuiTabs-indicator": {
-            backgroundColor: "transparent",
-          },
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
         }}
       >
-        {rounds.map((round) => (
-          <Tab
-            key={round.roundId}
-            label={formatRoundTS(round.roundId)}
-            value={round.roundId}
-          />
-        ))}
-      </Tabs>
-
-      <Box sx={{ background: "#d1d1d13f", p: 1, borderRadius: 2, mt: 2 }}>
         <Tabs
-          centered
-          value={activeStatus}
-          onChange={(_, v) => setActiveStatus(v)}
+          variant="scrollable"
+          scrollButtons="auto"
+          allowScrollButtonsMobile
+          value={activeRound}
+          onChange={(_, v) => setActiveRound(v)}
           sx={{
+            mt: 2,
             "& .MuiTab-root": {
               borderRadius: "999px",
               mx: 1,
               minWidth: 80,
-              background: "#2d34363f",
-              color: "#555",
+              background: "grey",
+              color: "white",
               fontWeight: 500,
               px: 4,
               py: 1,
               minHeight: 0,
-              fontSize: "12px",
               textTransform: "none",
             },
             "& .Mui-selected": {
@@ -213,14 +198,85 @@ const MultiRoundApplicantsTabs: React.FC<MultiRoundApplicantsTabsProps> = ({
             },
           }}
         >
-          {statusTabs.map((tab) => (
+          {rounds.map((round) => (
             <Tab
-              key={tab.key}
-              label={`${tab.label} (${tab.filter(roundApplicants).length})`}
-              value={tab.key}
+              key={round.roundId}
+              label={formatRoundTS(round.roundId)}
+              value={round.roundId}
             />
           ))}
         </Tabs>
+      </Box>
+
+      <Box sx={{ background: "#d1d1d13f", pt: 3, pb: 2, borderRadius: 2 }}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Tabs
+            variant="scrollable"
+            scrollButtons="auto"
+            allowScrollButtonsMobile
+            value={activeStatus}
+            onChange={(_, v) => setActiveStatus(v)}
+            sx={{
+              "& .MuiTab-root": {
+                borderRadius: "999px",
+                mx: 1,
+                minWidth: 80,
+                background: "grey",
+                color: "#ffffffff",
+                fontWeight: 500,
+                px: 2,
+                py: 0.8,
+                minHeight: 0,
+                textTransform: "none",
+              },
+              "& .Mui-selected": {
+                background: color.activeButtonBg,
+                color: "white !important",
+              },
+              "& .MuiTabs-indicator": {
+                backgroundColor: "transparent",
+              },
+            }}
+          >
+            {statusTabs.map((tab) => (
+              <Tab
+                key={tab.key}
+                label={
+                  <span
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: "16px",
+                    }}
+                  >
+                    {tab.label}
+                    <span
+                      style={{
+                        background: "rgba(255, 255, 255, 0.2)",
+                        padding: "2px 8px",
+                        borderRadius: "44px",
+                        marginLeft: "6px",
+                        // width:'8px',
+                        height: "16px",
+                        fontSize: "14px",
+                      }}
+                    >
+                      {tab.filter(allRoundApplicants).length}
+                    </span>
+                  </span>
+                }
+                value={tab.key}
+              />
+            ))}
+          </Tabs>
+        </Box>
 
         <div>
           {enrichedApplicants.length === 0 ? (
@@ -242,13 +298,13 @@ const MultiRoundApplicantsTabs: React.FC<MultiRoundApplicantsTabsProps> = ({
                     textAlign: "center",
                     p: 2,
                     py: 3,
-                    pb: 3,
                     // maxWidth: "250px",
                     minWidth: "250px",
                     position: "relative",
                     m: "auto",
                     opacity: applicant.interviewOverview ? 1 : 0.6,
                     display: "flex",
+                    flexDirection: { xs: "column", md: "row" },
                     boxShadow: "none",
                   }}
                 >
@@ -381,7 +437,7 @@ const MultiRoundApplicantsTabs: React.FC<MultiRoundApplicantsTabsProps> = ({
                           alignItems: "center",
                           justifyContent: "center",
                           textAlign: "center",
-                          fontSize: 16,
+                          fontSize: 14,
                           fontFamily: "custom-bold",
                         }}
                       >

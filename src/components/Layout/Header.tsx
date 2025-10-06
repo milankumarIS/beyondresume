@@ -76,15 +76,16 @@ const Header: React.FC = () => {
           onClick={toggleTheme}
           title="Toggle Theme"
         />
-        {/* <FontAwesomeIcon
-          title="My Profile"
+        {getUserRole() === "TALENT PARTNER" &&
+        <FontAwesomeIcon
+          title="Company Profile"
           style={{
             cursor: "pointer",
-            marginRight: 24,
+            // marginRight: 24,
           }}
-          onClick={() => history.push("/beyond-resume-candidate-profile")}
-          icon={faUserCircle}
-        /> */}
+          onClick={() => history.push("/beyond-resume-company-profile")}
+          icon={faBuilding}
+        />}
         {!isPublicPage && (
           <>
             {getUserRole() === "CAREER SEEKER" ? (

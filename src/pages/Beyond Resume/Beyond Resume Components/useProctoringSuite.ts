@@ -1,13 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import * as cocoSsd from "@tensorflow-models/coco-ssd";
-import * as tf from "@tensorflow/tfjs";
-import * as faceDetection from "@tensorflow-models/face-detection";
-import { SupportedModels } from "@tensorflow-models/face-detection";
-import "@tensorflow/tfjs-backend-webgl";
 
 type DetectionResults = {
   objects: string[];
-  faces: faceDetection.Face[];
+  faces: number;
 };
 
 export const useProctoringSuite = (
@@ -15,85 +10,95 @@ export const useProctoringSuite = (
 ) => {
   const [results, setResults] = useState<DetectionResults>({
     objects: [],
-    faces: [],
+    faces: 1,
   });
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const cocoModelRef = useRef<cocoSsd.ObjectDetection | null>(null);
-  const faceDetectorRef = useRef<faceDetection.FaceDetector | null>(null);
   const [proctoringReady, setProctoringReady] = useState(false);
 
   useEffect(() => {
-    const loadModels = async () => {
-      await tf.setBackend("webgl");
-      await tf.ready();
-
-      const faceDetector = await faceDetection.createDetector(
-        SupportedModels.MediaPipeFaceDetector,
-        { runtime: "tfjs", maxFaces: 3 }
-      );
-      faceDetectorRef.current = faceDetector;
-
-      const cocoModel = await cocoSsd.load({ base: "lite_mobilenet_v2" });
-      cocoModelRef.current = cocoModel;
-
-      setProctoringReady(true);
-    };
-
-    loadModels();
+    setProctoringReady(true);
   }, []);
 
   useEffect(() => {
     if (!proctoringReady) return;
-    let lastDetection = 0;
-    let stop = false;
 
-    const detect = async (time: number) => {
+    let stop = false;
+    let apiRunning = false;
+
+    // Draw video continuously on canvas
+    const drawVideo = () => {
       if (stop) return;
       const video = videoRef.current;
       const canvas = canvasRef.current;
-      if (!video || !canvas) return;
-
-      if (time - lastDetection > 800) {
-        lastDetection = time;
+      if (video && canvas) {
         const ctx = canvas.getContext("2d");
-        if (!ctx) return;
-
-        // Resize canvas to video
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-
-        // Downscale input for performance (internal detection only)
-        const tempCanvas = document.createElement("canvas");
-        const scale = 0.20; // ~40% of original
-        tempCanvas.width = video.videoWidth * scale;
-        tempCanvas.height = video.videoHeight * scale;
-        const tmpCtx = tempCanvas.getContext("2d");
-        tmpCtx?.drawImage(video, 0, 0, tempCanvas.width, tempCanvas.height);
-
-        const input = tf.browser.fromPixels(tempCanvas);
-
-        // Run both detectors
-        const [faces, predictions] = await Promise.all([
-          faceDetectorRef.current?.estimateFaces(input),
-          cocoModelRef.current?.detect(tempCanvas),
-        ]);
-
-        const objects = predictions?.map((pred) => pred.class) || [];
-        setResults({ faces: faces || [], objects });
-
-        input.dispose(); // free GPU memory
-
-        // Draw video back
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        if (ctx) {
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        }
       }
-
-      requestAnimationFrame(detect);
+      requestAnimationFrame(drawVideo);
     };
 
-    requestAnimationFrame(detect);
+    drawVideo();
+
+    // Function to send frame to API
+    const sendFrameToApi = async () => {
+      if (apiRunning || stop) return;
+      apiRunning = true;
+
+      const video = videoRef.current;
+      if (!video) {
+        apiRunning = false;
+        return;
+      }
+
+      const tempCanvas = document.createElement("canvas");
+      tempCanvas.width = video.videoWidth;
+      tempCanvas.height = video.videoHeight;
+      const tempCtx = tempCanvas.getContext("2d");
+      tempCtx?.drawImage(video, 0, 0, tempCanvas.width, tempCanvas.height);
+
+      tempCanvas.toBlob(async (blob) => {
+        if (!blob) {
+          apiRunning = false;
+          return;
+        }
+
+        try {
+          const formData = new FormData();
+          formData.append("image", blob, "frame.png");
+
+          const response = await fetch("https://br.skillablers.com/api/detect/", {
+            method: "POST",
+            body: formData,
+          });
+          const data = await response.json();
+// console.log(data);
+
+          setResults({
+            faces: data.faceResult?.faceCount ?? 0,
+            objects: data.objectResult?.detectedClasses ?? [],
+          });
+        } catch (err) {
+          console.warn("Detection API failed:", err);
+        } finally {
+          apiRunning = false;
+          if (!stop) sendFrameToApi(); 
+        }
+      }, "image/jpeg");
+    };
+
+    // Start first API call after 1 second
+    const timer = setTimeout(() => {
+      if (!stop) sendFrameToApi();
+    }, 1000);
+
     return () => {
       stop = true;
+      clearTimeout(timer);
     };
   }, [videoRef, proctoringReady]);
 

@@ -1,6 +1,7 @@
 import {
   faDownload,
-  faFileExport
+  faFileExport,
+  faXmarkCircle,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Box, Modal, Typography } from "@mui/material";
@@ -51,7 +52,7 @@ const HtmlToPdfViewer: React.FC<HtmlToPdfViewerProps> = ({
       availableWidth,
       availableHeight
     );
-    pdf.save("downloaded_profile.pdf");
+    pdf.save(`${heading}.pdf`);
   };
 
   const { theme } = useTheme();
@@ -103,11 +104,29 @@ const HtmlToPdfViewer: React.FC<HtmlToPdfViewerProps> = ({
           </Typography>
 
           <StyledTypography
+            ref={contentRef}
             dangerouslySetInnerHTML={{
               __html: htmlText,
             }}
           />
 
+          <Box
+            sx={{ top: 2, left: 10 }}
+            mt={3}
+            display="flex"
+            justifyContent="flex-end"
+          >
+            <BeyondResumeButton2
+              variant="contained"
+              onClick={() => setOpen(false)}
+            >
+              Close
+              <FontAwesomeIcon
+                style={{ marginLeft: "4px" }}
+                icon={faXmarkCircle}
+              />{" "}
+            </BeyondResumeButton2>
+          </Box>
           <Box
             sx={{ position: "absolute", top: 2, right: 10 }}
             mt={3}

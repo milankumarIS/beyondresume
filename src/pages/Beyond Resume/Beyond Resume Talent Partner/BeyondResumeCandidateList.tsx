@@ -7,16 +7,7 @@ import {
   faUser,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  Box,
-  Card,
-  Grid,
-  styled,
-  ToggleButton,
-  ToggleButtonGroup,
-  Tooltip,
-  Typography,
-} from "@mui/material";
+import { Box, Card, Grid, Tooltip, Typography } from "@mui/material";
 import React, { JSX, useEffect, useState } from "react";
 import { useHistory, useLocation } from "react-router";
 import PaginationControlled from "../../../components/shared/Pagination";
@@ -29,8 +20,12 @@ import {
   getTextColor,
 } from "../../../components/util/CommonFunctions";
 import { BeyondResumeButton } from "../../../components/util/CommonStyle";
-import { paginateDataFromTable } from "../../../services/services";
+import {
+  paginateDataFromTable,
+  searchDataFromTable,
+} from "../../../services/services";
 import color from "../../../theme/color";
+import MultiRoundApplicantsTabs from "../Beyond Resume Components/MultiRoundApplicantsTabs";
 type LocationState = {
   jobId: string;
 };
@@ -72,6 +67,8 @@ const BeyondResumeCandidateList = () => {
   const [reload, setReload] = useState(false);
   const location = useLocation<LocationState>();
   const brJobId = location?.state?.jobId;
+  const [jobData, setJobData] = useState<any>({});
+
   const levelTooltips: Record<string, JSX.Element> = {
     complex: (
       <>
@@ -146,6 +143,14 @@ const BeyondResumeCandidateList = () => {
   useEffect(() => {
     setLoading(true);
 
+    searchDataFromTable("brJobs", {
+      // brJobApplicantStatus: "CONFIRMED",
+      brJobId: brJobId,
+    }).then((result: any) => {
+      setJobData(result.data.data);
+      // console.log(result);
+    });
+
     paginateDataFromTable("brJobApplicant", {
       page: page - 1,
       pageSize: 12,
@@ -159,6 +164,7 @@ const BeyondResumeCandidateList = () => {
       setTotalCount(result?.data?.data?.count);
 
       const rows = result?.data?.data?.rows || [];
+      // console.log(rows);
       setData(rows);
 
       const levelOrder = ["complex", "advance", "intermediate", "beginner"];
@@ -184,14 +190,14 @@ const BeyondResumeCandidateList = () => {
       setInterviewList(groupedByLevel);
       setLoading(false);
     });
-  }, [page, reload]);
+  }, [page, reload, brJobId]);
 
   const history = useHistory();
 
   return (
     <Box
       sx={{
-        p: 4,
+        p: { xs: 2, md: 4 },
         minHeight: "90vh",
         overflow: "hidden",
         position: "relative",
@@ -247,7 +253,7 @@ const BeyondResumeCandidateList = () => {
           sx={{
             mt: 4,
             position: "absolute",
-            top: {xs:80, md:10},
+            top: { xs: 80, md: 10 },
             right: 30,
             fontSize: "14px",
           }}
@@ -261,305 +267,319 @@ const BeyondResumeCandidateList = () => {
         </BeyondResumeButton>
       )}
 
-      {loading ? (
-        <Box
-          sx={{
-            minHeight: "70vh",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            flexDirection: "column",
-          }}
-        >
-          <div className="newtons-cradle">
-            <div className="newtons-cradle__dot"></div>
-            <div className="newtons-cradle__dot"></div>
-            <div className="newtons-cradle__dot"></div>
-            <div className="newtons-cradle__dot"></div>
-          </div>
-          <Typography variant="h6" sx={{ mb: 2 }}>
-            Processing Data
-          </Typography>
-        </Box>
-      ) : totalCount === 0 ? (
-        <Box
-          sx={{
-            minHeight: "60vh",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            flexDirection: "column",
-          }}
-        >
-          <Typography variant="h6">No Applicants Yet</Typography>
-        </Box>
+      {jobData?.roundType === "multiple" ? (
+        <MultiRoundApplicantsTabs jobId={brJobId} />
       ) : (
-        <Grid container spacing={3} mt={2} sx={{ minHeight: "70vh" }}>
-          {Object.entries(interviewList)
-            .filter(([, interviews]) => interviews.length > 0)
-            .map(([level, interviews]: [string, any[]]) => (
-              <React.Fragment key={level}>
-                <Grid item xs={12}>
-                  <Tooltip
-                    title={
-                      <Typography whiteSpace="pre-line" fontSize={13}>
-                        {levelTooltips[level]}
-                      </Typography>
-                    }
-                    arrow
-                    placement="right"
-                    PopperProps={{
-                      modifiers: [
-                        {
-                          name: "offset",
-                          options: {
-                            offset: [0, 10],
-                          },
-                        },
-                      ],
-                    }}
-                    componentsProps={{
-                      tooltip: {
-                        sx: {
-                          backgroundColor: tooltipColors[level],
-                          color: "#000",
-                          fontSize: "13px",
-                          maxWidth: 300,
-                          p: 2,
-                          borderRadius: 2,
-                          boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
-                        },
-                      },
-                    }}
-                  >
-                    <Typography
-                      variant="h6"
-                      sx={{
-                        mt: 4,
-                        mb: 1,
-                        position: "relative",
-                        borderRadius: "999px !important",
-                        padding: "6px 16px",
-                        fontWeight: 600,
-                        background: color.activeButtonBg,
-                        color: "#fff",
-                        boxShadow: "0px 4px 10px rgba(90, 128, 253, 0.49)",
-                        width: "fit-content",
-                        cursor: "pointer",
-                      }}
-                    >
-                      {level.charAt(0).toUpperCase() + level.slice(1)} Level{" "}
-                      <FontAwesomeIcon icon={faInfoCircle} />
-                    </Typography>
-                  </Tooltip>
-                </Grid>
-
-                {interviews.length > 0 ? (
-                  interviews.map((interview, index) => {
-                    const score = interview.interviewScore;
-                    const { remark, bgcolor } = getRemark(score);
-                    if (!interview?.interviewOverview) return null;
-                    return (
-                      <Grid
-                        item
-                        xs={12}
-                        sm={6}
-                        md={4}
-                        key={index}
-                        position={"relative"}
-                      >
-                        <Card
-                          sx={{
-                            background: color.cardBg,
-
-                            color: "inherit",
-                            borderRadius: 3,
-                            textAlign: "center",
-                            p: 2,
-                            py: 3,
-                            pb: 3,
-                            maxWidth: "300px",
-                            minHeight: "250px",
-                            position: "relative",
-                            m: "auto",
+        <>
+          {loading ? (
+            <Box
+              sx={{
+                minHeight: "70vh",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                flexDirection: "column",
+              }}
+            >
+              <div className="newtons-cradle">
+                <div className="newtons-cradle__dot"></div>
+                <div className="newtons-cradle__dot"></div>
+                <div className="newtons-cradle__dot"></div>
+                <div className="newtons-cradle__dot"></div>
+              </div>
+              <Typography variant="h6" sx={{ mb: 2 }}>
+                Processing Data
+              </Typography>
+            </Box>
+          ) : totalCount === 0 ? (
+            <Box
+              sx={{
+                minHeight: "60vh",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                flexDirection: "column",
+              }}
+            >
+              <Typography variant="h6">No Assessed Candidates Yet</Typography>
+            </Box>
+          ) : (
+            <>
+              <Grid container spacing={3} mt={2} sx={{ minHeight: "70vh" }}>
+                {Object.entries(interviewList)
+                  .filter(([, interviews]) => interviews.length > 0)
+                  .map(([level, interviews]: [string, any[]]) => (
+                    <React.Fragment key={level}>
+                      <Grid item xs={12}>
+                        <Tooltip
+                          title={
+                            <Typography whiteSpace="pre-line" fontSize={13}>
+                              {levelTooltips[level]}
+                            </Typography>
+                          }
+                          arrow
+                          placement="right"
+                          PopperProps={{
+                            modifiers: [
+                              {
+                                name: "offset",
+                                options: {
+                                  offset: [0, 10],
+                                },
+                              },
+                            ],
+                          }}
+                          componentsProps={{
+                            tooltip: {
+                              sx: {
+                                backgroundColor: tooltipColors[level],
+                                color: "#000",
+                                fontSize: "13px",
+                                maxWidth: 300,
+                                p: 2,
+                                borderRadius: 2,
+                                boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
+                              },
+                            },
                           }}
                         >
-                          <Box
+                          <Typography
+                            variant="h6"
                             sx={{
-                              display: "flex",
-                              gap: 1,
-                              alignItems: "center",
-                              justifyContent: "flex-start",
-                              mt: 0,
-                              width: "100%",
+                              mt: 4,
+                              mb: 1,
+                              position: "relative",
+                              borderRadius: "999px !important",
+                              padding: "6px 16px",
+                              fontWeight: 600,
+                              background: color.activeButtonBg,
+                              color: "#fff",
+                              boxShadow:
+                                "0px 4px 10px rgba(90, 128, 253, 0.49)",
+                              width: "fit-content",
+                              cursor: "pointer",
                             }}
                           >
-                            <FontAwesomeIcon
-                              style={{
-                                height: "32px",
-                                width: "32px",
-                                background: color.cardBg,
-                                padding: "8px",
-                                borderRadius: "999px",
-                              }}
-                              icon={faUser}
-                            />
+                            {level.charAt(0).toUpperCase() + level.slice(1)}{" "}
+                            Level <FontAwesomeIcon icon={faInfoCircle} />
+                          </Typography>
+                        </Tooltip>
+                      </Grid>
 
-                            <div
-                              style={{
-                                display: "flex",
-                                flexDirection: "column",
-                              }}
+                      {interviews.length > 0 ? (
+                        interviews.map((interview, index) => {
+                          const score = interview.interviewScore;
+                          const { remark, bgcolor } = getRemark(score);
+                          if (!interview?.interviewOverview) return null;
+                          return (
+                            <Grid
+                              item
+                              xs={12}
+                              sm={6}
+                              md={4}
+                              key={index}
+                              position={"relative"}
                             >
-                              <Typography
-                                fontWeight="bold"
-                                noWrap
+                              <Card
                                 sx={{
-                                  fontFamily: "Montserrat-Regular",
-                                  overflow: "hidden",
-                                  textOverflow: "ellipsis",
-                                  whiteSpace: "nowrap",
-                                  flexGrow: 1,
-                                  minWidth: 0,
-                                  textAlign: "left",
+                                  background: color.cardBg,
+
+                                  color: "inherit",
+                                  borderRadius: 3,
+                                  textAlign: "center",
+                                  p: 2,
+                                  py: 3,
+                                  pb: 3,
+                                  maxWidth: "300px",
+                                  minHeight: "250px",
+                                  position: "relative",
+                                  m: "auto",
                                 }}
                               >
-                                {interview?.fullName}
-                              </Typography>
+                                <Box
+                                  sx={{
+                                    display: "flex",
+                                    gap: 1,
+                                    alignItems: "center",
+                                    justifyContent: "flex-start",
+                                    mt: 0,
+                                    width: "100%",
+                                  }}
+                                >
+                                  <FontAwesomeIcon
+                                    style={{
+                                      height: "32px",
+                                      width: "32px",
+                                      background: color.cardBg,
+                                      padding: "8px",
+                                      borderRadius: "999px",
+                                    }}
+                                    icon={faUser}
+                                  />
 
-                              <Typography
-                                variant="caption"
-                                display="block"
-                                textAlign={"left"}
-                              >
-                                {formatDateWithSuffix(interview.createdAt)},{" "}
-                                {""}
-                                {new Date(
-                                  interview.createdAt
-                                ).toLocaleTimeString([], {
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                  hour12: true,
-                                })}
-                              </Typography>
-                            </div>
-                          </Box>
+                                  <div
+                                    style={{
+                                      display: "flex",
+                                      flexDirection: "column",
+                                    }}
+                                  >
+                                    <Typography
+                                      fontWeight="bold"
+                                      noWrap
+                                      sx={{
+                                        fontFamily: "Montserrat-Regular",
+                                        overflow: "hidden",
+                                        textOverflow: "ellipsis",
+                                        whiteSpace: "nowrap",
+                                        flexGrow: 1,
+                                        minWidth: 0,
+                                        textAlign: "left",
+                                      }}
+                                    >
+                                      {interview?.fullName}
+                                    </Typography>
 
-                          <Box sx={{ textAlign: "left", my: 2 }}>
-                            <Typography
-                              sx={{
-                                fontSize: "14px",
-                                fontFamily: "Montserrat-Regular",
-                              }}
-                              mt={0}
-                            >
-                              <FontAwesomeIcon
-                                style={{ marginRight: "4px" }}
-                                icon={faPhone}
-                              ></FontAwesomeIcon>{" "}
-                              {interview?.phone}
-                            </Typography>
-                            <Typography
-                              sx={{
-                                fontSize: "14px",
-                                fontFamily: "Montserrat-Regular",
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
-                                whiteSpace: "nowrap",
-                                flexGrow: 1,
-                                minWidth: 0,
-                                textAlign: "left",
-                              }}
-                              mt={0}
-                            >
-                              <FontAwesomeIcon
-                                style={{ marginRight: "4px" }}
-                                icon={faEnvelope}
-                              ></FontAwesomeIcon>
-                              {interview?.email}
-                            </Typography>
-                          </Box>
+                                    <Typography
+                                      variant="caption"
+                                      display="block"
+                                      textAlign={"left"}
+                                    >
+                                      {formatDateWithSuffix(
+                                        interview.createdAt
+                                      )}
+                                      , {""}
+                                      {new Date(
+                                        interview.createdAt
+                                      ).toLocaleTimeString([], {
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                        hour12: true,
+                                      })}
+                                    </Typography>
+                                  </div>
+                                </Box>
 
-                          <Typography textAlign={"left"} mt={1}>
-                            Overview:
-                          </Typography>
+                                <Box sx={{ textAlign: "left", my: 2 }}>
+                                  <Typography
+                                    sx={{
+                                      fontSize: "14px",
+                                      fontFamily: "Montserrat-Regular",
+                                    }}
+                                    mt={0}
+                                  >
+                                    <FontAwesomeIcon
+                                      style={{ marginRight: "4px" }}
+                                      icon={faPhone}
+                                    ></FontAwesomeIcon>{" "}
+                                    {interview?.phone}
+                                  </Typography>
+                                  <Typography
+                                    sx={{
+                                      fontSize: "14px",
+                                      fontFamily: "Montserrat-Regular",
+                                      overflow: "hidden",
+                                      textOverflow: "ellipsis",
+                                      whiteSpace: "nowrap",
+                                      flexGrow: 1,
+                                      minWidth: 0,
+                                      textAlign: "left",
+                                    }}
+                                    mt={0}
+                                  >
+                                    <FontAwesomeIcon
+                                      style={{ marginRight: "4px" }}
+                                      icon={faEnvelope}
+                                    ></FontAwesomeIcon>
+                                    {interview?.email}
+                                  </Typography>
+                                </Box>
+
+                                <Typography textAlign={"left"} mt={1}>
+                                  Overview:
+                                </Typography>
+                                <Typography
+                                  variant="body2"
+                                  mt={0.4}
+                                  mb={2}
+                                  sx={{
+                                    display: "-webkit-box",
+                                    overflow: "hidden",
+                                    textOverflow: "ellipsis",
+                                    WebkitLineClamp: 3,
+                                    WebkitBoxOrient: "vertical",
+                                    fontFamily: "Montserrat-Regular",
+                                    fontSize: "12px",
+                                    textAlign: "left",
+                                  }}
+                                >
+                                  {interview.interviewOverview}
+                                </Typography>
+
+                                <BeyondResumeButton
+                                  onClick={() =>
+                                    history.push(
+                                      `/beyond-resume-interview-overview/${
+                                        interview?.brJobApplicantId
+                                      }?type=${"candidateResult"}`
+                                    )
+                                  }
+                                  sx={{
+                                    width: "100%",
+                                    p: 0.5,
+                                    px: 1.5,
+                                    background: color.activeButtonBg,
+                                    ml: "auto",
+                                    display: "block",
+                                  }}
+                                >
+                                  See Details
+                                  <FontAwesomeIcon
+                                    style={{ marginLeft: "5px" }}
+                                    icon={faChevronCircleRight}
+                                  ></FontAwesomeIcon>
+                                </BeyondResumeButton>
+
+                                <Box
+                                  sx={{
+                                    position: "absolute",
+                                    top: 0,
+                                    right: 0,
+                                    // border:'solid 1px white',
+                                    background: bgcolor,
+                                    color: getTextColor(bgcolor),
+
+                                    px: 1,
+                                    py: 0.5,
+                                    borderRadius: "0px 0px 0px 8px",
+                                  }}
+                                >
+                                  <Typography
+                                    sx={{ color: getTextColor(bgcolor) }}
+                                  >
+                                    {score}/100
+                                  </Typography>
+                                </Box>
+                              </Card>
+                            </Grid>
+                          );
+                        })
+                      ) : (
+                        <Grid item xs={12}>
                           <Typography
-                            variant="body2"
-                            mt={0.4}
-                            mb={2}
-                            sx={{
-                              display: "-webkit-box",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                              WebkitLineClamp: 3,
-                              WebkitBoxOrient: "vertical",
-                              fontFamily: "Montserrat-Regular",
-                              fontSize: "12px",
-                              textAlign: "left",
-                            }}
+                            sx={{ position: "relative", color: "white", mt: 1 }}
                           >
-                            {interview.interviewOverview}
+                            No interviews found for{" "}
+                            {level.charAt(0).toUpperCase() + level.slice(1)}{" "}
+                            level.
                           </Typography>
-
-                          <BeyondResumeButton
-                            onClick={() =>
-                              history.push(
-                                `/beyond-resume-interview-overview/${
-                                  interview?.brJobApplicantId
-                                }?type=${"candidateResult"}`
-                              )
-                            }
-                            sx={{
-                              width: "100%",
-                              p: 0.5,
-                              px: 1.5,
-                              background: color.activeButtonBg,
-                              ml: "auto",
-                              display: "block",
-                            }}
-                          >
-                            See Details
-                            <FontAwesomeIcon
-                              style={{ marginLeft: "5px" }}
-                              icon={faChevronCircleRight}
-                            ></FontAwesomeIcon>
-                          </BeyondResumeButton>
-
-                          <Box
-                            sx={{
-                              position: "absolute",
-                              top: 0,
-                              right: 0,
-                              // border:'solid 1px white',
-                              background: bgcolor,
-                              color: getTextColor(bgcolor),
-
-                              px: 1,
-                              py: 0.5,
-                              borderRadius: "0px 0px 0px 8px",
-                            }}
-                          >
-                            <Typography sx={{ color: getTextColor(bgcolor) }}>
-                              {score}/100
-                            </Typography>
-                          </Box>
-                        </Card>
-                      </Grid>
-                    );
-                  })
-                ) : (
-                  <Grid item xs={12}>
-                    <Typography
-                      sx={{ position: "relative", color: "white", mt: 1 }}
-                    >
-                      No interviews found for{" "}
-                      {level.charAt(0).toUpperCase() + level.slice(1)} level.
-                    </Typography>
-                  </Grid>
-                )}
-              </React.Fragment>
-            ))}
-        </Grid>
+                        </Grid>
+                      )}
+                    </React.Fragment>
+                  ))}
+              </Grid>
+            </>
+          )}
+        </>
       )}
 
       <Box sx={{ ml: "auto" }}>

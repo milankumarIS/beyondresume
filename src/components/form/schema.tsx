@@ -1279,7 +1279,16 @@ const companySchema = z.object({
   description: z
     .string()
     .min(10, { message: "Description must be at least 10 characters long." }),
-  establishedYear: z.any(),
+    establishedYear: z
+    .number({
+      required_error: "Established year is required",
+      invalid_type_error: "Established year must be a valid year",
+    })
+    .min(1800, { message: "Established year cannot be earlier than 1800." })
+    .max(new Date().getFullYear(), {
+      message: `Established year cannot be later than ${new Date().getFullYear()}.`,
+    })
+    .int(),
   headquartersCity: z
     .string()
     .min(2, { message: "City must be at least 2 characters long." }),
@@ -1331,6 +1340,26 @@ const companySchema = z.object({
         ),
       "Inalid Number"
     ),
+      linkedin: z
+    .string()
+    .url({ message: "LinkedIn must be a valid URL." })
+    .optional()
+    .or(z.literal("")),
+  insta: z
+    .string()
+    .url({ message: "Instagram must be a valid URL." })
+    .optional()
+    .or(z.literal("")),
+  twitter: z
+    .string()
+    .url({ message: "Twitter must be a valid URL." })
+    .optional()
+    .or(z.literal("")),
+  fb: z
+    .string()
+    .url({ message: "Facebook must be a valid URL." })
+    .optional()
+    .or(z.literal("")),
 });
 
 const gallerySchema = z.object({
@@ -1344,6 +1373,7 @@ const gallerySchema = z.object({
 const awardSchema = z.object({
   awards: z.array(
     z.object({
+       cAwardId: z.number().optional(),
       title: z.string().min(2),
       description: z.string().min(10),
       imageURL: z.string().url(),

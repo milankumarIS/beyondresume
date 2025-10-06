@@ -7,6 +7,7 @@ import { Avatar, Box, Grid2, Typography } from "@mui/material";
 import { forwardRef, useEffect, useMemo, useRef, useState } from "react";
 import Webcam from "react-webcam";
 import { ListeningAvatar } from "../../../components/util/CommonStyle";
+import { insertDataInTable, UploadAuthFile } from "../../../services/services";
 import { useProctoringSuite } from "./useProctoringSuite";
 
 export interface ExamSessionVideoCamBoxHandle {
@@ -18,333 +19,408 @@ interface ExamSessionVideoCamBoxProps {
   isRecording?: boolean;
   onProctoringError?: (error: string | null) => void;
   onProctoringReady?: (ready: boolean) => void;
+  jobData?: any;
+  roundData?: any;
 }
 
 const ExamSessionVideoCamBox = forwardRef<
   ExamSessionVideoCamBoxHandle,
   ExamSessionVideoCamBoxProps
->(({ isSpeaking, isRecording, onProctoringError, onProctoringReady }, ref) => {
-  const [isMicOn, setIsMicOn] = useState(false);
-  const [isVideoOn, setIsVideoOn] = useState(true);
-  const [micAccessible, setMicAccessible] = useState(true);
-  const [micSilent, setMicSilent] = useState(false);
-  const isWrittenPage = location.pathname.startsWith(
-    "/beyond-resume-jobInterviewSession-written"
-  );
+>(
+  (
+    {
+      isSpeaking,
+      isRecording,
+      onProctoringError,
+      onProctoringReady,
+      jobData,
+      roundData,
+    },
+    ref
+  ) => {
+    const [isMicOn, setIsMicOn] = useState(false);
+    const [isVideoOn, setIsVideoOn] = useState(true);
+    const [micAccessible, setMicAccessible] = useState(true);
+    const [micSilent, setMicSilent] = useState(false);
+    const isWrittenPage = location.pathname.startsWith(
+      "/beyond-resume-jobInterviewSession-written"
+    );
 
-  const webcamRef = useRef<Webcam>(null);
+    const webcamRef = useRef<Webcam>(null);
+    const startTimeRef = useRef<number>(Date.now());
+    const captureTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const videoElementRef = useMemo(() => {
-    return {
-      current: webcamRef.current?.video ?? null,
-    } as React.RefObject<HTMLVideoElement | null>;
-  }, [webcamRef.current?.video]);
+    const captureAndUpload = async (captureIndex: number) => {
+      if (!webcamRef.current) return;
 
-  const { canvasRef, results, proctoringReady } =
-    useProctoringSuite(videoElementRef);
-  const [detectionError, setDetectionError] = useState<string | null>(null);
+      const imageSrc = webcamRef.current.getScreenshot();
+      if (!imageSrc) return;
 
-  useEffect(() => {
-    let error: string | null = null;
-    if (!proctoringReady) {
-      return;
-    } else if (results.objects.includes("cell phone")) {
-      error = "Mobile phone detected! Please remove it from the frame.";
-    } else if (results.faces.length === 0) {
-      error = "No face detected. Please ensure your face is clearly visible.";
-    } else if (results.faces.length > 1) {
-      error =
-        "Multiple faces detected. Only one person is allowed in the frame.";
-    }
+      const response = await fetch(imageSrc);
+      const blob = await response.blob();
 
-    setDetectionError(error);
-    onProctoringError?.(error);
-  }, [results]);
+      const formData = new FormData();
+      formData.append("file", blob, `capture-${Date.now()}.jpg`);
 
-  useEffect(() => {
-    onProctoringReady?.(proctoringReady);
-  }, [proctoringReady]);
-
-  const analyserRef = useRef<AnalyserNode | null>(null);
-  const audioContextRef = useRef<AudioContext | null>(null);
-  const mediaStreamRef = useRef<MediaStream | null>(null);
-  const checkIntervalRef = useRef<number | null>(null);
-
-  const [webcamSize, setWebcamSize] = useState({ width: 0, height: 0 });
-
-  // useEffect(() => setIsMicOn(micStatus), [micStatus]);
-  // useEffect(() => setIsVideoOn(videoStatus), [videoStatus]);
-
-  useEffect(() => {
-    const initMicCheck = async () => {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          audio: true,
-        });
-        mediaStreamRef.current = stream;
-        const audioContext = new AudioContext();
-        audioContextRef.current = audioContext;
+        const result = await UploadAuthFile(formData);
+        const imageLink = result?.data?.data?.location;
 
-        const source = audioContext.createMediaStreamSource(stream);
-        const analyser = audioContext.createAnalyser();
-        analyser.fftSize = 512;
-        analyserRef.current = analyser;
+        const elapsedMinutes = Math.floor(
+          (Date.now() - startTimeRef.current) / 60000
+        );
 
-        source.connect(analyser);
+        const payload = {
+          brJobApplicantId: jobData?.[0]?.brJobApplicantId,
+          brJobId: jobData?.[0]?.brJobId,
+          roundId: roundData?.roundId || "single round",
+          artefactType: "image",
+          artefactRemark: imageLink,
+          auditRemark: `Capture ${captureIndex} at ${elapsedMinutes} min`,
+          brProcteringAuditStatus: "ACTIVE",
+        };
 
-        const bufferLength = analyser.frequencyBinCount;
-        const dataArray = new Uint8Array(bufferLength);
+        // console.log( payload);
 
-        let silentCount = 0;
-
-        checkIntervalRef.current = window.setInterval(() => {
-          if (!analyserRef.current) return;
-          analyserRef.current.getByteFrequencyData(dataArray);
-          const volume = dataArray.reduce((a, b) => a + b, 0) / bufferLength;
-
-          if (volume < 1) {
-            silentCount++;
-            if (silentCount >= 10) {
-              setMicSilent(true);
-              setIsMicOn(false);
-            }
-          } else {
-            silentCount = 0;
-            setMicSilent(false);
-          }
-        }, 500);
-
-        setMicAccessible(true);
+        await insertDataInTable("brProcteringAudit", payload);
       } catch (err) {
-        console.error("Mic access failed:", err);
-        setMicAccessible(false);
-        setIsMicOn(false);
-        setMicSilent(true);
+        console.error("Image upload failed:", err);
       }
     };
 
-    initMicCheck();
+    useEffect(() => {
+      let captureIndex = 0;
 
-    return () => {
-      if (checkIntervalRef.current) clearInterval(checkIntervalRef.current);
-      analyserRef.current?.disconnect();
-      audioContextRef.current?.close();
-      mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
-    };
-  }, []);
+      const firstTimer = setTimeout(() => {
+        captureIndex++;
+        captureAndUpload(captureIndex);
 
-  const videoConstraints = {
-    width: 1280,
-    height: 720,
-    facingMode: "user",
-  };
+        captureTimerRef.current = setInterval(() => {
+          captureIndex++;
+          captureAndUpload(captureIndex);
+        }, 15 * 60 * 1000);
+      }, 2 * 60 * 1000);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (webcamRef.current && webcamRef.current.video) {
-        const videoElement = webcamRef.current.video as HTMLVideoElement;
-        const { offsetWidth, offsetHeight } = videoElement;
+      return () => {
+        clearTimeout(firstTimer);
+        if (captureTimerRef.current) clearInterval(captureTimerRef.current);
+      };
+    }, []);
 
-        setWebcamSize({
-          width: offsetWidth,
-          height: offsetHeight,
-        });
+    const videoElementRef = useMemo(() => {
+      return {
+        current: webcamRef.current?.video ?? null,
+      } as React.RefObject<HTMLVideoElement | null>;
+    }, [webcamRef.current?.video]);
+
+    const { canvasRef, results, proctoringReady } =
+      useProctoringSuite(videoElementRef);
+    const [detectionError, setDetectionError] = useState<string | null>(null);
+
+    useEffect(() => {
+      let error: string | null = null;
+      if (!proctoringReady) {
+        return;
       }
-    }, 500);
-    return () => clearInterval(interval);
-  }, []);
+      //  else if (results.objects.includes("cell phone")) {
+      //   error = "Mobile phone detected! Please remove it from the frame.";
+      // }
+      else if (results.faces === 0) {
+        error = "No face detected. Please ensure your face is clearly visible.";
+      } else if (results.faces > 1) {
+        error =
+          "Multiple faces detected. Only one person is allowed in the frame.";
+      }
 
-  return (
-    <>
-      {isWrittenPage ? (
-        <Box
-          sx={{
-            width: "170px",
-            height: "130px",
-            position: "relative",
-            borderRadius: 4,
-            overflow: "hidden",
-          }}
-        >
-          <Webcam
-            audio={isMicOn}
-            ref={webcamRef}
-            videoConstraints={videoConstraints}
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "fill",
-              borderRadius: "12px",
-              position: "absolute",
-              top: 0,
-              left: 0,
+      setDetectionError(error);
+      onProctoringError?.(error);
+    }, [results]);
+
+    useEffect(() => {
+      onProctoringReady?.(proctoringReady);
+    }, [proctoringReady]);
+
+    const analyserRef = useRef<AnalyserNode | null>(null);
+    const audioContextRef = useRef<AudioContext | null>(null);
+    const mediaStreamRef = useRef<MediaStream | null>(null);
+    const checkIntervalRef = useRef<number | null>(null);
+
+    const [webcamSize, setWebcamSize] = useState({ width: 0, height: 0 });
+
+    // useEffect(() => setIsMicOn(micStatus), [micStatus]);
+    // useEffect(() => setIsVideoOn(videoStatus), [videoStatus]);
+
+    useEffect(() => {
+      const initMicCheck = async () => {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({
+            audio: true,
+          });
+          mediaStreamRef.current = stream;
+          const audioContext = new AudioContext();
+          audioContextRef.current = audioContext;
+
+          const source = audioContext.createMediaStreamSource(stream);
+          const analyser = audioContext.createAnalyser();
+          analyser.fftSize = 512;
+          analyserRef.current = analyser;
+
+          source.connect(analyser);
+
+          const bufferLength = analyser.frequencyBinCount;
+          const dataArray = new Uint8Array(bufferLength);
+
+          let silentCount = 0;
+
+          checkIntervalRef.current = window.setInterval(() => {
+            if (!analyserRef.current) return;
+            analyserRef.current.getByteFrequencyData(dataArray);
+            const volume = dataArray.reduce((a, b) => a + b, 0) / bufferLength;
+
+            if (volume < 1) {
+              silentCount++;
+              if (silentCount >= 10) {
+                setMicSilent(true);
+                setIsMicOn(false);
+              }
+            } else {
+              silentCount = 0;
+              setMicSilent(false);
+            }
+          }, 500);
+
+          setMicAccessible(true);
+        } catch (err) {
+          console.error("Mic access failed:", err);
+          setMicAccessible(false);
+          setIsMicOn(false);
+          setMicSilent(true);
+        }
+      };
+
+      initMicCheck();
+
+      return () => {
+        if (checkIntervalRef.current) clearInterval(checkIntervalRef.current);
+        analyserRef.current?.disconnect();
+        audioContextRef.current?.close();
+        mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
+      };
+    }, []);
+
+    const videoConstraints = {
+      width: 1280,
+      height: 720,
+      facingMode: "user",
+    };
+
+    useEffect(() => {
+      const interval = setInterval(() => {
+        if (webcamRef.current && webcamRef.current.video) {
+          const videoElement = webcamRef.current.video as HTMLVideoElement;
+          const { offsetWidth, offsetHeight } = videoElement;
+
+          setWebcamSize({
+            width: offsetWidth,
+            height: offsetHeight,
+          });
+        }
+      }, 500);
+      return () => clearInterval(interval);
+    }, []);
+
+    return (
+      <>
+        {isWrittenPage ? (
+          <Box
+            sx={{
+              width: "170px",
+              height: "130px",
+              position: "relative",
+              borderRadius: 4,
+              overflow: "hidden",
             }}
-          />
-          <canvas
-            ref={canvasRef}
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              width: "100%",
-              height: "100%",
-              pointerEvents: "none",
-            }}
-          />
-        </Box>
-      ) : (
-        <Grid2
-          size={{ xs: 12, md: 8 }}
-          sx={{
-            height: "maxHeight",
-            gap: "12px",
-            borderRadius: "12px",
-            p: 2,
-            display: "flex",
-            flexDirection: { xs: "column", sm: "row" },
-            pb: { xs: "70px", sm: "70px" },
-          }}
-        >
-          <Box sx={{ width: { xs: "100%", sm: "50%" } }}>
-            <Box
-              sx={{
-                position: "relative",
+          >
+            <Webcam
+              audio={isMicOn}
+              ref={webcamRef}
+              videoConstraints={videoConstraints}
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "fill",
                 borderRadius: "12px",
-                overflow: "hidden",
-                height: "250px",
-                // background: "linear-gradient(145deg, #0d0d0d, #2D3436)",
+                position: "absolute",
+                top: 0,
+                left: 0,
               }}
-            >
-              {isVideoOn ? (
-                <>
-                  <Webcam
-                    audio={isMicOn}
-                    ref={webcamRef}
-                    videoConstraints={videoConstraints}
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "fill",
-                      borderRadius: "12px",
-                      overflow: "hidden",
-                    }}
-                  />
-                  <canvas
-                    ref={canvasRef}
-                    style={{
-                      position: "absolute",
-                      top: 0,
-                      left: 0,
-                      width: "100%",
-                      height: "100%",
-                      pointerEvents: "none",
-                    }}
-                  />
-                </>
-              ) : (
-                <Box
-                  sx={{
-                    background: "linear-gradient(145deg, #0d0d0d, #2D3436)",
-                    position: "relative",
-                    width: webcamSize.width || "100%",
-                    height: webcamSize.height || "300px",
-                  }}
-                >
-                  <Typography
-                    variant="h6"
+            />
+            <canvas
+              ref={canvasRef}
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                pointerEvents: "none",
+              }}
+            />
+          </Box>
+        ) : (
+          <Grid2
+            size={{ xs: 12, md: 8 }}
+            sx={{
+              height: "maxHeight",
+              gap: "12px",
+              borderRadius: "12px",
+              p: 2,
+              display: "flex",
+              flexDirection: { xs: "column", sm: "row" },
+              pb: { xs: "70px", sm: "70px" },
+            }}
+          >
+            <Box sx={{ width: { xs: "100%", sm: "50%" } }}>
+              <Box
+                sx={{
+                  position: "relative",
+                  borderRadius: "12px",
+                  overflow: "hidden",
+                  height: "250px",
+                  // background: "linear-gradient(145deg, #0d0d0d, #2D3436)",
+                }}
+              >
+                {isVideoOn ? (
+                  <>
+                    <Webcam
+                      audio={isMicOn}
+                      ref={webcamRef}
+                      videoConstraints={videoConstraints}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "fill",
+                        borderRadius: "12px",
+                        overflow: "hidden",
+                      }}
+                    />
+                    <canvas
+                      ref={canvasRef}
+                      style={{
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        width: "100%",
+                        height: "100%",
+                        pointerEvents: "none",
+                      }}
+                    />
+                  </>
+                ) : (
+                  <Box
                     sx={{
-                      position: "absolute",
-                      top: "50%",
-                      left: "50%",
-                      transform: "translate(-50%, -50%)",
+                      background: "linear-gradient(145deg, #0d0d0d, #2D3436)",
+                      position: "relative",
+                      width: webcamSize.width || "100%",
+                      height: webcamSize.height || "300px",
                     }}
                   >
-                    Camera Off
-                  </Typography>
-                </Box>
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        position: "absolute",
+                        top: "50%",
+                        left: "50%",
+                        transform: "translate(-50%, -50%)",
+                      }}
+                    >
+                      Camera Off
+                    </Typography>
+                  </Box>
+                )}
+              </Box>
+
+              {micSilent && (
+                <Typography
+                  sx={{
+                    textAlign: "center",
+                    mt: 2,
+                    color: "#ff5252",
+                    fontSize: "14px",
+                  }}
+                >
+                  Mic is not detecting any sound. Please check if it's muted or
+                  disabled.
+                </Typography>
               )}
             </Box>
 
-            {micSilent && (
-              <Typography
-                sx={{
-                  textAlign: "center",
-                  mt: 2,
-                  color: "#ff5252",
-                  fontSize: "14px",
-                }}
-              >
-                Mic is not detecting any sound. Please check if it's muted or
-                disabled.
-              </Typography>
-            )}
-          </Box>
-
-          <Box
-            sx={{
-              width: { xs: "100%", sm: "50%", md: webcamSize.width || "50%" },
-              height: webcamSize.height || "300px",
-              flexGrow: 1,
-              background: "linear-gradient(145deg, #0d0d0d, #2D3436)",
-              borderRadius: "12px",
-              position: "relative",
-            }}
-          >
-            <FontAwesomeIcon
-              style={{
-                position: "absolute",
-                top: 10,
-                right: 10,
-                color: "white",
-              }}
-              icon={isSpeaking ? faMicrophone : faMicrophoneSlash}
-            />
-
-            {isSpeaking ? (
-              <Box
-                sx={{
-                  position: "absolute",
-                  top: "50%",
-                  left: "50%",
-                  transform: "translate(-50%, -50%)",
-                }}
-              >
-                <ListeningAvatar>AI</ListeningAvatar>
-              </Box>
-            ) : (
-              <Avatar
-                style={{
-                  margin: "auto",
-                  padding: "6px",
-                  background: "#2D3436",
-                  position: "absolute",
-                  top: "50%",
-                  left: "50%",
-                  transform: "translate(-50%, -50%)",
-                  boxShadow: "0px 0px 30px rgba(0, 0, 0, 0.17)",
-                }}
-              >
-                AI
-              </Avatar>
-            )}
-
-            <Typography
+            <Box
               sx={{
-                position: "absolute",
-                bottom: { xs: -50, sm: -60 },
-                left: 10,
-                fontSize: { xs: "12px", sm: "16px" },
+                width: { xs: "100%", sm: "50%", md: webcamSize.width || "50%" },
+                height: webcamSize.height || "300px",
+                flexGrow: 1,
+                background: "linear-gradient(145deg, #0d0d0d, #2D3436)",
+                borderRadius: "12px",
+                position: "relative",
               }}
             >
-              {isRecording
-                ? "Listening for answer..."
-                : 'Click "Start Answering" Button below to give your answer.'}
-            </Typography>
-          </Box>
-        </Grid2>
-      )}
-    </>
-  );
-});
+              <FontAwesomeIcon
+                style={{
+                  position: "absolute",
+                  top: 10,
+                  right: 10,
+                  color: "white",
+                }}
+                icon={isSpeaking ? faMicrophone : faMicrophoneSlash}
+              />
+
+              {isSpeaking ? (
+                <Box
+                  sx={{
+                    position: "absolute",
+                    top: "50%",
+                    left: "50%",
+                    transform: "translate(-50%, -50%)",
+                  }}
+                >
+                  <ListeningAvatar>AI</ListeningAvatar>
+                </Box>
+              ) : (
+                <Avatar
+                  style={{
+                    margin: "auto",
+                    padding: "6px",
+                    background: "#2D3436",
+                    position: "absolute",
+                    top: "50%",
+                    left: "50%",
+                    transform: "translate(-50%, -50%)",
+                    boxShadow: "0px 0px 30px rgba(0, 0, 0, 0.17)",
+                  }}
+                >
+                  AI
+                </Avatar>
+              )}
+
+              <Typography
+                sx={{
+                  position: "absolute",
+                  bottom: { xs: -50, sm: -60 },
+                  left: 10,
+                  fontSize: { xs: "12px", sm: "16px" },
+                }}
+              >
+                {isRecording
+                  ? "Listening for answer..."
+                  : 'Click "Start Answering" Button below to give your answer.'}
+              </Typography>
+            </Box>
+          </Grid2>
+        )}
+      </>
+    );
+  }
+);
 
 export default ExamSessionVideoCamBox;

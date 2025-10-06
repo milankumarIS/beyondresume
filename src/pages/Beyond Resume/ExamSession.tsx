@@ -15,6 +15,7 @@ import { useHistory } from "react-router";
 import { useSnackbar } from "../../components/shared/SnackbarProvider";
 import { commonFormTextFieldSx } from "../../components/util/CommonFunctions";
 import { BeyondResumeButton } from "../../components/util/CommonStyle";
+import ConfirmationPopup from "../../components/util/ConfirmationPopup";
 import {
   getUserAnswerFromAi,
   updateByIdDataInTable,
@@ -25,7 +26,6 @@ import ExamSessionVideoCamBox, {
   ExamSessionVideoCamBoxHandle,
 } from "./Beyond Resume Components/ExamSessionVideoCamBox";
 import { evaluateInterviewResponses } from "./Beyond Resume Components/interviewEvaluator";
-import ConfirmationPopup from "../../components/util/ConfirmationPopup";
 
 const ExamSession: React.FC<ExamSessionProps> = ({
   response,
@@ -842,6 +842,8 @@ const ExamSession: React.FC<ExamSessionProps> = ({
           isRecording={isRecording}
           onProctoringError={setProctoringError}
           onProctoringReady={(ready) => setProctoringInitialized(ready)}
+          roundData={roundData}
+          jobData={jobsData}
         />
 
         <Box

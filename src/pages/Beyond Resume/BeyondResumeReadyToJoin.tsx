@@ -150,19 +150,27 @@ const BeyondResumeReadyToJoin = () => {
 
   useEffect(() => {
     let error: string | null = null;
+
     if (!proctoringReady) {
       return;
-    } else if (results.objects.includes("cell phone")) {
-      error = "Mobile phone detected! Please remove it from the frame.";
-    } else if (results.faces.length === 0) {
+    }
+
+    // console.log(results);
+
+    // if (results.objects.includes("cell phone")) {
+    //   error = "Mobile phone detected! Please remove it from the frame.";
+    // } else
+
+    if (results.faces === 0) {
       error = "No face detected. Please ensure your face is clearly visible.";
-    } else if (results.faces.length > 1) {
+    } else if (results.faces > 1) {
       error =
         "Multiple faces detected. Only one person is allowed in the frame.";
     }
 
     setDetectionError(error);
-  }, [results.objects, results.faces]);
+  }, [results.objects, results.faces, proctoringReady]);
+
 
   const queryParams = new URLSearchParams({
     sessionType:

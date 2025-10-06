@@ -34,7 +34,7 @@ interface JobTimelineProps {
     endDate: string;
     rounds: Round[];
   };
-  rounds?:any
+  rounds?: any;
 }
 
 const CustomStepIcon = (props: StepIconProps) => {
@@ -70,7 +70,7 @@ const CustomStepIcon = (props: StepIconProps) => {
   );
 };
 
-const JobTimelineStepper: React.FC<JobTimelineProps> = ({ job,rounds }) => {
+const JobTimelineStepper: React.FC<JobTimelineProps> = ({ job, rounds }) => {
   const today = dayjs();
   const applicationDeadline = dayjs(job.endDate);
   let cumulativeDays = 0;
@@ -108,6 +108,7 @@ const JobTimelineStepper: React.FC<JobTimelineProps> = ({ job,rounds }) => {
       sx={{
         background: color.cardBg,
         p: 2,
+        mt: 2,
         borderRadius: "12px",
         width: "100%",
       }}

@@ -38,6 +38,7 @@ import BeyondResumePricing from './pages/Beyond Resume/Beyond Resume Payments/Be
 import BeyondResumeJobPost from './pages/Beyond Resume/Beyond Resume Talent Partner/Beyond Resume Job Post/BeyondResumeJobPost';
 import BeyondResumeCandidateList from './pages/Beyond Resume/Beyond Resume Talent Partner/BeyondResumeCandidateList';
 import BeyondResumePartnerJobDetails from './pages/Beyond Resume/Beyond Resume Talent Partner/BeyondResumePartnerJobDetails';
+import CompanyProfileForm from './pages/Beyond Resume/BeyondResumeCompanyProfile/CompanyProfileForm';
 import { CompanyProfilePage } from './pages/Beyond Resume/BeyondResumeCompanyProfile/CompanyProfilePage';
 import BeyondResumeHome from './pages/Beyond Resume/BeyondResumeHome';
 import BeyondResumeJobDetails from './pages/Beyond Resume/BeyondResumeJobDetails';
@@ -134,9 +135,9 @@ const App: React.FC = () => {
                   <ProtectedRoute path="/beyond-resume-JobInterviewForm/:brJobId" component={BeyondResumeJobInterviewForm} />
                   <ProtectedRoute path="/beyond-resume-readyToJoin/:brJobId" component={BeyondResumeReadyToJoin} />
 
-                  <ProtectedRoute path="/beyond-resume-jobInterviewSession/:brJobId" component={BeyondResumeJobInterviewSession} />
-                  <ProtectedRoute path="/beyond-resume-jobInterviewSession-written/:brJobId" component={BeyondResumeJobInterviewSessionWritten} />
-                  <ProtectedRoute path="/beyond-resume-practiceInterviewSession/:brJobId" component={BeyondResumePracticeInterviewSession} />
+                  <ProtectedRoute path="/beyond-resume-jobInterviewSession/:token" component={BeyondResumeJobInterviewSession} />
+                  <ProtectedRoute path="/beyond-resume-jobInterviewSession-written/:token" component={BeyondResumeJobInterviewSessionWritten} />
+                  <ProtectedRoute path="/beyond-resume-practiceInterviewSession/:token" component={BeyondResumePracticeInterviewSession} />
                   <ProtectedRoute path="/beyond-resume-interview-success" component={BeyondResumeInterviewSuccess} />
                   <ProtectedRoute path="/beyond-resume-jobApplications" component={BeyondResumeApplications} />
                   <ProtectedRoute path="/beyond-resume-interview-list" component={BeyondResumeInterviewList} />
@@ -144,6 +145,7 @@ const App: React.FC = () => {
                   <ProtectedRoute path="/beyond-resume-interview-overview/:id" component={BeyondResumeInterviewOverview} />
                   <ProtectedRoute path="/beyond-resume-candidate-profile" component={CandidateProfilePage} />
                   <ProtectedRoute path="/beyond-resume-company-profile" component={CompanyProfilePage} />
+                  <ProtectedRoute path="/beyond-resume-company-profile-form" component={CompanyProfileForm} />
                   <ProtectedRoute path="/beyond-resume-pricing" component={BeyondResumePricing} /> 
                   <ProtectedRoute path="/beyond-resume-payment" component={BeyondResumePayment} /> 
                   <ProtectedRoute path="/beyond-resume-questionBankForm" component={BeyondResumeQuestionBankForm} /> 

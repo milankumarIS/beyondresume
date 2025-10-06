@@ -41,7 +41,7 @@ const ExamSessionWritten: React.FC<SecureExamProps> = ({
   interviewDuration,
   isAdaptive,
   jobsData,
-  roundData
+  roundData,
 }) => {
   const [parsedData, setParsedData] = useState<TextContent | null>(null);
   const [currentCategoryIndex, setCurrentCategoryIndex] = useState(0);
@@ -664,7 +664,7 @@ Return only:
       openSnackBar,
       setLoading,
       jobsData,
-      roundData
+      roundData,
     });
   };
 
@@ -697,6 +697,8 @@ Return only:
         }}
       >
         <ExamSessionVideoCamBox
+          roundData={roundData}
+          jobData={jobsData}
           onProctoringError={setProctoringError}
           onProctoringReady={(ready) => setProctoringInitialized(ready)}
         />
@@ -850,7 +852,7 @@ Return only:
               >
                 {loading ? (
                   <>
-                      Submitting Interview
+                    Submitting Interview
                     <CircularProgress
                       color="inherit"
                       style={{ marginLeft: "4px" }}
@@ -860,7 +862,7 @@ Return only:
                 ) : (
                   <>
                     {isLastQuestion ||
-                     (isAdaptive && adaptiveProgression.length === maxQuestions)
+                    (isAdaptive && adaptiveProgression.length === maxQuestions)
                       ? "Submit"
                       : "Next"}
                   </>

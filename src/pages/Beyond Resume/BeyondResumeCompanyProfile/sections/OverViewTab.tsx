@@ -1,25 +1,42 @@
 import { Box, Button, Typography } from "@mui/material";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useTheme } from "../../../../components/util/ThemeContext";
-import color from "../../../../theme/color";
+import { getUserId } from "../../../../services/axiosClient";
+import { brAnalytics } from "../../../../services/services";
 
 export const OverviewTab: React.FC<{ companyInfo: any }> = ({
   companyInfo,
 }) => {
+  const [jobsData, setJobsData] = useState<any>({});
+
+  useEffect(() => {
+    const fetchJobsData = async () => {
+      try {
+        const res1 = await brAnalytics({ userId: getUserId() });
+        setJobsData(res1?.data?.data);
+      } catch (error) {
+        console.error("Error fetching job stats:", error);
+      }
+    };
+
+    fetchJobsData();
+  }, []);
+
+  // Map API response to jobStats
   const jobStats = [
     {
-      value: 24,
+      value: jobsData?.totalActiveJobPostedByUser ?? 0,
       label: "Active Jobs",
       background: "linear-gradient(135deg, #42a5f5, #478ed1)",
     },
     {
-      value: 28,
-      label: "Pending Jobs",
+      value: jobsData?.totalJobPostedByUser ?? 0,
+      label: "Total Jobs",
       background: "linear-gradient(135deg, #ffb74d, #f57c00)",
     },
     {
-      value: 12,
-      label: "Closed Jobs",
+      value: jobsData?.totalApplicant ?? 0,
+      label: "Total Candidates",
       background: "linear-gradient(135deg, #ab47bc, #7b1fa2)",
     },
   ];
@@ -27,39 +44,28 @@ export const OverviewTab: React.FC<{ companyInfo: any }> = ({
   const { theme } = useTheme();
 
   return (
-    <Box p={2}>
+    <Box p={2} pt={0}>
       <Box
         sx={{
           display: "flex",
           gap: 2,
           justifyContent: "space-around",
-              // boxShadow: "0px 0px 10px #00000021",
-
-          // boxShadow:
-          //   "5px 5px 10px rgb(25, 25, 25), -2px -2px 10px rgba(95, 95, 95, 1)",
           p: 2,
           borderRadius: "12px",
-          // background: "#2d3436",
-          // border: "1px solid #07070744",
         }}
       >
         {jobStats.map((stat, index) => (
           <Box
             sx={{
-              // background:
-              //   theme === "dark" ? color.jobCardBg : color.jobCardBgLight,
-              background: "#2d3436",
-
+              border: "solid 1px white",
+              boxShadow: "0px 0px 10px #00000021",
               p: 2,
               px: 4,
-              borderRadius: 2,
+              borderRadius: 4,
               display: "flex",
               alignItems: "center",
               gap: 2,
               cursor: "pointer",
-              border: "1px solid #ffffff44",
-
-              // boxShadow: "0px 0px 10px #00000021",
               position: "relative",
             }}
           >
@@ -69,7 +75,7 @@ export const OverviewTab: React.FC<{ companyInfo: any }> = ({
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
-                color: "white",
+                color: "inherit",
               }}
             >
               <Button
@@ -77,34 +83,29 @@ export const OverviewTab: React.FC<{ companyInfo: any }> = ({
                   fontFamily: "custom-bold",
                   fontSize: "20px",
                   borderRadius: "50%",
-                  background: "#2d3436",
+                  border: "1px solid #ffffffff",
                   minWidth: 0,
                   width: "40px",
                   height: "40px",
                   textAlign: "center",
-                  color: "white",
+                  color: "inherit",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  boxShadow:
-                    "5px 5px 10px rgb(25, 25, 25), -2px -2px 10px rgba(95, 95, 95, 1)",
+                  boxShadow: "0px 0px 10px #00000021",
                   transition: "all 0.3s ease",
-
                   "&:hover": {
-                    // background: '#ebebeb',
-                    // color: "#000000ff",
+                    border: "none",
                     transform: "translateY(-4px) scale(1.05)",
-                    // boxShadow: "0 6px 12px rgba(0,0,0,0.15)",
+                    background: "black",
+                    color: "white",
                   },
-                  // border: "solid 1px white",
                 }}
               >
                 {stat.value}
               </Button>
               <Typography mt={0.5}>{stat.label}</Typography>
             </Box>
-
-            {/* <FontAwesomeIcon icon={faAnglesRight} /> */}
           </Box>
         ))}
       </Box>

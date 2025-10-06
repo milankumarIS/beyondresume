@@ -6,7 +6,7 @@ import {
   faUserTie,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Box, Button, Typography } from "@mui/material";
+import { Box, Card, CardContent, Typography } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router";
 import { jobKeywordIcons } from "../../../components/form/data";
@@ -25,8 +25,8 @@ import color from "../../../theme/color";
 import BeyondResumeInterviewOverviewQA from "../Beyond Resume Components/BeyondResumeInterviewOverviewQA";
 import HtmlToPdfViewer from "../Beyond Resume Components/HtmlToPdfViewer";
 import { getUserRole } from "../../../services/axiosClient";
-import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
 interface QuestionItem {
   categoryName: string;
@@ -66,13 +66,14 @@ interface InterviewData {
 
 const BeyondResumeInterviewOverview = () => {
   const [data, setData] = useState<InterviewData | null>(null);
+  const [proctoringAuditData, setproctoringAuditData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const { id } = useParams<{ id: string }>();
   const queryParams = new URLSearchParams(location.search);
   const type = queryParams.get("type");
   const [brJobApplicantId, ...rest] = id.split("-");
   const roundId = rest.join("-");
-  const { theme } = useTheme();
+
   const profileRef = useRef<HTMLDivElement>(null);
   const [hideSensitive, setHideSensitive] = useState(false);
 
@@ -85,7 +86,7 @@ const BeyondResumeInterviewOverview = () => {
       const canvas = await html2canvas(profileRef.current, {
         scale: 2,
         useCORS: true,
-        backgroundColor: theme === "dark" ? color.newbg : "white",
+         backgroundColor: theme === "dark" ? color.newbg : "white",
       });
 
       const imgData = canvas.toDataURL("image/png");
@@ -109,12 +110,23 @@ const BeyondResumeInterviewOverview = () => {
         heightLeft -= pageHeight;
       }
 
-      const pdfBlob = pdf.output("blob");
-      const pdfUrl = URL.createObjectURL(pdfBlob);
-      window.open(pdfUrl, "_blank");
+      // Save the PDF directly with a custom name
+      pdf.save(`${data?.fullName} Profile Details .pdf`);
     }
+
     setHideSensitive(false);
   };
+
+  useEffect(() => {
+    searchListDataFromTable("brProcteringAudit", {
+      brJobApplicantId: 176,
+      roundId: "round-1",
+    }).then((result: any) => {
+      setproctoringAuditData([...result?.data?.data]);
+    });
+  }, []);
+
+  // console.log(proctoringAuditData);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -167,7 +179,7 @@ const BeyondResumeInterviewOverview = () => {
         }
 
         setData(combinedData);
-        console.log(combinedData);
+        // console.log(combinedData);
       } catch (error) {
         console.error(error);
       } finally {
@@ -230,6 +242,7 @@ const BeyondResumeInterviewOverview = () => {
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference * (1 - progress);
+  const { theme } = useTheme();
 
   return (
     <Box
@@ -346,7 +359,7 @@ const BeyondResumeInterviewOverview = () => {
                   alignItems: "center",
                   justifyContent: "center",
                   textAlign: "center",
-                  fontSize: 16,
+                  fontSize: 14,
                   fontWeight: 600,
                 }}
               >
@@ -662,6 +675,52 @@ const BeyondResumeInterviewOverview = () => {
             htmlText={data?.generatedCoverLetter}
           />
         </Box>
+      )}
+      {getUserRole() === "TALENT PARTNER" && !hideSensitive && (
+        <>
+          <Typography variant="h5" mb={2} mt={4}>
+           Exam Session Snapshots
+          </Typography>
+          <Box
+            flexDirection={{ xs: "column", md: "row" }}
+            sx={{
+              display: "flex",
+              gap: 2,
+              alignItems: "center",
+              justifyContent: "space-around",
+              overflowX: "hidden",
+            }}
+          >
+            {proctoringAuditData.map((audit) => (
+              <Card
+                key={audit.brProcteringAuditId}
+                sx={{ borderRadius: 3, mb: 2 }}
+              >
+                {audit.artefactType === "image" && (
+                  <img
+                    src={audit.artefactRemark}
+                    alt={audit.auditRemark}
+                    style={{
+                      width: "100%",
+                      height: 180,
+                      objectFit: "cover",
+                      borderTopLeftRadius: "12px",
+                      borderTopRightRadius: "12px",
+                    }}
+                  />
+                )}
+                <CardContent>
+                  <Typography variant="body1" fontWeight={500}>
+                    {audit.auditRemark}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {new Date(audit.createdAt).toLocaleString()}
+                  </Typography>
+                </CardContent>
+              </Card>
+            ))}
+          </Box>
+        </>
       )}
 
       {data.interviewVideo && (

@@ -2,8 +2,7 @@ import {
   faFacebook,
   faInstagram,
   faLinkedin,
-  faTwitter,
-  faXTwitter,
+  faXTwitter
 } from "@fortawesome/free-brands-svg-icons";
 import { Avatar, Box, Typography } from "@mui/material";
 import React from "react";
@@ -37,18 +36,41 @@ export const CompanyHeaderSection: React.FC<Props> = ({ companyInfo }) => {
             <Typography
               variant="body2"
               //   color="text.secondary"
-              sx={{ fontFamily: "montserrat-regular", opacity: 0.6, color:'inherit' }}
+              sx={{
+                fontFamily: "montserrat-regular",
+                opacity: 0.6,
+                color: "inherit",
+              }}
             >
-              {companyInfo.industryCategory} | {companyInfo.headquarters.city},{" "}
-              {companyInfo.headquarters.state},{" "}
-              {companyInfo.headquarters.country}
+              {companyInfo.industryCategory} | {companyInfo.headquarters?.city},{" "}
+              {companyInfo.headquarters?.state},{" "}
+              {companyInfo.headquarters?.country}
             </Typography>
             <Box sx={{ display: "flex", gap: 1.2, mt: 1 }}>
-              <SocialIcon icon={faInstagram} link={companyInfo.socialLinks?.instagram} />
-              <SocialIcon icon={faFacebook} link={companyInfo.socialLinks?.facebook} />
-              <SocialIcon icon={faXTwitter} link={companyInfo.socialLinks?.twitter} />
-              <SocialIcon icon={faLinkedin} link={companyInfo.socialLinks?.linkedin} />
-              <SocialIcon icon={faTwitter} link={companyInfo.socialLinks?.instagram} />
+              {companyInfo.socialLinks?.instagram && (
+                <SocialIcon
+                  icon={faInstagram}
+                  link={companyInfo.socialLinks.instagram}
+                />
+              )}
+              {companyInfo.socialLinks?.facebook && (
+                <SocialIcon
+                  icon={faFacebook}
+                  link={companyInfo.socialLinks.facebook}
+                />
+              )}
+              {companyInfo.socialLinks?.twitter && (
+                <SocialIcon
+                  icon={faXTwitter}
+                  link={companyInfo.socialLinks.twitter}
+                />
+              )}
+              {companyInfo.socialLinks?.linkedin && (
+                <SocialIcon
+                  icon={faLinkedin}
+                  link={companyInfo.socialLinks.linkedin}
+                />
+              )}
             </Box>
           </Box>
         </Box>

@@ -28,12 +28,14 @@ import CustomSnackbar from "../../../../components/util/CustomSnackbar";
 import {
   getUserAnswerFromAi,
   insertBulkDataInTable,
+  searchDataFromTable,
   updateByIdDataInTable,
 } from "../../../../services/services";
 import color from "../../../../theme/color";
 import JobTimelineStepper from "../../Beyond Resume Components/JobTimelineStepper";
 import GeneratedAiQnaResponse from "./GeneratedAiQnaResponse";
 import SmartEvaluationTab from "./Tabs/SmartEvaluationTab";
+import { getUserId } from "../../../../services/axiosClient";
 
 interface Round {
   roundId: string;
@@ -75,6 +77,22 @@ export default function BeyondResumeInterviewRounds({
   const [loading, setLoading] = useState(false);
   const { snackbarProps, showSnackbar } = useNewSnackbar();
 
+  const [companyData, setCompanyData] = useState<any>({});
+
+  useEffect(() => {
+    const checkCompanyData = async () => {
+      const res = await searchDataFromTable("companyInfo", {
+        createdBy: getUserId(),
+      });
+
+      const prevData = res?.data?.data || {};
+
+      setCompanyData(prevData);
+    };
+
+    checkCompanyData();
+  }, []);
+
   useEffect(() => {
     const payload = {
       endDate: jobFormData?.endDate,
@@ -83,26 +101,54 @@ export default function BeyondResumeInterviewRounds({
     SetJobData(payload);
   }, [mode]);
 
+  
+
   const fetchAiRounds = async () => {
     setLoading(true);
-    const fullCommand = `Suggest 4–6 interview rounds for the following job description.
-The interviews will be conducted fully online by our system with no human involvement.
-Format the response as a JSON array where each item has:
-- roundName (clear, skill-oriented, so that specific interview questions can be generated)
-- purpose (explain what skills/competencies this round evaluates, aligned with the job description)
-- cutoffType ("fixed" or "dynamic")
-- cutoffValue (if cutoffType = fixed)
-- targetCutoff, flexibility, minPassCount (if cutoffType = dynamic)
+const fullCommand = `Generate a set of automated interview rounds for the following job description. The rounds should be tailored based on the company's industry type, classification, and intelligence level expectations.
+
+Company Context:
+- Name: ${jobFormData.companyName}
+- Industry Type: ${companyData?.industryType}   // Product Based / Service Based
+- Industry Classification: ${companyData?.industryClassification} // MNC, Startup, Mid-sized
+- Company Category Context:
+  1. Product Based
+     a. MNC/GCC/Innovation Labs (Meta, Apple, Netflix, Google, Microsoft, Nvidia, Amazon, etc.) – top-level intelligence required (>95%)
+     b. Product Startups (OpenAI, ChatGPT, Perplexity, Xai, etc.) – high intelligence required (90–95%)
+  2. Service Based
+     a. MNC/GCC/Services (Accenture, Infosys, TCS, Wipro, SAP Labs, Kyndril, IBM, Capgemini, Deloitte, etc.) – good intelligence required (80–90%)
+     b. Startups (iGate, Aptive, etc.) – above-average intelligence required (70–80%)
+     c. Mid-sized Service Companies (ServiceNow, HCL, Tech Mahindra, etc.) – average intelligence required (60–75%)
+
+Candidate Profile:
+- Experience Required: ${jobFormData?.experience} years
 
 Guidelines:
-1. The number of rounds should typically be 5, but you may suggest 4–6 depending on job complexity.
-2. Each round should correspond to skills that can be evaluated via automated questions (e.g., technical knowledge, coding, problem-solving, situational judgment, communication, role-specific scenarios).
-3. Earlier rounds should cover screening and basic validation of core skills.
-4. Later rounds should assess deeper problem-solving, decision-making, and role-specific scenarios.
-5. Cutoff strategy must balance fairness and difficulty, ensuring sufficient candidates progress.
-6. Round names and purposes must be designed so that relevant interview questions can be auto-generated and evaluated by the system.
+1. Suggest an appropriate number of fully online interview rounds based on the candidate’s experience and the company Category context.
+2. Each round should evaluate skills aligned with the company's expected intelligence level and the job description.
+3. Early rounds should screen core skills; later rounds should assess advanced problem-solving, decision-making, and role-specific scenarios.
+4.  if it is product based deep understanding of data structures, algorithms, design patterns and other such skill be must
+5. Specify cutoff strategy for each round:
+   - If 'cutoffType' is "fixed", provide 'cutoffValue'.
+   - If 'cutoffType' is "dynamic", provide 'targetCutoff', 'flexibility', and 'minPassCount'.
+6. Ensure fairness and appropriate difficulty to allow sufficient candidate progression.
+7. Round names and purposes must allow automated question generation and evaluation.
 
-Job Description: ${jobDescription}`;
+Output Format (JSON array):
+[
+  {
+    "roundName": "string",
+    "purpose": "string",
+    "cutoffType": "fixed" | "dynamic",
+    "cutoffValue": number,            // required if cutoffType = fixed
+    "targetCutoff": number,           // required if cutoffType = dynamic
+    "flexibility": number,            // required if cutoffType = dynamic
+    "minPassCount": number             // required if cutoffType = dynamic
+  }
+]
+
+Job Description:
+${jobDescription}`;
 
     const aiRes = await getUserAnswerFromAi({ question: fullCommand });
     const rawText =

@@ -469,20 +469,34 @@ const BeyondResumeJobDetails = ({
                   mt: 1.5,
                   display: "flex",
                   gap: 1,
-                  flexWrap: "wrap",
+                  // flexWrap: "wrap",
+                  flexDirection: { xs: "column", md: "row" },
                   position: "relative",
                 }}
               >
-                <Typography
-                  sx={{ ...commonPillStyle, px: 0, fontSize: "14px" }}
+                <Box
+                  sx={{
+                    display: "flex",
+                    gap: 1,
+                  }}
                 >
-                  <GradientFontAwesomeIcon size={16} icon={faClock} />{" "}
-                  {timeAgo(job.createdAt)}
-                </Typography>
-                <Typography sx={{ ...commonPillStyle, fontSize: "14px" }}>
-                  <GradientFontAwesomeIcon size={16} icon={faBriefcase} />{" "}
-                  {job.jobType}
-                </Typography>
+                  <Typography
+                    sx={{ ...commonPillStyle, px: 0, fontSize: "14px" }}
+                  >
+                    <GradientFontAwesomeIcon size={16} icon={faClock} />{" "}
+                    {timeAgo(job.createdAt)}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      ...commonPillStyle,
+                      pl: { xs: 0, md: 1 },
+                      fontSize: "14px",
+                    }}
+                  >
+                    <GradientFontAwesomeIcon size={16} icon={faBriefcase} />{" "}
+                    {job.jobType}
+                  </Typography>
+                </Box>
 
                 {!brJobId && (
                   <Typography
@@ -791,7 +805,7 @@ const BeyondResumeJobDetails = ({
                     </BeyondResumeButton2>
                   )}
 
-                {/* {showQuestion && (
+                {showQuestion && rounds?.length === 0 && (
                   <Box ref={questionRef} sx={{ m: -4, mt: 2 }}>
                     <GeneratedAiQnaResponse
                       status={job?.brJobStatus}
@@ -799,7 +813,7 @@ const BeyondResumeJobDetails = ({
                       jobId={job.brJobId}
                     />
                   </Box>
-                )} */}
+                )}
 
                 {showQuestion && rounds?.length > 0 && (
                   <Box
