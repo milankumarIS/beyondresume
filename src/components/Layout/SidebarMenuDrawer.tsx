@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Drawer, Box, Typography } from "@mui/material";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useHistory, useLocation } from "react-router-dom";
-import { useTheme } from "../util/ThemeContext";
+import { useTheme } from "../context/ThemeContext";
 import { buttonsArray } from "./Sidebar"; // reuse same array
 import color from "../../theme/color";
 import { getUserRole, isLoggedIn } from "../../services/axiosClient";

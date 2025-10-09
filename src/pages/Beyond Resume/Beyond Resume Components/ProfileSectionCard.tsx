@@ -2,7 +2,7 @@ import { faEdit } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Box, Paper, Typography } from "@mui/material";
 import { ReactNode } from "react";
-import { useTheme } from "../../../components/util/ThemeContext";
+import { useTheme } from "../../../components/context/ThemeContext";
 
 interface Props {
   title: string;

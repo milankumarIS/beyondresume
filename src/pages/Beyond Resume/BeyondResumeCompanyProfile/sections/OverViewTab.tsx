@@ -1,6 +1,6 @@
 import { Box, Button, Typography } from "@mui/material";
 import React, { useEffect, useState } from "react";
-import { useTheme } from "../../../../components/util/ThemeContext";
+import { useTheme } from "../../../../components/context/ThemeContext";
 import { getUserId } from "../../../../services/axiosClient";
 import { brAnalytics } from "../../../../services/services";
 

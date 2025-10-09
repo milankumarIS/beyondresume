@@ -19,7 +19,7 @@ import {
   commonPillStyle,
   GradientFontAwesomeIcon,
 } from "../../../components/util/CommonStyle";
-import { useTheme } from "../../../components/util/ThemeContext";
+import { useTheme } from "../../../components/context/ThemeContext";
 import { searchListDataFromTable } from "../../../services/services";
 import color from "../../../theme/color";
 import BeyondResumeInterviewOverviewQA from "../Beyond Resume Components/BeyondResumeInterviewOverviewQA";

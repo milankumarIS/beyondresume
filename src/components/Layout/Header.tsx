@@ -14,7 +14,7 @@ import { useHistory, useLocation } from "react-router-dom";
 import { getUserRole } from "../../services/axiosClient";
 import { GradientFontAwesomeIcon } from "../util/CommonStyle";
 import ConfirmationPopup from "../util/ConfirmationPopup";
-import { useTheme } from "../util/ThemeContext";
+import { useTheme } from "../context/ThemeContext";
 import SidebarMenuDrawer from "./SidebarMenuDrawer";
 
 const Header: React.FC = () => {

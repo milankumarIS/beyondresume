@@ -525,27 +525,26 @@ export const StyledTypography = styled(Typography)(({ theme }) => ({
   },
 }));
 
-export const slideLeftVariants: Variants = {
+export const fadeInVariants: Variants = {
   hidden: {
     opacity: 0,
-    x: 100,
   },
   visible: {
     opacity: 1,
-    x: 0,
     transition: {
-      type: "spring",
-      stiffness: 100,
+      duration: 0.6, // smooth fade-in
+      ease: "easeInOut",
     },
   },
   exit: {
     opacity: 0,
-    x: 100,
     transition: {
       duration: 0.3,
+      ease: "easeInOut",
     },
   },
 };
+
 
 const formatTime = (seconds: number) => {
   const h = Math.floor(seconds / 3600)
@@ -665,7 +664,7 @@ import {
   faXmarkCircle,
 } from "@fortawesome/free-solid-svg-icons";
 import { SliderThumb } from "@mui/material";
-import { useTheme } from "./ThemeContext";
+import { useTheme } from "../context/ThemeContext";
 
 type CustomThumbProps = React.HTMLAttributes<unknown> & {
   value: number;

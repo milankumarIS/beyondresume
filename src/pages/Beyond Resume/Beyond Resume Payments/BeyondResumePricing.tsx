@@ -16,7 +16,7 @@ import {
 } from "../../../services/services";
 import color from "../../../theme/color";
 import BeyondResumeSubscription from "../Beyond Resume Components/BeyondResumeSubscription";
-import { useUserData } from "../../../components/util/UserDataContext";
+import { useUserData } from "../../../components/context/UserDataContext";
 
 export default function BeyondResumePricing() {
   const [duration, setDuration] = useState("1month");

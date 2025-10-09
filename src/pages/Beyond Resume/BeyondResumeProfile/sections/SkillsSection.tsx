@@ -8,7 +8,7 @@ import {
   searchDataFromTable,
   updateByIdDataInTable,
 } from "../../../../services/services";
-import { useTheme } from "../../../../components/util/ThemeContext";
+import { useTheme } from "../../../../components/context/ThemeContext";
 import color from "../../../../theme/color";
 import { faEdit } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";

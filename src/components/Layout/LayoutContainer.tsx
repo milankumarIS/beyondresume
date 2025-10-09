@@ -1,6 +1,6 @@
 import React from "react";
 import { useLocation } from "react-router-dom";
-import { useTheme } from "../util/ThemeContext";
+import { useTheme } from "../context/ThemeContext";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
 import { useMediaQuery } from "@mui/material";

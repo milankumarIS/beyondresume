@@ -17,7 +17,7 @@ import { useHistory, useLocation } from "react-router-dom";
 import { getUserRole, isLoggedIn } from "../../services/axiosClient";
 import color from "../../theme/color";
 import { GradientFontAwesomeIcon } from "../util/CommonStyle";
-import { useTheme } from "../util/ThemeContext";
+import { useTheme } from "../context/ThemeContext";
 
 const navItems = [
   { icon: faHome, label: "Home", path: "/beyond-resume" },

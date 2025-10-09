@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useHistory, useLocation } from "react-router";
 import color from "../../../theme/color";
 import { BeyondResumeButton } from "../../util/CommonStyle";
-import { useNotifications } from "../../util/NotificationContext";
+import { useNotifications } from "../../context/NotificationContext";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSignOut } from "@fortawesome/free-solid-svg-icons";
 

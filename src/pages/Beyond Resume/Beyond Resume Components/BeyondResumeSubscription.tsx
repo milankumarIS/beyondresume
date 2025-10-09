@@ -6,7 +6,7 @@ import { useHistory } from "react-router";
 import { pricingPlans } from "../../../components/form/data";
 import { BeyondResumeButton } from "../../../components/util/CommonStyle";
 import color from "../../../theme/color";
-import { useTheme } from "../../../components/util/ThemeContext";
+import { useTheme } from "../../../components/context/ThemeContext";
 
 const PricingCard = ({
   plan,

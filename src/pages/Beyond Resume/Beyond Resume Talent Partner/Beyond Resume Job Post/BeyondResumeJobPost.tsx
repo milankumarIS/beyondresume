@@ -2,8 +2,8 @@ import { Box, Typography } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { TalentPartnerScriptLines } from "../../../../components/form/data";
 import GradientText from "../../../../components/util/CommonStyle";
-import { useIndustry } from "../../../../components/util/IndustryContext";
-import { useTheme } from "../../../../components/util/ThemeContext";
+import { useIndustry } from "../../../../components/context/IndustryContext";
+import { useTheme } from "../../../../components/context/ThemeContext";
 import { getUserId, getUserRole } from "../../../../services/axiosClient";
 import {
   searchDataFromTable,

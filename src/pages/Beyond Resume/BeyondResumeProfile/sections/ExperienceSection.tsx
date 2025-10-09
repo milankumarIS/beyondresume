@@ -24,7 +24,7 @@ import {
 import color from "../../../../theme/color";
 import ProfileSectionCard from "../../Beyond Resume Components/ProfileSectionCard";
 import ExperienceForm from "../forms/ExperienceForm";
-import { useTheme } from "../../../../components/util/ThemeContext";
+import { useTheme } from "../../../../components/context/ThemeContext";
 
 export default function ExperienceSection({ hideSensitive }: any) {
   const [data, setData] = useState<any[]>([]);

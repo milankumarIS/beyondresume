@@ -22,7 +22,7 @@ import {
   BeyondResumeButton,
   BeyondResumeButton2,
 } from "../../../components/util/CommonStyle";
-import { useTheme } from "../../../components/util/ThemeContext";
+import { useTheme } from "../../../components/context/ThemeContext";
 import { getUserId } from "../../../services/axiosClient";
 import { paginateDataFromTable } from "../../../services/services";
 import color from "../../../theme/color";

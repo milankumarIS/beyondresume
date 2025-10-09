@@ -23,7 +23,7 @@ import {
   BeyondResumeButton2,
 } from "../../../components/util/CommonStyle";
 import color from "../../../theme/color";
-import { useTheme } from "../../../components/util/ThemeContext";
+import { useTheme } from "../../../components/context/ThemeContext";
 
 const steps = ["Job Application", "Interview Confirmation", "AI Interview"];
 

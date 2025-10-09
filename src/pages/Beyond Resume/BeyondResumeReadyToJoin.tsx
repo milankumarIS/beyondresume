@@ -20,7 +20,7 @@ import GradientText, {
   BeyondResumeButton,
   BeyondResumeButton2,
 } from "../../components/util/CommonStyle";
-import { useUserData } from "../../components/util/UserDataContext";
+import { useUserData } from "../../components/context/UserDataContext";
 import CYS from "../../services/Secret";
 import AIProfileInterview from "./Beyond Resume Carrer Seeker/Beyond Resume Job Apply/AIProfileInterview";
 import BeyondResumeLoader from "./Beyond Resume Components/BeyondResumeLoader";

@@ -15,7 +15,7 @@ import {
 } from "@mui/material";
 import React from "react";
 import { BeyondResumeButton } from "../../../components/util/CommonStyle";
-import { useTheme } from "../../../components/util/ThemeContext";
+import { useTheme } from "../../../components/context/ThemeContext";
 import color from "../../../theme/color";
 import { formatRoundTS } from "../../../components/util/CommonFunctions";
 

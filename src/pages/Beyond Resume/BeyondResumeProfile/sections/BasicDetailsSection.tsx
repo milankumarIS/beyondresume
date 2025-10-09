@@ -20,7 +20,7 @@ import { getProfile } from "../../../../services/services";
 import color from "../../../../theme/color";
 import ProfileSectionCard from "../../Beyond Resume Components/ProfileSectionCard";
 import BasicDetailsForm from "../forms/BasicDetailsForm";
-import { useTheme } from "../../../../components/util/ThemeContext";
+import { useTheme } from "../../../../components/context/ThemeContext";
 
 export default function BasicDetailsSection({
   data,

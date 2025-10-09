@@ -6,7 +6,7 @@ import GeneratedAiQnaResponse from "./Beyond Resume Job Post/GeneratedAiQnaRespo
 import JobDescriptionResponse from "./Beyond Resume Job Post/JobDescriptionResponse";
 import { getUserRole } from "../../../services/axiosClient";
 import GradientText from "../../../components/util/CommonStyle";
-import { useIndustry } from "../../../components/util/IndustryContext";
+import { useIndustry } from "../../../components/context/IndustryContext";
 
 const BeyondResumeJobDetails = () => {
   const { brJobId } = useParams<any>();
@@ -23,6 +23,9 @@ const BeyondResumeJobDetails = () => {
     setJobStatus(result?.data?.data[0]?.brJobStatus);
     setLoading(false);
   };
+
+  // console.log(jobsData);
+  
 
   useEffect(() => {
     fetchJobDetails();

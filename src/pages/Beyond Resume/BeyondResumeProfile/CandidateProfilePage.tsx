@@ -6,7 +6,7 @@ import GradientText, {
   BeyondResumeButton,
   BeyondResumeButton2,
 } from "../../../components/util/CommonStyle";
-import { useUserData } from "../../../components/util/UserDataContext";
+import { useUserData } from "../../../components/context/UserDataContext";
 import BasicDetailsSection from "./sections/BasicDetailsSection";
 import EducationSection from "./sections/EducationSection";
 import ExperienceSection from "./sections/ExperienceSection";
@@ -15,7 +15,7 @@ import ResumeUploadSection from "./sections/ResumeUploadSection";
 import SkillsSection from "./sections/SkillsSection";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
-import { useTheme } from "../../../components/util/ThemeContext";
+import { useTheme } from "../../../components/context/ThemeContext";
 import color from "../../../theme/color";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faDownload } from "@fortawesome/free-solid-svg-icons";

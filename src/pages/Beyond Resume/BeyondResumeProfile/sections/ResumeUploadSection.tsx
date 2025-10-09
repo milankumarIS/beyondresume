@@ -8,7 +8,7 @@ import { extractCleanFileName } from "../../../../components/util/CommonFunction
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faDownload, faEdit } from "@fortawesome/free-solid-svg-icons";
 import color from "../../../../theme/color";
-import { useTheme } from "../../../../components/util/ThemeContext";
+import { useTheme } from "../../../../components/context/ThemeContext";
 
 export default function ResumeUploadSection({
   resumeUrl = "",

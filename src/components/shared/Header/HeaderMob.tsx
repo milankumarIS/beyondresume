@@ -14,7 +14,7 @@ import {
   isLoggedIn,
 } from "../../../services/axiosClient";
 import { handleNavClick } from "../../util/CommonFunctions";
-import { useNotifications } from "../../util/NotificationContext";
+import { useNotifications } from "../../context/NotificationContext";
 import "./Header.css";
 import MenuHoverItem from "./MenuHoverItem";
 

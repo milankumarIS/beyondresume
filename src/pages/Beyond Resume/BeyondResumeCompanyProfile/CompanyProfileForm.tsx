@@ -45,7 +45,7 @@ import {
   syncDataInTable,
   updateByIdDataInTable,
 } from "../../../services/services";
-import { useIndustry } from "../../../components/util/IndustryContext";
+import { useIndustry } from "../../../components/context/IndustryContext";
 
 const CompanyForm = () => {
   const [loading, setLoading] = useState(true);

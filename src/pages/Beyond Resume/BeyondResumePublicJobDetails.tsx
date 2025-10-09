@@ -17,8 +17,8 @@ import {
   StyledTypography,
 } from "../../components/util/CommonStyle";
 import CustomSnackbar from "../../components/util/CustomSnackbar";
-import { useIndustry } from "../../components/util/IndustryContext";
-import { useTheme } from "../../components/util/ThemeContext";
+import { useIndustry } from "../../components/context/IndustryContext";
+import { useTheme } from "../../components/context/ThemeContext";
 import { searchOpenListDataFromTable } from "../../services/services";
 import color from "../../theme/color";
 

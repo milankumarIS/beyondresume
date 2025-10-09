@@ -19,7 +19,7 @@ import {
 } from "../../../../services/services";
 import ProfileSectionCard from "../../Beyond Resume Components/ProfileSectionCard";
 import JobPreferenceForm from "../forms/JobPreferenceForm";
-import { useTheme } from "../../../../components/util/ThemeContext";
+import { useTheme } from "../../../../components/context/ThemeContext";
 import color from "../../../../theme/color";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 

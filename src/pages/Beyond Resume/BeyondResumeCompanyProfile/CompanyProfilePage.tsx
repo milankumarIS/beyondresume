@@ -16,7 +16,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Box, Link, Typography } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { useHistory } from "react-router-dom";
-import { useTheme } from "../../../components/util/ThemeContext";
+import { useTheme } from "../../../components/context/ThemeContext";
 import { getUserId } from "../../../services/axiosClient";
 import { searchDataFromTable } from "../../../services/services";
 import { CompanyHeaderSection } from "./sections/CompanyHeaderSection";

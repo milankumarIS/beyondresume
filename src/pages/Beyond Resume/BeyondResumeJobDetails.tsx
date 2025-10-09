@@ -34,8 +34,8 @@ import GradientText, {
 } from "../../components/util/CommonStyle";
 import ConfirmationPopup from "../../components/util/ConfirmationPopup";
 import CustomSnackbar from "../../components/util/CustomSnackbar";
-import { useIndustry } from "../../components/util/IndustryContext";
-import { useTheme } from "../../components/util/ThemeContext";
+import { useIndustry } from "../../components/context/IndustryContext";
+import { useTheme } from "../../components/context/ThemeContext";
 import { getUserId, getUserRole } from "../../services/axiosClient";
 import {
   searchDataFromTable,

@@ -22,7 +22,7 @@ import GradientText, {
   BeyondResumeButton,
   BeyondResumeButton2,
 } from "../../../../components/util/CommonStyle";
-import { useTheme } from "../../../../components/util/ThemeContext";
+import { useTheme } from "../../../../components/context/ThemeContext";
 import { getUserId, getUserRole } from "../../../../services/axiosClient";
 import {
   searchDataFromTable,
@@ -30,7 +30,7 @@ import {
   syncDataInTable,
 } from "../../../../services/services";
 import color from "../../../../theme/color";
-import { useUserData } from "../../../../components/util/UserDataContext";
+import { useUserData } from "../../../../components/context/UserDataContext";
 
 const BeyondResumePracticeJobs = () => {
   const [activeJobs, setActiveJobs] = useState<any[]>([]);

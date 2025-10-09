@@ -24,7 +24,7 @@ import {
   XAxis,
   YAxis
 } from "recharts";
-import { useTheme } from "../../../components/util/ThemeContext";
+import { useTheme } from "../../../components/context/ThemeContext";
 import color from "../../../theme/color";
 // import { CustomTooltip } from "../../Daily Education/Components/StudentGraphCanvas";
 

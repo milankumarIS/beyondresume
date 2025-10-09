@@ -9,7 +9,7 @@ import { Box, Stack, Typography } from "@mui/material";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 import { BeyondResumeButton } from "../../../../components/util/CommonStyle";
-import { useTheme } from "../../../../components/util/ThemeContext";
+import { useTheme } from "../../../../components/context/ThemeContext";
 import { getUserId } from "../../../../services/axiosClient";
 import {
   deleteDataFromTable,

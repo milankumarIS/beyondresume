@@ -13,7 +13,7 @@ import {
   BeyondResumeButton2,
   StyledTypography,
 } from "../../../components/util/CommonStyle";
-import { useTheme } from "../../../components/util/ThemeContext";
+import { useTheme } from "../../../components/context/ThemeContext";
 
 interface HtmlToPdfViewerProps {
   htmlText: string;

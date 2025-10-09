@@ -14,7 +14,7 @@ import {
 } from "@mui/material";
 import dayjs from "dayjs";
 import React, { useState } from "react";
-import { useTheme } from "../../../components/util/ThemeContext";
+import { useTheme } from "../../../components/context/ThemeContext";
 import color from "../../../theme/color";
 import {
   BeyondResumeButton,
