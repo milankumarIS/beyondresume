@@ -203,7 +203,7 @@ const CompanyForm = () => {
           register={register}
           errors={errors}
           sx={commonFormTextFieldSx}
-          readonly
+          // readonly
         />
 
         <FormAutocomplete2

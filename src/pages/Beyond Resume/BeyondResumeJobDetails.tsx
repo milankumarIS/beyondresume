@@ -24,7 +24,11 @@ import { useEffect, useRef, useState } from "react";
 import { useHistory, useLocation, useParams } from "react-router-dom";
 import { copyToClipboard } from "../../components/shared/Clipboard";
 import { useNewSnackbar } from "../../components/shared/useSnackbar";
-import { formatDateJob, timeAgo } from "../../components/util/CommonFunctions";
+import {
+  encryptPayload,
+  formatDateJob,
+  timeAgo,
+} from "../../components/util/CommonFunctions";
 import GradientText, {
   BeyondResumeButton,
   BeyondResumeButton2,
@@ -48,6 +52,7 @@ import JobTimelineStepper from "./Beyond Resume Components/JobTimelineStepper";
 import MatchingUserCard from "./Beyond Resume Components/MatchingUserCard";
 import { fetchMatchingUsers } from "./Beyond Resume Components/MatchingUsersList";
 import GeneratedAiQnaResponse from "./Beyond Resume Talent Partner/Beyond Resume Job Post/GeneratedAiQnaResponse";
+import CYS from "../../services/Secret";
 type Props = {
   job: any;
   applicantsCount: number;
@@ -346,6 +351,8 @@ const BeyondResumeJobDetails = ({
     !!job?.endDate &&
     new Date(job?.endDate) >= new Date();
 
+  const token = encryptPayload(job.brJobId, CYS);
+
   return (
     <Box>
       <Box
@@ -567,7 +574,7 @@ const BeyondResumeJobDetails = ({
                       new Date(job.endDate) >= new Date()) ? (
                       <BeyondResumeButton
                         onClick={() => {
-                          history.push(`/beyond-resume-jobedit/${job.brJobId}`);
+                          history.push(`/beyond-resume-jobedit/${token}`);
                         }}
                         variant="contained"
                         color="primary"

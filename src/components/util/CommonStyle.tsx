@@ -525,22 +525,24 @@ export const StyledTypography = styled(Typography)(({ theme }) => ({
   },
 }));
 
-export const fadeInVariants: Variants = {
+export const slideLeftVariants: Variants = {
   hidden: {
     opacity: 0,
+    x: 100,
   },
   visible: {
     opacity: 1,
+    x: 0,
     transition: {
-      duration: 0.6, // smooth fade-in
-      ease: "easeInOut",
+      type: "spring",
+      stiffness: 100,
     },
   },
   exit: {
     opacity: 0,
+    x: 100,
     transition: {
       duration: 0.3,
-      ease: "easeInOut",
     },
   },
 };

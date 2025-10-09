@@ -25,6 +25,7 @@ import CYS from "../../services/Secret";
 import AIProfileInterview from "./Beyond Resume Carrer Seeker/Beyond Resume Job Apply/AIProfileInterview";
 import BeyondResumeLoader from "./Beyond Resume Components/BeyondResumeLoader";
 import { useProctoringSuite } from "./Beyond Resume Components/useProctoringSuite";
+import useMediaDevicesStatus from "../../components/util/useMediaDevicesStatus";
 
 const BeyondResumeReadyToJoin = () => {
   type ExamState = {
@@ -56,18 +57,7 @@ const BeyondResumeReadyToJoin = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
-  const [isMicOn, setIsMicOn] = useState(false);
-  const [micAccessible, setMicAccessible] = useState(true);
-  const [micSilent, setMicSilent] = useState(false);
-
   const webcamRef = useRef<Webcam | null>(null);
-
-  const analyserRef = useRef<AnalyserNode | null>(null);
-  const audioContextRef = useRef<AudioContext | null>(null);
-  const mediaStreamRef = useRef<MediaStream | null>(null);
-  const intervalRef = useRef<number | null>(null);
-
-  const [cameraAccessible, setCameraAccessible] = useState(true);
 
   const videoElementRef = useMemo(() => {
     return {
@@ -78,73 +68,14 @@ const BeyondResumeReadyToJoin = () => {
   const { canvasRef, results, proctoringReady } =
     useProctoringSuite(videoElementRef);
 
-  useEffect(() => {
-    const checkCameraAccess = async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: true,
-        });
-        stream.getTracks().forEach((track) => track.stop());
-        setCameraAccessible(true);
-      } catch (err) {
-        console.warn("Camera not accessible:", err);
-        setCameraAccessible(false);
-      }
-    };
-    checkCameraAccess();
-  }, []);
-
-  useEffect(() => {
-    const initMicDetection = async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          audio: true,
-        });
-        mediaStreamRef.current = stream;
-        const audioContext = new AudioContext();
-        audioContextRef.current = audioContext;
-
-        const source = audioContext.createMediaStreamSource(stream);
-        const analyser = audioContext.createAnalyser();
-        analyser.fftSize = 512;
-        source.connect(analyser);
-        analyserRef.current = analyser;
-
-        const data = new Uint8Array(analyser.frequencyBinCount);
-        let silentCounter = 0;
-
-        intervalRef.current = window.setInterval(() => {
-          analyser.getByteFrequencyData(data);
-          const avg = data.reduce((a, b) => a + b, 0) / data.length;
-
-          if (avg < 1) {
-            silentCounter++;
-            if (silentCounter >= 10) {
-              setMicSilent(true);
-              setIsMicOn(false);
-            }
-          } else {
-            silentCounter = 0;
-            setMicSilent(false);
-          }
-        }, 500);
-      } catch (err) {
-        console.warn("Mic not accessible:", err);
-        setMicAccessible(false);
-        setIsMicOn(false);
-        setMicSilent(true);
-      }
-    };
-
-    initMicDetection();
-
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-      audioContextRef.current?.close();
-      analyserRef.current?.disconnect();
-      mediaStreamRef.current?.getTracks().forEach((t) => t.stop());
-    };
-  }, []);
+  const {
+    hasCamera,
+    cameraAccessible,
+    hasMic,
+    micAccessible,
+    micSilent,
+    isMicOn,
+  } = useMediaDevicesStatus();
 
   const [detectionError, setDetectionError] = useState<string | null>(null);
 
@@ -170,7 +101,6 @@ const BeyondResumeReadyToJoin = () => {
 
     setDetectionError(error);
   }, [results.objects, results.faces, proctoringReady]);
-
 
   const queryParams = new URLSearchParams({
     sessionType:
@@ -302,7 +232,7 @@ const BeyondResumeReadyToJoin = () => {
             </>
           </Box>
 
-          {micSilent && (
+          {(micSilent || !hasMic || !micAccessible) && (
             <Typography
               sx={{
                 textAlign: "center",
@@ -315,7 +245,7 @@ const BeyondResumeReadyToJoin = () => {
             </Typography>
           )}
 
-          {!cameraAccessible && micSilent && (
+          {(!cameraAccessible || !hasCamera) && (
             <Typography sx={{ mt: 2, color: "#ff5252", fontSize: "14px" }}>
               Camera is not accessible. Please check your device settings.
             </Typography>
@@ -349,15 +279,20 @@ const BeyondResumeReadyToJoin = () => {
                     `/beyond-resume-practiceInterviewSession/${token}?${queryParams}`
                   );
                 } else {
-                  // history.push(
-                  //   `/beyond-resume-jobInterviewSession/${encryptedJobId}${
-                  //     roundId ? `?roundId=${encryptedRoundId }` : ""
-                  //   }`
-                  // );
+                  // history.push(`/beyond-resume-jobInterviewSession/${token}`);
+
                   setModalOpen(true);
                 }
               }}
-              disabled={!isManualRead || !!detectionError}
+              disabled={
+                !isManualRead ||
+                !!detectionError ||
+                !cameraAccessible ||
+                !hasCamera ||
+                !micAccessible ||
+                !hasMic ||
+                micSilent
+              }
             >
               Proceed
             </BeyondResumeButton>

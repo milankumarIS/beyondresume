@@ -42,6 +42,8 @@ const BeyondResumeJobInterviewSessionWritten = () => {
       (elem as any).msRequestFullscreen();
   }, []);
 
+  
+
   useEffect(() => {
     const fetchData = async () => {
       setProgress(0);

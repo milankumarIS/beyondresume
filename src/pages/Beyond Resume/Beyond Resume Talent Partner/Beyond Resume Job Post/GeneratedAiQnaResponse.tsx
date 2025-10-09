@@ -10,6 +10,7 @@ interface GeneratedAiQnaResponseProps {
   jobId?: string | null;
   status?: string | null;
   roundId?: any;
+  isPost?: any;
 }
 
 const GeneratedAiQnaResponse: React.FC<GeneratedAiQnaResponseProps> = ({
@@ -17,6 +18,7 @@ const GeneratedAiQnaResponse: React.FC<GeneratedAiQnaResponseProps> = ({
   jobId,
   status,
   roundId,
+  isPost
 }) => {
   const location = useLocation();
   const [hasParseError, setHasParseError] = useState(false);
@@ -177,8 +179,8 @@ const GeneratedAiQnaResponse: React.FC<GeneratedAiQnaResponseProps> = ({
         )}
       </Box>
 
-      {/* {(!isJobPage || (isJobPage && status === "INPROGRESS")) &&
-        !hasParseError && displayContent && (
+      {(!isJobPage || (isJobPage && status === "INPROGRESS")) &&
+        !hasParseError && displayContent && isPost && (
           <BeyondResumeButton
             onClick={handleClick}
             variant="contained"
@@ -188,7 +190,7 @@ const GeneratedAiQnaResponse: React.FC<GeneratedAiQnaResponseProps> = ({
             Publish Job
   
           </BeyondResumeButton>
-        )} */}
+        )}
     </Box>
   );
 };

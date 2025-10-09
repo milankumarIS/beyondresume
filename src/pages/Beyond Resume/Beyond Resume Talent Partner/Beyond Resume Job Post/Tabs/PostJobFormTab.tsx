@@ -272,6 +272,7 @@ The final output should be HTML-formatted and ready to render on a webpage, pres
               withValidationClass={false}
               sx={commonFormTextFieldSx}
               readonly
+              watch={watch}
             />
           </Grid2>
 

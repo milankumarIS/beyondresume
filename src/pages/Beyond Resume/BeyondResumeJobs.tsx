@@ -2,8 +2,18 @@ import { faSearch } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Box, Grid, TextField, Typography } from "@mui/material";
 import { AnimatePresence, motion } from "framer-motion";
-import React, { useEffect, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useHistory } from "react-router";
+import { useIndustry } from "../../components/context/IndustryContext";
+import { useJobContext } from "../../components/context/JobContext";
+import { useTheme } from "../../components/context/ThemeContext";
+import { useUserData } from "../../components/context/UserDataContext";
 import {
   jobFunctions,
   jobMode,
@@ -23,9 +33,6 @@ import GradientText, {
 } from "../../components/util/CommonStyle";
 import ConfirmationPopup from "../../components/util/ConfirmationPopup";
 import CustomSnackbar from "../../components/util/CustomSnackbar";
-import { useIndustry } from "../../components/util/IndustryContext";
-import { useTheme } from "../../components/util/ThemeContext";
-import { useUserData } from "../../components/util/UserDataContext";
 import { getUserId, getUserRole } from "../../services/axiosClient";
 import {
   paginateDataFromTable,
@@ -97,6 +104,8 @@ const BeyondResumeJobs = () => {
     jobTitle: string[];
     jobMode: string[];
   };
+  const { selectedTab, setSelectedTab, selectedJob, setSelectedJob } =
+    useJobContext();
 
   useEffect(() => {
     const getAvatarStatus = async () => {
@@ -442,501 +451,6 @@ const BeyondResumeJobs = () => {
     setSearchedSavedJobs(savedJobs.filter(matches));
   }, [effectiveTerm, isJobPage, filteredJobs, savedJobs]);
 
-  const JobsSection = ({
-    title,
-    jobs,
-    type,
-  }: {
-    title: string;
-    jobs: any[];
-    type?: string;
-  }) => {
-    const [applicantsMap, setApplicantsMap] = useState<Record<string, any[]>>(
-      {}
-    );
-    const [statusCountsMap, setStatusCountsMap] = useState<
-      Record<string, { label: string; count: number; color: string }[]>
-    >({});
-    const [savedJobsSet, setSavedJobsSet] = useState<Set<string>>(new Set());
-    const [loadingApplicants, setLoadingApplicants] = useState<boolean>(true);
-    const [selectedJob, setSelectedJob] = useState<any | null>(null);
-    const [selectedApplicantsCount, setSelectedApplicantsCount] =
-      useState<number>(0);
-    const [matchingUsers, setMatchingUsers] = useState<
-      {
-        userId: number;
-        fullName: string;
-        matchPercent: number;
-        matchedSkills: string[];
-        userImage: string;
-        jobId: string;
-        resumeFileUrl?: string;
-        about?: string;
-      }[]
-    >([]);
-
-    useEffect(() => {
-      if (jobs.length > 0 && !selectedJob) {
-        const first = jobs[0];
-        setSelectedJob(first);
-        setSelectedApplicantsCount(applicantsMap[first.brJobId]?.length || 0);
-      }
-    }, [jobs]);
-
-    const handleViewMore = (job: any) => {
-      const applicantsCount = applicantsMap[job.brJobId]?.length || 0;
-      setSelectedJob(job);
-      setSelectedApplicantsCount(applicantsCount);
-    };
-
-    useEffect(() => {
-      const userId = getUserId();
-      const savedSet = new Set<string>();
-
-      (async () => {
-        setLoadingApplicants(true);
-
-        let allMatches: {
-          userId: number;
-          fullName: string;
-          matchPercent: number;
-          matchedSkills: string[];
-          userImage: string;
-          jobId: string;
-          resumeFileUrl?: string;
-          about?: string;
-        }[] = [];
-
-        if (isJobPage) {
-          for (const job of jobs) {
-            const { matches } = await fetchMatchingUsers(job);
-            allMatches.push(
-              ...matches.map((m) => ({
-                ...m,
-                jobId: job.brJobId,
-              }))
-            );
-          }
-          setMatchingUsers(allMatches);
-        }
-
-        const map: Record<string, any[]> = {};
-        const statusMap: Record<
-          string,
-          { label: string; count: number; color: string }[]
-        > = {};
-
-        const promises = jobs.map(async (job) => {
-          const res = await searchListDataFromTable("brJobApplicant", {
-            brJobId: job.brJobId,
-          });
-
-          const applicants = res.data.data || [];
-          map[job.brJobId] = applicants;
-
-          const hasRequested = applicants.some(
-            (a) =>
-              a.brJobApplicantStatus === "REQUESTED" && a.createdBy === userId
-          );
-          if (hasRequested) savedSet.add(job.brJobId);
-
-          const counts: Record<string, number> = {};
-          counts["APPLIED"] = applicants.length;
-          counts["PENDING ASSESSMENT"] = applicants.filter(
-            (a) => a.brJobApplicantStatus === "APPLIED"
-          ).length;
-          counts["ASSESSED"] = applicants.filter(
-            (a) => a.brJobApplicantStatus === "CONFIRMED"
-          ).length;
-
-          counts["SUGGESTED"] = allMatches.filter(
-            (m) => m.jobId === job.brJobId
-          ).length;
-
-          statusMap[job.brJobId] = STATUS_CONFIG.map((status) => ({
-            ...status,
-            count: counts[status.label] ?? 0,
-          }));
-        });
-
-        await Promise.all(promises);
-        setSavedJobsSet(savedSet);
-        setApplicantsMap(map);
-        setStatusCountsMap(statusMap);
-        setLoadingApplicants(false);
-      })();
-    }, [jobs, isJobPage]);
-
-    const handleSaveJob = async (job: any) => {
-      const jobId = job?.brJobId;
-      const userId = getUserId();
-      const isAlreadySaved = savedJobsSet.has(jobId);
-
-      const payload = {
-        brJobId: jobId,
-        createdBy: userId,
-        brJobApplicantStatus: isAlreadySaved ? "INACTIVE" : "REQUESTED",
-        fullName: "",
-        email: "",
-        phone: "",
-        companyName: job.companyName,
-        jobTitle: job.jobTitle,
-        experience: job.experience,
-        jobType: job.jobType,
-        skills: job.skills,
-        location: job.location,
-        compensation: job.compensation,
-        jobDescriptions: job.jobDescriptions,
-        jobInterviewQuestions: job.jobInterviewQuestions,
-      };
-
-      try {
-        await syncByTwoUniqueKeyData(
-          "brJobApplicant",
-          payload,
-          "createdBy",
-          "brJobId"
-        );
-
-        setSavedJobsSet((prev) => {
-          const updated = new Set(prev);
-          if (isAlreadySaved) {
-            updated.delete(jobId);
-          } else {
-            updated.add(jobId);
-          }
-          return updated;
-        });
-      } catch (error) {
-        console.error("Error toggling save job status", error);
-      } finally {
-        setSavingJobId(null);
-      }
-    };
-
-    const [detailsHeight, setDetailsHeight] = useState<number>(0);
-    const detailsWrapperRef = useRef<HTMLDivElement | null>(null);
-
-    useEffect(() => {
-      const node = detailsWrapperRef.current;
-      if (!node) return;
-
-      const observer = new ResizeObserver((entries) => {
-        for (const entry of entries) {
-          setDetailsHeight(entry.contentRect.height);
-        }
-      });
-
-      observer.observe(node);
-      return () => observer.disconnect();
-    }, []);
-    useEffect(() => {
-      const timeout = setTimeout(() => {
-        if (detailsWrapperRef.current) {
-          setDetailsHeight(detailsWrapperRef.current.offsetHeight);
-        }
-      }, 300);
-      return () => clearTimeout(timeout);
-    }, [selectedJob]);
-
-    const [activeTab, setActiveTab] = useState<
-      "SUGGESTED" | "ASSESSED" | "PENDING ASSESSMENT"
-    >("ASSESSED");
-
-    type TabKey = "SUGGESTED" | "ASSESSED" | "PENDING ASSESSMENT";
-
-    interface TabConfig {
-      key: TabKey;
-      label: string;
-      color: string;
-      count: (
-        matchingUsers: any[],
-        selectedJob: any,
-        statusCountsMap: Record<string, any>
-      ) => number;
-    }
-
-    const tabs: TabConfig[] = [
-      {
-        key: "SUGGESTED",
-        label: "Suggested Matches",
-        color: "#16a34a",
-        count: (matchingUsers, selectedJob) =>
-          matchingUsers.filter((m) => m.jobId === selectedJob.brJobId).length,
-      },
-      {
-        key: "ASSESSED",
-        label: "Assessed Candidates",
-        color: "#16a34a",
-        count: (_, selectedJob, statusCountsMap) =>
-          statusCountsMap[selectedJob.brJobId]?.find(
-            (s: any) => s.label === "ASSESSED"
-          )?.count ?? 0,
-      },
-      {
-        key: "PENDING ASSESSMENT",
-        label: "Pending Assessment",
-        color: "#f97316",
-        count: (_, selectedJob, statusCountsMap) =>
-          statusCountsMap[selectedJob.brJobId]?.find(
-            (s: any) => s.label === "PENDING ASSESSMENT"
-          )?.count ?? 0,
-      },
-    ];
-
-    return (
-      <Box mb={4} mt={2} display="flex" gap={2} alignItems="flex-start">
-        <Box
-          className="custom-scrollbar"
-          sx={{
-            p: 1,
-            mt: getUserRole() === "TALENT PARTNER" ? 10 : 2,
-            width: { xs: "100%", md: jobs.length > 0 ? "35vw" : "100%" },
-            height: detailsHeight || "auto",
-            minHeight: "100vh",
-            overflow: "auto",
-            transition: "height 0.3s ease",
-            flexShrink: 0,
-            borderRadius: 4,
-          }}
-        >
-          {title === "Recommended Jobs" && showRecommendedJobs && (
-            <>
-              {showRecommendedJobs && jobs.length > 0 ? (
-                <Typography
-                  sx={{
-                    fontFamily: "montserrat-regular",
-                    fontSize: "14px",
-                    mb: 1,
-                  }}
-                >
-                  We found {jobs.length} job{jobs.length > 1 ? "s" : ""} based
-                  on your profile.
-                </Typography>
-              ) : (
-                <Typography
-                  sx={{
-                    fontFamily: "montserrat-regular",
-                    fontSize: "16px",
-                    mb: 1,
-                    hyphens: "auto",
-                    textAlign: "center",
-                  }}
-                >
-                  Looks like we don’t have a perfect match for your profile just
-                  yet. Don’t worry great matches start with a sharp profile!.
-                  <br />
-                  Update your profile to unlock tailored recommendations.
-                  {/* <br/> Your
-                  next opportunity could just be one click away */}
-                </Typography>
-              )}
-            </>
-          )}
-
-          <Grid sx={{ minHeight: "30px" }} container spacing={4}>
-            {jobs.map((job, index) => (
-              <Grid item xs={12} key={index}>
-                <JobCard
-                  job={job}
-                  isJobPage={isJobPage}
-                  title={title}
-                  theme={theme}
-                  color={color}
-                  savingJobId={savingJobId}
-                  savedJobs={savedJobsSet}
-                  applicantsMap={applicantsMap}
-                  statusCounts={statusCountsMap[job.brJobId] || []}
-                  loadingApplicants={loadingApplicants}
-                  getUserRole={getUserRole}
-                  handleSaveJob={handleSaveJob}
-                  handleViewMore={handleViewMore}
-                  setSelectedJobId={setSelectedJobId}
-                  setPopupOpen={setPopupOpen}
-                  selected={selectedJob?.brJobId === job.brJobId}
-                  showStatus={false}
-                  // showStatus={title !== "Pending Jobs"}
-                />
-              </Grid>
-            ))}
-
-            {jobs.length > 0 && getUserRole() === "TALENT PARTNER" && (
-              <Box sx={{ width: "100%" }}>
-                {title === "Posted Jobs" ? (
-                  <PaginationControlled
-                    page={page1}
-                    setPage={setPage1}
-                    count={totalCount1}
-                  ></PaginationControlled>
-                ) : title === "Pending Jobs" ? (
-                  <PaginationControlled
-                    page={page2}
-                    setPage={setPage2}
-                    count={totalCount2}
-                  ></PaginationControlled>
-                ) : (
-                  <PaginationControlled
-                    page={page3}
-                    setPage={setPage3}
-                    count={totalCount3}
-                  ></PaginationControlled>
-                )}
-              </Box>
-            )}
-          </Grid>
-
-          {title === "Recommended Jobs" && showRecommendedJobs && (
-            <BeyondResumeButton
-              sx={{ mt: 2, width: "90%", mx: "auto", display: "block" }}
-              onClick={() => {
-                setRecommendedJobs(seekerJobs);
-                setShowRecommendedJobs(false);
-              }}
-            >
-              Explore All Jobs
-            </BeyondResumeButton>
-          )}
-        </Box>
-
-        {jobs.length > 0 && (
-          <Box
-            ref={detailsWrapperRef}
-            sx={{ flexGrow: 1, display: { xs: "none", md: "block" } }}
-          >
-            <AnimatePresence mode="wait">
-              {selectedJob && (
-                <motion.div
-                  key={selectedJob.brJobId}
-                  initial="hidden"
-                  animate="visible"
-                  exit="exit"
-                  variants={slideLeftVariants}
-                >
-                  <BeyondResumeJobDetails
-                    job={selectedJob}
-                    applicantsCount={selectedApplicantsCount}
-                    onBack={() => setSelectedJob(null)}
-                    setPopupOpen={setPopupOpen}
-                    setSelectedJobIdC={setSelectedJobId}
-                    selectedTab={selectedTab}
-                    showJD={
-                      title === "Posted Jobs" || title === "Completed Jobs"
-                        ? false
-                        : true
-                    }
-                  />
-
-                  {isJobPage &&
-                  (title === "Posted Jobs" || title === "Completed Jobs") ? (
-                    <Box>
-                      {selectedJob.roundType === "multiple" ? (
-                        <MultiRoundApplicantsTabs jobId={selectedJob.brJobId} />
-                      ) : (
-                        <>
-                          <Box
-                            display="flex"
-                            alignItems="center"
-                            width="100%"
-                            justifyContent="center"
-                            gap={2}
-                            mb={2}
-                            p={2}
-                          >
-                            {tabs.map(({ key, label, color, count }) => {
-                              const isActive = activeTab === key;
-                              return (
-                                <div
-                                  key={key}
-                                  onClick={() => setActiveTab(key)}
-                                  style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    background: isActive ? color : "grey",
-                                    borderRadius: "6px",
-                                    padding: "6px 10px",
-                                    color: "#fff",
-                                    fontWeight: "bold",
-                                    fontSize: "14px",
-                                    cursor: "pointer",
-                                  }}
-                                >
-                                  <span
-                                    style={{
-                                      background: "rgba(255, 255, 255, 0.2)",
-                                      padding: "4px 8px",
-                                      borderRadius: "4px",
-                                      marginRight: "6px",
-                                    }}
-                                  >
-                                    {count(
-                                      matchingUsers,
-                                      selectedJob,
-                                      statusCountsMap
-                                    )}
-                                  </span>
-                                  {label}
-                                </div>
-                              );
-                            })}
-                          </Box>
-
-                          {activeTab === "SUGGESTED" ? (
-                            <Box
-                              sx={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 2,
-                                flexWrap: "wrap",
-                                justifyContent: "center",
-                              }}
-                            >
-                              {matchingUsers.filter(
-                                (m) => m.jobId === selectedJob.brJobId
-                              ).length > 0 ? (
-                                matchingUsers
-                                  .filter(
-                                    (m) => m.jobId === selectedJob.brJobId
-                                  )
-                                  .map((applicant, idx) => (
-                                    <MatchingUserCard
-                                      key={idx}
-                                      user={applicant}
-                                      color={color}
-                                    />
-                                  ))
-                              ) : (
-                                <Typography width={"100%"} textAlign={"center"}>
-                                  No suggested candidates found.
-                                </Typography>
-                              )}
-                            </Box>
-                          ) : activeTab === "PENDING ASSESSMENT" ? (
-                            <PendingAssessmentApplicants
-                              brJobId={selectedJob.brJobId}
-                              color={color}
-                            />
-                          ) : (
-                            <AssessedApplicants
-                              brJobId={selectedJob.brJobId}
-                              color={color}
-                            />
-                          )}
-                        </>
-                      )}
-                    </Box>
-                  ) : (
-                    <></>
-                  )}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </Box>
-        )}
-      </Box>
-    );
-  };
-
-  const [selectedTab, setSelectedTab] = useState(0);
   const durationTabs = ["Live", "Draft", "Closed"];
 
   const jobSections = [
@@ -1189,7 +703,29 @@ const BeyondResumeJobs = () => {
                 exit="exit"
               >
                 {searchedSavedJobs.length > 0 ? (
-                  <JobsSection title="Saved Jobs" jobs={searchedSavedJobs} />
+                  <JobsSection
+                    title="Saved Jobs"
+                    jobs={searchedSavedJobs}
+                    isJobPage={isJobPage}
+                    theme={theme}
+                    savingJobId={savingJobId}
+                    setSavingJobId={setSavingJobId}
+                    setSelectedJobId={setSelectedJobId}
+                    setPopupOpen={setPopupOpen}
+                    showRecommendedJobs={showRecommendedJobs}
+                    setRecommendedJobs={setRecommendedJobs}
+                    setShowRecommendedJobs={setShowRecommendedJobs}
+                    seekerJobs={seekerJobs}
+                    page1={page1}
+                    page2={page2}
+                    page3={page3}
+                    setPage1={setPage1}
+                    setPage2={setPage2}
+                    setPage3={setPage3}
+                    totalCount1={totalCount1}
+                    totalCount2={totalCount2}
+                    totalCount3={totalCount3}
+                  />
                 ) : (
                   <Typography
                     variant="body1"
@@ -1225,7 +761,6 @@ const BeyondResumeJobs = () => {
                           ? "translateX(-50%)"
                           : "none",
                     },
-
                     zIndex: 1000,
                   }}
                 >
@@ -1240,6 +775,25 @@ const BeyondResumeJobs = () => {
                   <JobsSection
                     title={currentSection.title}
                     jobs={tabFilteredJobs}
+                    isJobPage={isJobPage}
+                    theme={theme}
+                    savingJobId={savingJobId}
+                    setSavingJobId={setSavingJobId}
+                    setSelectedJobId={setSelectedJobId}
+                    setPopupOpen={setPopupOpen}
+                    showRecommendedJobs={showRecommendedJobs}
+                    setRecommendedJobs={setRecommendedJobs}
+                    setShowRecommendedJobs={setShowRecommendedJobs}
+                    seekerJobs={seekerJobs}
+                    page1={page1}
+                    page2={page2}
+                    page3={page3}
+                    setPage1={setPage1}
+                    setPage2={setPage2}
+                    setPage3={setPage3}
+                    totalCount1={totalCount1}
+                    totalCount2={totalCount2}
+                    totalCount3={totalCount3}
                   />
                 ) : (
                   <Typography
@@ -1266,6 +820,25 @@ const BeyondResumeJobs = () => {
                   <JobsSection
                     title="Recommended Jobs"
                     jobs={showRecommendedJobs ? recommendedJobs : seekerJobs}
+                    isJobPage={isJobPage}
+                    theme={theme}
+                    savingJobId={savingJobId}
+                    setSavingJobId={setSavingJobId}
+                    setSelectedJobId={setSelectedJobId}
+                    setPopupOpen={setPopupOpen}
+                    showRecommendedJobs={showRecommendedJobs}
+                    setRecommendedJobs={setRecommendedJobs}
+                    setShowRecommendedJobs={setShowRecommendedJobs}
+                    seekerJobs={seekerJobs}
+                    page1={page1}
+                    page2={page2}
+                    page3={page3}
+                    setPage1={setPage1}
+                    setPage2={setPage2}
+                    setPage3={setPage3}
+                    totalCount1={totalCount1}
+                    totalCount2={totalCount2}
+                    totalCount3={totalCount3}
                   />
                 ) : (
                   <Typography
@@ -1310,3 +883,551 @@ const BeyondResumeJobs = () => {
 };
 
 export default BeyondResumeJobs;
+
+interface JobsSectionProps {
+  title: string;
+  jobs: any[];
+  isJobPage: boolean;
+  theme: string;
+  savingJobId: string | null;
+  setSavingJobId: (id: string | null) => void;
+  setSelectedJobId: (id: any) => void;
+  setPopupOpen: (open: boolean) => void;
+  showRecommendedJobs: boolean;
+  setRecommendedJobs: (jobs: any[]) => void;
+  setShowRecommendedJobs: (show: boolean) => void;
+  seekerJobs: any[];
+  page1: number;
+  page2: number;
+  page3: number;
+  setPage1: (page: number) => void;
+  setPage2: (page: number) => void;
+  setPage3: (page: number) => void;
+  totalCount1: number;
+  totalCount2: number;
+  totalCount3: number;
+}
+
+const JobsSection = React.memo(
+  ({
+    title,
+    jobs,
+    isJobPage,
+    theme,
+    savingJobId,
+    setSavingJobId,
+    setSelectedJobId,
+    setPopupOpen,
+    showRecommendedJobs,
+    setRecommendedJobs,
+    setShowRecommendedJobs,
+    seekerJobs,
+    page1,
+    page2,
+    page3,
+    setPage1,
+    setPage2,
+    setPage3,
+    totalCount1,
+    totalCount2,
+    totalCount3,
+  }: JobsSectionProps) => {
+    const [applicantsMap, setApplicantsMap] = useState<Record<string, any[]>>(
+      {}
+    );
+    const [statusCountsMap, setStatusCountsMap] = useState<
+      Record<string, { label: string; count: number; color: string }[]>
+    >({});
+    const [savedJobsSet, setSavedJobsSet] = useState<Set<string>>(new Set());
+    const [loadingApplicants, setLoadingApplicants] = useState<boolean>(true);
+    const [selectedApplicantsCount, setSelectedApplicantsCount] =
+      useState<number>(0);
+    const [matchingUsers, setMatchingUsers] = useState<any[]>([]);
+
+    const { selectedJob, setSelectedJob } = useJobContext();
+    const { selectedTab } = useJobContext();
+
+    const dataFetchedRef = useRef(false);
+    const jobIdsRef = useRef<string>("");
+
+    const currentJobIds = useMemo(
+      () =>
+        jobs
+          .map((j) => j.brJobId)
+          .sort()
+          .join(","),
+      [jobs]
+    );
+
+    useEffect(() => {
+      if (jobs.length > 0 && !selectedJob) {
+        setSelectedJob(jobs[0]);
+      }
+    }, [jobs.length, selectedJob, setSelectedJob]);
+
+    useEffect(() => {
+      if (selectedJob) {
+        setSelectedApplicantsCount(
+          applicantsMap[selectedJob.brJobId]?.length || 0
+        );
+      }
+    }, [selectedJob?.brJobId, applicantsMap]);
+
+    const handleViewMore = useCallback(
+      (job: any) => {
+        setSelectedJob(job);
+      },
+      [setSelectedJob]
+    );
+
+    const handleSaveJob = useCallback(
+      async (job: any) => {
+        const jobId = job?.brJobId;
+        const userId = getUserId();
+
+        setSavedJobsSet((currentSavedJobs) => {
+          const isAlreadySaved = currentSavedJobs.has(jobId);
+
+          const payload = {
+            brJobId: jobId,
+            createdBy: userId,
+            brJobApplicantStatus: isAlreadySaved ? "INACTIVE" : "REQUESTED",
+            fullName: "",
+            email: "",
+            phone: "",
+            companyName: job.companyName,
+            jobTitle: job.jobTitle,
+            experience: job.experience,
+            jobType: job.jobType,
+            skills: job.skills,
+            location: job.location,
+            compensation: job.compensation,
+            jobDescriptions: job.jobDescriptions,
+            jobInterviewQuestions: job.jobInterviewQuestions,
+          };
+
+          (async () => {
+            try {
+              await syncByTwoUniqueKeyData(
+                "brJobApplicant",
+                payload,
+                "createdBy",
+                "brJobId"
+              );
+            } catch (error) {
+              console.error("Error toggling save job status", error);
+            } finally {
+              setSavingJobId(null);
+            }
+          })();
+
+          const updated = new Set(currentSavedJobs);
+          if (isAlreadySaved) {
+            updated.delete(jobId);
+          } else {
+            updated.add(jobId);
+          }
+          return updated;
+        });
+      },
+      [setSavingJobId]
+    );
+
+    useEffect(() => {
+      if (
+        jobs.length === 0 ||
+        (dataFetchedRef.current && jobIdsRef.current === currentJobIds)
+      ) {
+        return;
+      }
+
+      const userId = getUserId();
+
+      (async () => {
+        setLoadingApplicants(true);
+        dataFetchedRef.current = true;
+        jobIdsRef.current = currentJobIds;
+
+        let allMatches: any[] = [];
+
+        if (isJobPage) {
+          for (const job of jobs) {
+            const { matches } = await fetchMatchingUsers(job);
+            allMatches.push(
+              ...matches.map((m) => ({
+                ...m,
+                jobId: job.brJobId,
+              }))
+            );
+          }
+          setMatchingUsers(allMatches);
+        }
+
+        const map: Record<string, any[]> = {};
+        const statusMap: Record<
+          string,
+          { label: string; count: number; color: string }[]
+        > = {};
+        const savedSet = new Set<string>();
+
+        const promises = jobs.map(async (job) => {
+          const res = await searchListDataFromTable("brJobApplicant", {
+            brJobId: job.brJobId,
+          });
+
+          const applicants = res.data.data || [];
+          map[job.brJobId] = applicants;
+
+          const hasRequested = applicants.some(
+            (a) =>
+              a.brJobApplicantStatus === "REQUESTED" && a.createdBy === userId
+          );
+          if (hasRequested) savedSet.add(job.brJobId);
+
+          const counts: Record<string, number> = {};
+          counts["APPLIED"] = applicants.length;
+          counts["PENDING ASSESSMENT"] = applicants.filter(
+            (a) => a.brJobApplicantStatus === "APPLIED"
+          ).length;
+          counts["ASSESSED"] = applicants.filter(
+            (a) => a.brJobApplicantStatus === "CONFIRMED"
+          ).length;
+          counts["SUGGESTED"] = allMatches.filter(
+            (m) => m.jobId === job.brJobId
+          ).length;
+
+          statusMap[job.brJobId] = STATUS_CONFIG.map((status) => ({
+            ...status,
+            count: counts[status.label] ?? 0,
+          }));
+        });
+
+        await Promise.all(promises);
+        setSavedJobsSet(savedSet);
+        setApplicantsMap(map);
+        setStatusCountsMap(statusMap);
+        setLoadingApplicants(false);
+      })();
+    }, [currentJobIds, isJobPage, jobs]);
+
+    const [detailsHeight, setDetailsHeight] = useState<number>(0);
+    const detailsWrapperRef = useRef<HTMLDivElement | null>(null);
+
+    useEffect(() => {
+      const node = detailsWrapperRef.current;
+      if (!node) return;
+
+      const observer = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          setDetailsHeight(entry.contentRect.height);
+        }
+      });
+
+      observer.observe(node);
+      return () => observer.disconnect();
+    }, []);
+
+    useEffect(() => {
+      const timeout = setTimeout(() => {
+        if (detailsWrapperRef.current) {
+          setDetailsHeight(detailsWrapperRef.current.offsetHeight);
+        }
+      }, 300);
+      return () => clearTimeout(timeout);
+    }, [selectedJob?.brJobId]);
+
+    const memoizedJobs = useMemo(() => jobs, [currentJobIds]);
+
+    const [activeTab, setActiveTab] = useState<
+      "SUGGESTED" | "ASSESSED" | "PENDING ASSESSMENT"
+    >("ASSESSED");
+
+    const tabs = useMemo(
+      () => [
+        {
+          key: "SUGGESTED" as const,
+          label: "Suggested Matches",
+          color: "#16a34a",
+          count: (mu: any[], sj: any, scm: Record<string, any>) =>
+            mu.filter((m) => m.jobId === sj.brJobId).length,
+        },
+        {
+          key: "ASSESSED" as const,
+          label: "Assessed Candidates",
+          color: "#16a34a",
+          count: (_: any[], sj: any, scm: Record<string, any>) =>
+            scm[sj.brJobId]?.find((s: any) => s.label === "ASSESSED")?.count ??
+            0,
+        },
+        {
+          key: "PENDING ASSESSMENT" as const,
+          label: "Pending Assessment",
+          color: "#f97316",
+          count: (_: any[], sj: any, scm: Record<string, any>) =>
+            scm[sj.brJobId]?.find((s: any) => s.label === "PENDING ASSESSMENT")
+              ?.count ?? 0,
+        },
+      ],
+      []
+    );
+
+    return (
+      <Box mb={4} mt={2} display="flex" gap={2} alignItems="flex-start">
+        <Box
+          className="custom-scrollbar"
+          sx={{
+            p: 1,
+            mt: getUserRole() === "TALENT PARTNER" ? 10 : 2,
+            width: { xs: "100%", md: jobs.length > 0 ? "35vw" : "100%" },
+            height: detailsHeight || "auto",
+            minHeight: "100vh",
+            overflow: "auto",
+            transition: "height 0.3s ease",
+            flexShrink: 0,
+            borderRadius: 4,
+          }}
+        >
+          {title === "Recommended Jobs" && showRecommendedJobs && (
+            <>
+              {jobs.length > 0 ? (
+                <Typography
+                  sx={{
+                    fontFamily: "montserrat-regular",
+                    fontSize: "14px",
+                    mb: 1,
+                  }}
+                >
+                  We found {jobs.length} job{jobs.length > 1 ? "s" : ""} based
+                  on your profile.
+                </Typography>
+              ) : (
+                <Typography
+                  sx={{
+                    fontFamily: "montserrat-regular",
+                    fontSize: "16px",
+                    mb: 1,
+                    hyphens: "auto",
+                    textAlign: "center",
+                  }}
+                >
+                  Looks like we don't have a perfect match for your profile just
+                  yet. Don't worry great matches start with a sharp profile!.
+                  <br />
+                  Update your profile to unlock tailored recommendations.
+                </Typography>
+              )}
+            </>
+          )}
+
+          <Grid sx={{ minHeight: "30px" }} container spacing={4}>
+            {memoizedJobs.map((job, index) => (
+              <Grid item xs={12} key={job.brJobId || index}>
+                <JobCard
+                  job={job}
+                  isJobPage={isJobPage}
+                  title={title}
+                  theme={theme}
+                  color={color}
+                  savingJobId={savingJobId}
+                  savedJobs={savedJobsSet}
+                  applicantsMap={applicantsMap}
+                  statusCounts={statusCountsMap[job.brJobId] || []}
+                  loadingApplicants={loadingApplicants}
+                  getUserRole={getUserRole}
+                  handleSaveJob={handleSaveJob}
+                  handleViewMore={handleViewMore}
+                  setSelectedJobId={setSelectedJobId}
+                  setPopupOpen={setPopupOpen}
+                  selected={selectedJob?.brJobId === job.brJobId}
+                  showStatus={false}
+                />
+              </Grid>
+            ))}
+
+            {jobs.length > 0 && getUserRole() === "TALENT PARTNER" && (
+              <Box sx={{ width: "100%" }}>
+                {title === "Posted Jobs" ? (
+                  <PaginationControlled
+                    page={page1}
+                    setPage={setPage1}
+                    count={totalCount1}
+                  />
+                ) : title === "Pending Jobs" ? (
+                  <PaginationControlled
+                    page={page2}
+                    setPage={setPage2}
+                    count={totalCount2}
+                  />
+                ) : (
+                  <PaginationControlled
+                    page={page3}
+                    setPage={setPage3}
+                    count={totalCount3}
+                  />
+                )}
+              </Box>
+            )}
+          </Grid>
+
+          {title === "Recommended Jobs" && showRecommendedJobs && (
+            <BeyondResumeButton
+              sx={{ mt: 2, width: "90%", mx: "auto", display: "block" }}
+              onClick={() => {
+                setRecommendedJobs(seekerJobs);
+                setShowRecommendedJobs(false);
+              }}
+            >
+              Explore All Jobs
+            </BeyondResumeButton>
+          )}
+        </Box>
+
+        {jobs.length > 0 && (
+          <Box
+            ref={detailsWrapperRef}
+            sx={{ flexGrow: 1, display: { xs: "none", md: "block" } }}
+          >
+            <AnimatePresence mode="wait">
+              {selectedJob && (
+                <motion.div
+                  key={selectedJob.brJobId}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  variants={slideLeftVariants}
+                >
+                  <BeyondResumeJobDetails
+                    job={selectedJob}
+                    applicantsCount={selectedApplicantsCount}
+                    onBack={() => setSelectedJob(null)}
+                    setPopupOpen={setPopupOpen}
+                    setSelectedJobIdC={setSelectedJobId}
+                    selectedTab={selectedTab}
+                    showJD={
+                      title === "Posted Jobs" || title === "Completed Jobs"
+                        ? false
+                        : true
+                    }
+                  />
+
+                  {isJobPage &&
+                    (title === "Posted Jobs" || title === "Completed Jobs") && (
+                      <Box>
+                        {selectedJob.roundType === "multiple" ? (
+                          <MultiRoundApplicantsTabs
+                            jobId={selectedJob.brJobId}
+                          />
+                        ) : (
+                          <>
+                            <Box
+                              display="flex"
+                              alignItems="center"
+                              width="100%"
+                              justifyContent="center"
+                              gap={2}
+                              mb={2}
+                              p={2}
+                            >
+                              {tabs.map(({ key, label, count }) => {
+                                const isActive = activeTab === key;
+                                return (
+                                  <Box
+                                    key={key}
+                                    onClick={() => setActiveTab(key)}
+                                    sx={{
+                                      display: "flex",
+                                      alignItems: "center",
+                                      background: isActive
+                                        ? color.activeButtonBg
+                                        : "grey",
+                                      borderRadius: "999px",
+                                      px: 2,
+                                      py: 0.8,
+                                      color: "#fff",
+                                      fontWeight: "bold",
+                                      fontSize: "14px",
+                                      cursor: "pointer",
+                                    }}
+                                  >
+                                    {label}
+                                    <span
+                                      style={{
+                                        background: "rgba(255, 255, 255, 0.2)",
+                                        padding: "0px 8px",
+                                        paddingBottom: "6px",
+                                        borderRadius: "44px",
+                                        marginLeft: "6px",
+                                        height: "16px",
+                                        fontSize: "14px",
+                                      }}
+                                    >
+                                      {count(
+                                        matchingUsers,
+                                        selectedJob,
+                                        statusCountsMap
+                                      )}
+                                    </span>
+                                  </Box>
+                                );
+                              })}
+                            </Box>
+
+                            {activeTab === "SUGGESTED" ? (
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 2,
+                                  flexWrap: "wrap",
+                                  justifyContent: "center",
+                                }}
+                              >
+                                {matchingUsers.filter(
+                                  (m) => m.jobId === selectedJob.brJobId
+                                ).length > 0 ? (
+                                  matchingUsers
+                                    .filter(
+                                      (m) => m.jobId === selectedJob.brJobId
+                                    )
+                                    .map((applicant, idx) => (
+                                      <MatchingUserCard
+                                        key={idx}
+                                        user={applicant}
+                                        color={color}
+                                      />
+                                    ))
+                                ) : (
+                                  <Typography
+                                    width={"100%"}
+                                    textAlign={"center"}
+                                  >
+                                    No suggested candidates found.
+                                  </Typography>
+                                )}
+                              </Box>
+                            ) : activeTab === "PENDING ASSESSMENT" ? (
+                              <PendingAssessmentApplicants
+                                brJobId={selectedJob.brJobId}
+                                color={color}
+                              />
+                            ) : (
+                              <AssessedApplicants
+                                brJobId={selectedJob.brJobId}
+                                color={color}
+                              />
+                            )}
+                          </>
+                        )}
+                      </Box>
+                    )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </Box>
+        )}
+      </Box>
+    );
+  }
+);
+
+JobsSection.displayName = "JobsSection";

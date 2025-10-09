@@ -7,6 +7,7 @@ import { Avatar, Box, Grid2, Typography } from "@mui/material";
 import { forwardRef, useEffect, useMemo, useRef, useState } from "react";
 import Webcam from "react-webcam";
 import { ListeningAvatar } from "../../../components/util/CommonStyle";
+import useMediaDevicesStatus from "../../../components/util/useMediaDevicesStatus";
 import { insertDataInTable, UploadAuthFile } from "../../../services/services";
 import { useProctoringSuite } from "./useProctoringSuite";
 
@@ -38,15 +39,11 @@ const ExamSessionVideoCamBox = forwardRef<
     },
     ref
   ) => {
-    const [isMicOn, setIsMicOn] = useState(false);
-    const [isVideoOn, setIsVideoOn] = useState(true);
-    const [micAccessible, setMicAccessible] = useState(true);
-    const [micSilent, setMicSilent] = useState(false);
     const isWrittenPage = location.pathname.startsWith(
       "/beyond-resume-jobInterviewSession-written"
     );
+    const webcamRef = useRef<Webcam | null>(null);
 
-    const webcamRef = useRef<Webcam>(null);
     const startTimeRef = useRef<number>(Date.now());
     const captureTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -140,73 +137,16 @@ const ExamSessionVideoCamBox = forwardRef<
       onProctoringReady?.(proctoringReady);
     }, [proctoringReady]);
 
-    const analyserRef = useRef<AnalyserNode | null>(null);
-    const audioContextRef = useRef<AudioContext | null>(null);
-    const mediaStreamRef = useRef<MediaStream | null>(null);
-    const checkIntervalRef = useRef<number | null>(null);
-
     const [webcamSize, setWebcamSize] = useState({ width: 0, height: 0 });
 
-    // useEffect(() => setIsMicOn(micStatus), [micStatus]);
-    // useEffect(() => setIsVideoOn(videoStatus), [videoStatus]);
-
-    useEffect(() => {
-      const initMicCheck = async () => {
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({
-            audio: true,
-          });
-          mediaStreamRef.current = stream;
-          const audioContext = new AudioContext();
-          audioContextRef.current = audioContext;
-
-          const source = audioContext.createMediaStreamSource(stream);
-          const analyser = audioContext.createAnalyser();
-          analyser.fftSize = 512;
-          analyserRef.current = analyser;
-
-          source.connect(analyser);
-
-          const bufferLength = analyser.frequencyBinCount;
-          const dataArray = new Uint8Array(bufferLength);
-
-          let silentCount = 0;
-
-          checkIntervalRef.current = window.setInterval(() => {
-            if (!analyserRef.current) return;
-            analyserRef.current.getByteFrequencyData(dataArray);
-            const volume = dataArray.reduce((a, b) => a + b, 0) / bufferLength;
-
-            if (volume < 1) {
-              silentCount++;
-              if (silentCount >= 10) {
-                setMicSilent(true);
-                setIsMicOn(false);
-              }
-            } else {
-              silentCount = 0;
-              setMicSilent(false);
-            }
-          }, 500);
-
-          setMicAccessible(true);
-        } catch (err) {
-          console.error("Mic access failed:", err);
-          setMicAccessible(false);
-          setIsMicOn(false);
-          setMicSilent(true);
-        }
-      };
-
-      initMicCheck();
-
-      return () => {
-        if (checkIntervalRef.current) clearInterval(checkIntervalRef.current);
-        analyserRef.current?.disconnect();
-        audioContextRef.current?.close();
-        mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
-      };
-    }, []);
+    const {
+      hasCamera,
+      cameraAccessible,
+      hasMic,
+      micAccessible,
+      micSilent,
+      isMicOn,
+    } = useMediaDevicesStatus();
 
     const videoConstraints = {
       width: 1280,
@@ -290,7 +230,7 @@ const ExamSessionVideoCamBox = forwardRef<
                   // background: "linear-gradient(145deg, #0d0d0d, #2D3436)",
                 }}
               >
-                {isVideoOn ? (
+                {hasCamera || cameraAccessible ? (
                   <>
                     <Webcam
                       audio={isMicOn}
@@ -340,7 +280,7 @@ const ExamSessionVideoCamBox = forwardRef<
                 )}
               </Box>
 
-              {micSilent && (
+              {(micSilent || !hasMic || !micAccessible) && (
                 <Typography
                   sx={{
                     textAlign: "center",
@@ -349,8 +289,7 @@ const ExamSessionVideoCamBox = forwardRef<
                     fontSize: "14px",
                   }}
                 >
-                  Mic is not detecting any sound. Please check if it's muted or
-                  disabled.
+                  Mic is not detecting sound. Please check your input device.
                 </Typography>
               )}
             </Box>

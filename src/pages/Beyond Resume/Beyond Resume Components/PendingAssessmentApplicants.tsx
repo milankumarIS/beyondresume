@@ -229,7 +229,7 @@ useEffect(() => {
         })
       ) : (
         <Typography mt={2} width={"100%"} textAlign={"center"}>
-          No assessed applicants found.
+          No pending applicants found.
         </Typography>
       )}
     </Grid>

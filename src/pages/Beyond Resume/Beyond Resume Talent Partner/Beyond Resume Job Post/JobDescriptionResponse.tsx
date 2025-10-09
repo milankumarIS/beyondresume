@@ -17,7 +17,10 @@ import {
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { useHistory, useLocation } from "react-router";
-import { evaluationCategories, pricingPlans } from "../../../../components/form/data";
+import {
+  evaluationCategories,
+  pricingPlans,
+} from "../../../../components/form/data";
 import { copyToClipboard } from "../../../../components/shared/Clipboard";
 import { useSnackbar } from "../../../../components/shared/SnackbarProvider";
 import {
@@ -97,6 +100,7 @@ const JobDescriptionResponse: React.FC<JobDescriptionResponseProps> = ({
   const [jd, setJd] = useState<File | null>(null);
   const [addJd, setAddJd] = useState(false);
   const [jobStatus, setJobStatus] = useState("");
+  const [roundType, setRoundType] = useState("");
   const [isTotalValid, setIsTotalValid] = useState(true);
   const [selectedTab, setSelectedTab] = useState<number>(2);
   const durationTabs = [20, 40, 60];
@@ -104,6 +108,9 @@ const JobDescriptionResponse: React.FC<JobDescriptionResponseProps> = ({
   const [percentages, setPercentages] = useState<Record<string, number>>(
     Object.fromEntries(evaluationCategories.map((cat) => [cat, 20]))
   );
+
+  // console.log(percentages);
+  
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setSelectedTab(newValue);
@@ -113,9 +120,22 @@ const JobDescriptionResponse: React.FC<JobDescriptionResponseProps> = ({
     const getStatus = async () => {
       const existingRecords = await searchDataFromTable("brJobs", {
         brJobId: jobId,
-      });
+      }); 
 
       setJobStatus(existingRecords?.data?.data?.brJobStatus);
+      setRoundType(existingRecords?.data?.data?.roundType);
+
+      const duration = existingRecords?.data?.data?.interviewDuration;
+
+      const durationToIndexMap: Record<number, number> = {
+        20: 0,
+        40: 1,
+        60: 2,
+      };
+
+      if (duration && durationToIndexMap.hasOwnProperty(duration)) {
+        setSelectedTab(durationToIndexMap[duration]);
+      }
     };
     getStatus();
   }, []);
@@ -319,7 +339,7 @@ const JobDescriptionResponse: React.FC<JobDescriptionResponseProps> = ({
         `.trim();
 
         const aiRes = await getUserAnswerFromAi({ question: fullCommand });
-        console.log(aiRes);
+        // console.log(aiRes);
         const generatedText =
           aiRes.data.data.candidates[0].content.parts[0].text;
 
@@ -374,7 +394,8 @@ const JobDescriptionResponse: React.FC<JobDescriptionResponseProps> = ({
           question: prompt,
           urls: [jdLink],
         });
-        const rawText =  res?.data?.data?.candidates[0]?.content?.parts[0].text || "";
+        const rawText =
+          res?.data?.data?.candidates[0]?.content?.parts[0].text || "";
         // console.log(res);
         // console.log(rawText);
         setGeneratedJd(rawText);
@@ -474,7 +495,9 @@ const JobDescriptionResponse: React.FC<JobDescriptionResponseProps> = ({
             exclusive
             onChange={() => setAddJd((prev) => !prev)}
           >
-            <CustomToggleButton value="no">System Generated JD</CustomToggleButton>
+            <CustomToggleButton value="no">
+              System Generated JD
+            </CustomToggleButton>
             <CustomToggleButton value="yes">
               Upload Custom JD
             </CustomToggleButton>
@@ -590,183 +613,185 @@ const JobDescriptionResponse: React.FC<JobDescriptionResponseProps> = ({
       {isJobPage && jobStatus !== "INPROGRESS" ? (
         <></>
       ) : (
-        <>
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "center",
-              alignItems: "center",
-              mt: 2,
-            }}
-          >
-            <Typography align="center" gutterBottom mb={2}>
-              Select Simulator Mode
-            </Typography>
-            <CustomToggleButtonGroup
-              value={simulatorMode}
-              exclusive
-              onChange={(_event, newValue) => {
-                if (newValue !== null) setSimulatorMode(newValue);
-                setAddQuestionFile(newValue === "yes");
-              }}
-            >
-              <CustomToggleButton value="yes">
-                Bring Your Own Question
-              </CustomToggleButton>
-              <CustomToggleButton value="templatised">
-                Templatised Questions
-              </CustomToggleButton>
-              <CustomToggleButton value="adaptive">
-                Adaptive Evaluation
-              </CustomToggleButton>
-            </CustomToggleButtonGroup>
-          </Box>
-
-          <Box px={4} py={2} mt={4}>
-            <Typography
-              gutterBottom
-              align="center"
-              fontWeight="bold"
-              mb={2}
-              fontFamily={"montserrat-regular"}
-            >
-              What is your preferred duration of the interview?
-            </Typography>
-
-            <Tabs
-              value={selectedTab}
-              onChange={handleTabChange}
-              centered
+        roundType !== "multiple" && (
+          <>
+            <Box
               sx={{
-                m: "auto",
-                fontFamily: "montserrat-regular",
-                background: "white",
-                width: "fit-content",
-                borderRadius: "32px",
-                p: 1,
-                minHeight: "0px",
-
-                "& .MuiTab-root": {
-                  color: "black",
-                  background: "transparent",
-                  borderRadius: "999px",
-                  marginRight: "8px",
-                  paddingX: "16px",
-                  minHeight: "0px",
-                  textTransform: "none",
-                  border: "1px solid #ffffff44",
-                  fontFamily: "montserrat-regular",
-                },
-                "& .Mui-selected": {
-                  background: color.newbg,
-                  color: "white !important",
-                },
-                "& .MuiButtonBase-root": {
-                  p: 0,
-                  py: 1,
-                },
-                "& .MuiTabs-indicator": {
-                  backgroundColor: "transparent",
-                },
-              }}
-            >
-              {durationTabs.map((min) => (
-                <Tab key={min} label={`${min} min`} />
-              ))}
-            </Tabs>
-          </Box>
-
-          {simulatorMode === "adaptive" && (
-            <>
-              <BeyondResumeAdaptiveEvaluation
-                jobId={jobId}
-                duration={durationTabs[selectedTab]}
-              />
-            </>
-          )}
-
-          {!addQuestionFile && simulatorMode !== "adaptive" && (
-            <CustomEvaluationDriver
-              selectedTabIndex={selectedTab}
-              percentages={percentages}
-              setPercentages={setPercentages}
-              setIsTotalValid={setIsTotalValid}
-            />
-          )}
-
-          {addQuestionFile && (
-            <Box>
-              <Box mb={2}>
-                <BeyondResumeButton
-                  sx={{
-                    ml: "auto",
-                    display: "block",
-
-                    border: "solid 1px",
-                    fontSize: "12px",
-                    px: 3,
-                  }}
-                  onClick={() => {
-                    const link = document.createElement("a");
-                    link.href =
-                      "https://mydailylives.s3.ap-south-1.amazonaws.com/uploads/1751450761461-InterviewQuestionsTemplate.xlsx";
-                    link.download = "SampleFile.xlsx";
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                  }}
-                >
-                  Download Sample File
-                  <FontAwesomeIcon
-                    style={{ marginLeft: "6px" }}
-                    icon={faDownload}
-                  />
-                </BeyondResumeButton>
-              </Box>
-              <FileUpload
-                questionFile={questionFile}
-                setQuestionFile={setQuestionFile}
-                acceptFormat=".csv"
-                fileFormatNote="Please make sure the CSV follows the exact column order of the sample file."
-              />
-            </Box>
-          )}
-
-          {simulatorMode !== "adaptive" && (
-            <BeyondResumeButton
-              onClick={handleClick}
-              variant="contained"
-              disabled={!isTotalValid}
-              color="primary"
-              sx={{
-                m: "auto",
                 display: "flex",
-                my: 4,
+                flexDirection: "column",
+                justifyContent: "center",
                 alignItems: "center",
+                mt: 2,
               }}
             >
-              {loading ? (
-                <>
-                  Analyzing{" "}
-                  <CircularProgress
-                    color="inherit"
-                    size={18}
-                    style={{ marginLeft: "4px" }}
-                  />
-                </>
-              ) : (
-                <>
-                  Generate Interview Questions
-                  {/* <FontAwesomeIcon
+              <Typography align="center" gutterBottom mb={2}>
+                Select Simulator Mode
+              </Typography>
+              <CustomToggleButtonGroup
+                value={simulatorMode}
+                exclusive
+                onChange={(_event, newValue) => {
+                  if (newValue !== null) setSimulatorMode(newValue);
+                  setAddQuestionFile(newValue === "yes");
+                }}
+              >
+                <CustomToggleButton value="yes">
+                  Bring Your Own Question
+                </CustomToggleButton>
+                <CustomToggleButton value="templatised">
+                  Templatised Questions
+                </CustomToggleButton>
+                <CustomToggleButton value="adaptive">
+                  Adaptive Evaluation
+                </CustomToggleButton>
+              </CustomToggleButtonGroup>
+            </Box>
+
+            <Box px={4} py={2} mt={4}>
+              <Typography
+                gutterBottom
+                align="center"
+                fontWeight="bold"
+                mb={2}
+                fontFamily={"montserrat-regular"}
+              >
+                What is your preferred duration of the interview?
+              </Typography>
+
+              <Tabs
+                value={selectedTab}
+                onChange={handleTabChange}
+                centered
+                sx={{
+                  m: "auto",
+                  fontFamily: "montserrat-regular",
+                  background: "white",
+                  width: "fit-content",
+                  borderRadius: "32px",
+                  p: 1,
+                  minHeight: "0px",
+
+                  "& .MuiTab-root": {
+                    color: "black",
+                    background: "transparent",
+                    borderRadius: "999px",
+                    marginRight: "8px",
+                    paddingX: "16px",
+                    minHeight: "0px",
+                    textTransform: "none",
+                    border: "1px solid #ffffff44",
+                    fontFamily: "montserrat-regular",
+                  },
+                  "& .Mui-selected": {
+                    background: color.newbg,
+                    color: "white !important",
+                  },
+                  "& .MuiButtonBase-root": {
+                    p: 0,
+                    py: 1,
+                  },
+                  "& .MuiTabs-indicator": {
+                    backgroundColor: "transparent",
+                  },
+                }}
+              >
+                {durationTabs.map((min) => (
+                  <Tab key={min} label={`${min} min`} />
+                ))}
+              </Tabs>
+            </Box>
+
+            {simulatorMode === "adaptive" && (
+              <>
+                <BeyondResumeAdaptiveEvaluation
+                  jobId={jobId}
+                  duration={durationTabs[selectedTab]}
+                />
+              </>
+            )}
+
+            {!addQuestionFile && simulatorMode !== "adaptive" && (
+              <CustomEvaluationDriver
+                selectedTabIndex={selectedTab}
+                percentages={percentages}
+                setPercentages={setPercentages}
+                setIsTotalValid={setIsTotalValid}
+              />
+            )}
+
+            {addQuestionFile && (
+              <Box>
+                <Box mb={2}>
+                  <BeyondResumeButton
+                    sx={{
+                      ml: "auto",
+                      display: "block",
+
+                      border: "solid 1px",
+                      fontSize: "12px",
+                      px: 3,
+                    }}
+                    onClick={() => {
+                      const link = document.createElement("a");
+                      link.href =
+                        "https://mydailylives.s3.ap-south-1.amazonaws.com/uploads/1751450761461-InterviewQuestionsTemplate.xlsx";
+                      link.download = "SampleFile.xlsx";
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                    }}
+                  >
+                    Download Sample File
+                    <FontAwesomeIcon
+                      style={{ marginLeft: "6px" }}
+                      icon={faDownload}
+                    />
+                  </BeyondResumeButton>
+                </Box>
+                <FileUpload
+                  questionFile={questionFile}
+                  setQuestionFile={setQuestionFile}
+                  acceptFormat=".csv"
+                  fileFormatNote="Please make sure the CSV follows the exact column order of the sample file."
+                />
+              </Box>
+            )}
+
+            {simulatorMode !== "adaptive" && (
+              <BeyondResumeButton
+                onClick={handleClick}
+                variant="contained"
+                disabled={!isTotalValid}
+                color="primary"
+                sx={{
+                  m: "auto",
+                  display: "flex",
+                  my: 4,
+                  alignItems: "center",
+                }}
+              >
+                {loading ? (
+                  <>
+                    Analyzing{" "}
+                    <CircularProgress
+                      color="inherit"
+                      size={18}
+                      style={{ marginLeft: "4px" }}
+                    />
+                  </>
+                ) : (
+                  <>
+                    Generate Interview Questions
+                    {/* <FontAwesomeIcon
                   style={{ marginLeft: "6px" }}
                   icon={faArrowCircleRight}
                 /> */}
-                </>
-              )}
-            </BeyondResumeButton>
-          )}
-        </>
+                  </>
+                )}
+              </BeyondResumeButton>
+            )}
+          </>
+        )
       )}
 
       {qnResponse && simulatorMode !== "adaptive" && (

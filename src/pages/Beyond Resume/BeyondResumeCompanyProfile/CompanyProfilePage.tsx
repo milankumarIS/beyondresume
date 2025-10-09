@@ -19,9 +19,9 @@ import { useHistory } from "react-router-dom";
 import { useTheme } from "../../../components/context/ThemeContext";
 import { getUserId } from "../../../services/axiosClient";
 import { searchDataFromTable } from "../../../services/services";
+import color from "../../../theme/color";
 import { CompanyHeaderSection } from "./sections/CompanyHeaderSection";
 import { OverviewTab } from "./sections/OverViewTab";
-import color from "../../../theme/color";
 
 export const CompanyProfilePage: React.FC = () => {
   const [tab, setTab] = useState(0);
@@ -196,7 +196,7 @@ export const CompanyProfilePage: React.FC = () => {
         <Box
           sx={{
             // background: color.background2,
-                      background: theme === "dark" ? color.background2 : "white",
+            background: theme === "dark" ? '#082028' : '#e3ecf5',
             mx: 2,
             borderRadius: 4,
             boxShadow: "0px 0px 10px #00000021",

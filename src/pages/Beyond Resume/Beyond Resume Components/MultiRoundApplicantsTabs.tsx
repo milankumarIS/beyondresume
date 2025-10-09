@@ -6,6 +6,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Box, Card, Tab, Tabs, Typography } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { useHistory } from "react-router";
+import { useRoundContext } from "../../../components/context/RoundContext";
 import {
   formatDateWithSuffix,
   formatRoundTS,
@@ -76,13 +77,15 @@ const MultiRoundApplicantsTabs: React.FC<MultiRoundApplicantsTabsProps> = ({
   const [rounds, setRounds] = useState<Round[]>([]);
   const [applicantRounds, setApplicantRounds] = useState<ApplicantRound[]>([]);
   const [applicants, setApplicants] = useState<Applicant[]>([]);
-  const [activeRound, setActiveRound] = useState<string | null>(null);
-  const [activeStatus, setActiveStatus] = useState<StatusKey>("PASS");
+  const { activeRound, activeStatus, setActiveRound, setActiveStatus } =
+    useRoundContext();
   const history = useHistory();
   const size = 80;
   const strokeWidth = 20;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
+    const [loading, setLoading] = useState<boolean>(true);
+  
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -107,9 +110,10 @@ const MultiRoundApplicantsTabs: React.FC<MultiRoundApplicantsTabsProps> = ({
         const applicantsData: Applicant[] = applicantsRes?.data?.data || [];
         setApplicants(applicantsData);
 
-        if (roundsData.length > 0) {
-          setActiveRound(roundsData[0].roundId);
-        }
+        setLoading(false)
+        // if (roundsData.length > 0) {
+        //   setActiveRound(roundsData[0].roundId);
+        // }
       } catch (err) {
         console.error("Error fetching multi-round data", err);
       }
@@ -160,6 +164,31 @@ const MultiRoundApplicantsTabs: React.FC<MultiRoundApplicantsTabsProps> = ({
     };
   });
 
+
+    if (loading) {
+    return (
+      <Box
+        sx={{
+          minHeight: "50vh",
+          width: "100%",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          flexDirection: "column",
+        }}
+      >
+        <div className="newtons-cradle">
+          <div className="newtons-cradle__dot"></div>
+          <div className="newtons-cradle__dot"></div>
+          <div className="newtons-cradle__dot"></div>
+          <div className="newtons-cradle__dot"></div>
+        </div>
+        <Typography variant="h6" sx={{ mb: 2 }}>
+          Loading
+        </Typography>
+      </Box>
+    );
+  }
   return (
     <div>
       <Box
@@ -167,6 +196,7 @@ const MultiRoundApplicantsTabs: React.FC<MultiRoundApplicantsTabsProps> = ({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
+          maxWidth:'70vw',
         }}
       >
         <Tabs
@@ -208,7 +238,7 @@ const MultiRoundApplicantsTabs: React.FC<MultiRoundApplicantsTabsProps> = ({
         </Tabs>
       </Box>
 
-      <Box sx={{ background: "#d1d1d13f", pt: 3, pb: 2, borderRadius: 2 }}>
+      <Box sx={{ background: "#d1d1d13f", pt: 3, p: 2, borderRadius: 2 }}>
         <Box
           sx={{
             display: "flex",

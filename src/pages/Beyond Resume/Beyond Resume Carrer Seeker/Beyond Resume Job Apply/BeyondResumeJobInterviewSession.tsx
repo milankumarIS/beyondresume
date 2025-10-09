@@ -2,6 +2,7 @@ import { Box } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router";
 import { decryptPayload } from "../../../../components/util/CommonFunctions";
+import { BeyondResumeButton } from "../../../../components/util/CommonStyle";
 import CYS from "../../../../services/Secret";
 import {
   getUserAnswerFromAi,
@@ -9,6 +10,7 @@ import {
 } from "../../../../services/services";
 import BeyondResumeLoader from "../../Beyond Resume Components/BeyondResumeLoader";
 import ExamSession from "../../ExamSession";
+import ExamSessionWritten from "../../ExamSessionWritten";
 
 const BeyondResumeJobInterviewSession = () => {
   // const location = useLocation();
@@ -21,7 +23,9 @@ const BeyondResumeJobInterviewSession = () => {
   const [dynamicInterviewQuestion, setDynamicInterviewQuestion] = useState("");
   const [loading, setLoading] = useState(true);
   const [progress, setProgress] = useState(0);
-
+  const isWrittenExamPage = location.pathname.startsWith(
+    "/beyond-resume-jobInterviewSession-written"
+  );
   const { token } = useParams<{ token: string }>();
   const data = token ? decryptPayload(token, CYS) : null;
 
@@ -29,17 +33,31 @@ const BeyondResumeJobInterviewSession = () => {
 
   const { brJobId, roundId } = data;
 
-  useEffect(() => {
-    const elem = document.documentElement;
-    if (elem.requestFullscreen) elem.requestFullscreen();
-    else if ((elem as any).webkitRequestFullscreen)
-      (elem as any).webkitRequestFullscreen();
-    else if ((elem as any).msRequestFullscreen)
-      (elem as any).msRequestFullscreen();
-  }, []);
+  // useEffect(() => {
+  //   const elem = document.documentElement;
+  //   if (elem.requestFullscreen) elem.requestFullscreen();
+  //   else if ((elem as any).webkitRequestFullscreen)
+  //     (elem as any).webkitRequestFullscreen();
+  //   else if ((elem as any).msRequestFullscreen)
+  //     (elem as any).msRequestFullscreen();
+  // }, []);
+
+  const [showButton, setShowButton] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
+      setProgress(0);
+
+      let currentProgress = 0;
+      const fakeProgressInterval = setInterval(() => {
+        currentProgress += Math.floor(Math.random() * 10);
+        if (currentProgress >= 90) {
+          currentProgress = 90;
+          clearInterval(fakeProgressInterval);
+        }
+        setProgress(currentProgress);
+      }, 900);
+
       try {
         const result: any = await searchListDataFromTable("brJobApplicant", {
           brJobApplicantId: brJobId,
@@ -117,25 +135,17 @@ const BeyondResumeJobInterviewSession = () => {
                 `.trim();
 
         const aiRes = await getUserAnswerFromAi({ question: fullCommand });
-        // console.log(aiRes);
         const generatedText =
           aiRes.data.data.candidates[0].content.parts[0].text;
 
         setDynamicInterviewQuestion(generatedText);
 
-        setProgress(0);
+        clearInterval(fakeProgressInterval);
 
-        let currentProgress = 0;
-        const fakeProgressInterval = setInterval(() => {
-          currentProgress += Math.floor(Math.random() * 10);
-          if (currentProgress >= 90) {
-            currentProgress = 90;
-            clearInterval(fakeProgressInterval);
-          }
-          setProgress(currentProgress);
-        }, 900);
+        // Smoothly go to 100%
+        setProgress(100);
 
-        setLoading(false);
+        setShowButton(true);
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -144,16 +154,38 @@ const BeyondResumeJobInterviewSession = () => {
     fetchData();
   }, []);
 
-  // console.log(roundData);
-
-  // console.log(jobsData[0]?.jobInterviewQuestions);
-
   return (
     <Box>
       {loading ? (
-        <BeyondResumeLoader open={loading} progress={progress} />
+        <>
+          <BeyondResumeLoader
+            open={loading}
+            progress={progress}
+            actionButton={
+              showButton && (
+                <BeyondResumeButton onClick={() => setLoading(false)}>
+                  Start Exam
+                </BeyondResumeButton>
+              )
+            }
+          />
+        </>
       ) : (
-        jobsData[0] && (
+        jobsData[0] &&
+        (isWrittenExamPage ? (
+          <ExamSessionWritten
+            roundData={roundData}
+            jobsData={jobsData}
+            brJobId={brJobId}
+            response={dynamicInterviewQuestion}
+            interviewDuration={
+              jobsData[0]?.roundType === "multiple"
+                ? roundData?.interviewDuration
+                : jobsData[0]?.interviewDuration
+            }
+            isAdaptive={isAdaptive}
+          />
+        ) : (
           <ExamSession
             roundData={roundData}
             jobsData={jobsData}
@@ -166,7 +198,7 @@ const BeyondResumeJobInterviewSession = () => {
             }
             isAdaptive={isAdaptive}
           />
-        )
+        ))
       )}
     </Box>
   );

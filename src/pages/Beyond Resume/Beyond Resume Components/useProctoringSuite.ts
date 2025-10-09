@@ -26,12 +26,12 @@ export const useProctoringSuite = (
     let stop = false;
     let apiRunning = false;
 
-    // Draw video continuously on canvas
     const drawVideo = () => {
       if (stop) return;
       const video = videoRef.current;
       const canvas = canvasRef.current;
-      if (video && canvas) {
+
+      if (video && canvas && video.videoWidth && video.videoHeight) {
         const ctx = canvas.getContext("2d");
         if (ctx) {
           canvas.width = video.videoWidth;
@@ -39,21 +39,23 @@ export const useProctoringSuite = (
           ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
         }
       }
+
       requestAnimationFrame(drawVideo);
     };
 
     drawVideo();
 
-    // Function to send frame to API
     const sendFrameToApi = async () => {
       if (apiRunning || stop) return;
-      apiRunning = true;
 
       const video = videoRef.current;
-      if (!video) {
-        apiRunning = false;
+      if (!video || !video.videoWidth || !video.videoHeight) {
+        // Video not ready yet, retry after 100ms
+        setTimeout(sendFrameToApi, 100);
         return;
       }
+
+      apiRunning = true;
 
       const tempCanvas = document.createElement("canvas");
       tempCanvas.width = video.videoWidth;
@@ -63,7 +65,9 @@ export const useProctoringSuite = (
 
       tempCanvas.toBlob(async (blob) => {
         if (!blob) {
+          // Retry after 100ms if blob is null
           apiRunning = false;
+          setTimeout(sendFrameToApi, 100);
           return;
         }
 
@@ -71,12 +75,14 @@ export const useProctoringSuite = (
           const formData = new FormData();
           formData.append("image", blob, "frame.png");
 
-          const response = await fetch("https://br.skillablers.com/api/detect/", {
-            method: "POST",
-            body: formData,
-          });
+          const response = await fetch(
+            "https://br.skillablers.com/api/detect/",
+            {
+              method: "POST",
+              body: formData,
+            }
+          );
           const data = await response.json();
-// console.log(data);
 
           setResults({
             faces: data.faceResult?.faceCount ?? 0,
@@ -86,15 +92,15 @@ export const useProctoringSuite = (
           console.warn("Detection API failed:", err);
         } finally {
           apiRunning = false;
-          if (!stop) sendFrameToApi(); 
+          if (!stop) sendFrameToApi(); // Schedule next frame
         }
       }, "image/jpeg");
     };
 
-    // Start first API call after 1 second
+    // Start first API call after a small delay
     const timer = setTimeout(() => {
       if (!stop) sendFrameToApi();
-    }, 1000);
+    }, 200);
 
     return () => {
       stop = true;

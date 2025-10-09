@@ -1,7 +1,7 @@
 import { Box, Button, Typography } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { useTheme } from "../../../../components/context/ThemeContext";
-import { getUserId } from "../../../../services/axiosClient";
+import { getUserId, getUserName } from "../../../../services/axiosClient";
 import { brAnalytics } from "../../../../services/services";
 
 export const OverviewTab: React.FC<{ companyInfo: any }> = ({
@@ -12,8 +12,9 @@ export const OverviewTab: React.FC<{ companyInfo: any }> = ({
   useEffect(() => {
     const fetchJobsData = async () => {
       try {
-        const res1 = await brAnalytics({ userId: getUserId() });
+        const res1 = await brAnalytics({ userName: getUserName() });
         setJobsData(res1?.data?.data);
+        
       } catch (error) {
         console.error("Error fetching job stats:", error);
       }

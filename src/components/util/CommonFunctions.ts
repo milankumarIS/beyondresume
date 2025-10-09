@@ -494,6 +494,12 @@ type InterviewQuestionAnswer = {
 
 type Applicant = {
   fullName?: string;
+  jobTitle?: string;
+  email?: string;
+  phone?: string;
+  experience?: string;
+  brJobApplicantStatus?: string;
+  interviewScore?: number;
   interviewQuestionAnswer?: InterviewQuestionAnswer[];
 };
 
@@ -514,10 +520,20 @@ export const generateInterviewReportExcel = async (
   });
   const categories = Array.from(categorySet);
 
-  // Step 2: Header Row Setup
-  const headerRow1 = ["Student Name"];
-  let colIndex = 2;
+  const baseHeaders = [
+    "Student Name",
+    "Job Title",
+    "Email",
+    "Phone",
+    "Experience",
+    "Assessment",
+    "Score",
+  ];
 
+  const headerRow1 = [...baseHeaders];
+  let colIndex = baseHeaders.length + 1;
+
+  // Merge category headers
   categories.forEach((category) => {
     headerRow1.push(
       "Not Answered",
@@ -548,26 +564,8 @@ export const generateInterviewReportExcel = async (
     colIndex += 6;
   });
 
-  worksheet.getCell("A1").value = "Category Name";
-  worksheet.getCell("A1").font = { bold: true, color: { argb: "FF000000" } };
-  worksheet.getCell("A1").fill = {
-    type: "pattern",
-    pattern: "solid",
-    fgColor: { argb: "FFD9E1F2" },
-  };
-  worksheet.getCell("A1").border = {
-    top: { style: "thin" },
-    left: { style: "thin" },
-    bottom: { style: "thin" },
-    right: { style: "thin" },
-  };
-  worksheet.getCell("A1").alignment = {
-    horizontal: "center",
-    vertical: "middle",
-  };
-
+  // Add final header row (Row 2)
   worksheet.addRow(headerRow1);
-
   const headerRow = worksheet.getRow(2);
   headerRow.values = headerRow1;
   headerRow.eachCell((cell) => {
@@ -590,8 +588,24 @@ export const generateInterviewReportExcel = async (
     };
   });
 
+  // Step 3: Add applicant rows
   for (const applicant of applicants) {
-    const row = [applicant.fullName || "N/A"];
+    const assessmentStatus =
+      applicant.brJobApplicantStatus === "CONFIRMED" ? "Assessed" : "Pending";
+
+    // Convert score to numeric safely
+    const numericScore = Number(applicant.interviewScore) || 0;
+    const scoreValue = `${numericScore}%`;
+
+    const rowData = [
+      applicant.fullName || "N/A",
+      applicant.jobTitle || "N/A",
+      applicant.email || "N/A",
+      applicant.phone || "N/A",
+      applicant.experience || "N/A",
+      assessmentStatus,
+      scoreValue,
+    ];
 
     for (const category of categories) {
       const questions = (applicant.interviewQuestionAnswer || []).filter(
@@ -605,7 +619,7 @@ export const generateInterviewReportExcel = async (
       const percent = (val: number) =>
         total === 0 ? "0%" : `${Math.round((val / total) * 100)}%`;
 
-      row.push(
+      rowData.push(
         `${notAnswered}`,
         percent(notAnswered),
         `${right}`,
@@ -615,9 +629,37 @@ export const generateInterviewReportExcel = async (
       );
     }
 
-    worksheet.addRow(row);
+    const newRow = worksheet.addRow(rowData);
+
+    // Assessment cell color
+    const assessmentCell = newRow.getCell(6);
+    assessmentCell.fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: {
+        argb:
+          applicant.brJobApplicantStatus === "CONFIRMED"
+            ? "FF92D050" // Green for Assessed
+            : "FFFFC000", // Orange for Pending
+      },
+    };
+    assessmentCell.font = { bold: true, color: { argb: "FF000000" } };
+
+    // Score cell color based on score value
+    const scoreCell = newRow.getCell(7);
+    let color = "FFFF0000"; // default red
+    if (numericScore >= 70) color = "FF92D050"; // green
+    else if (numericScore >= 40) color = "FFFFC000"; // orange
+
+    scoreCell.fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: color },
+    };
+    scoreCell.font = { bold: true, color: { argb: "FF000000" } };
   }
 
+  // Step 4: Styling all rows
   worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
     if (rowNumber <= 2) return;
     row.eachCell((cell) => {
@@ -646,6 +688,10 @@ export const generateInterviewReportExcel = async (
 
   saveAs(blob, `Interview_Report_${studentName}.xlsx`);
 };
+
+
+
+
 
 export const speakWithElevenLabs = async (text: string) => {
   const apiKey = "sk_354e08957cfc41aa3c29f78b15c8995ffb7a0419245afd0b";

@@ -65,6 +65,8 @@ interface InterviewData {
 }
 
 const BeyondResumeInterviewOverview = () => {
+  const { theme } = useTheme();
+
   const [data, setData] = useState<InterviewData | null>(null);
   const [proctoringAuditData, setproctoringAuditData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -86,7 +88,7 @@ const BeyondResumeInterviewOverview = () => {
       const canvas = await html2canvas(profileRef.current, {
         scale: 2,
         useCORS: true,
-         backgroundColor: theme === "dark" ? color.newbg : "white",
+        backgroundColor: theme === "dark" ? color.newbg : "white",
       });
 
       const imgData = canvas.toDataURL("image/png");
@@ -119,10 +121,11 @@ const BeyondResumeInterviewOverview = () => {
 
   useEffect(() => {
     searchListDataFromTable("brProcteringAudit", {
-      brJobApplicantId: 176,
+      brJobApplicantId: brJobApplicantId,
       roundId: "round-1",
     }).then((result: any) => {
       setproctoringAuditData([...result?.data?.data]);
+      // console.log(result);
     });
   }, []);
 
@@ -242,7 +245,6 @@ const BeyondResumeInterviewOverview = () => {
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference * (1 - progress);
-  const { theme } = useTheme();
 
   return (
     <Box
@@ -676,52 +678,54 @@ const BeyondResumeInterviewOverview = () => {
           />
         </Box>
       )}
-      {getUserRole() === "TALENT PARTNER" && !hideSensitive && (
-        <>
-          <Typography variant="h5" mb={2} mt={4}>
-           Exam Session Snapshots
-          </Typography>
-          <Box
-            flexDirection={{ xs: "column", md: "row" }}
-            sx={{
-              display: "flex",
-              gap: 2,
-              alignItems: "center",
-              justifyContent: "space-around",
-              overflowX: "hidden",
-            }}
-          >
-            {proctoringAuditData.map((audit) => (
-              <Card
-                key={audit.brProcteringAuditId}
-                sx={{ borderRadius: 3, mb: 2 }}
-              >
-                {audit.artefactType === "image" && (
-                  <img
-                    src={audit.artefactRemark}
-                    alt={audit.auditRemark}
-                    style={{
-                      width: "100%",
-                      height: 180,
-                      objectFit: "cover",
-                      borderTopLeftRadius: "12px",
-                      borderTopRightRadius: "12px",
-                    }}
-                  />
-                )}
-                <CardContent>
-                  <Typography variant="body1" fontWeight={500}>
-                    {audit.auditRemark}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    {new Date(audit.createdAt).toLocaleString()}
-                  </Typography>
-                </CardContent>
-              </Card>
-            ))}
-          </Box>
-        </>
-      )}
+      {getUserRole() === "TALENT PARTNER" &&
+        !hideSensitive &&
+        proctoringAuditData.length > 0 && (
+          <>
+            <Typography variant="h5" mb={2} mt={4}>
+              Exam Session Snapshots
+            </Typography>
+            <Box
+              flexDirection={{ xs: "column", md: "row" }}
+              sx={{
+                display: "flex",
+                gap: 2,
+                alignItems: "center",
+                justifyContent: "space-around",
+                overflowX: "hidden",
+              }}
+            >
+              {proctoringAuditData.map((audit) => (
+                <Card
+                  key={audit.brProcteringAuditId}
+                  sx={{ borderRadius: 3, mb: 2 }}
+                >
+                  {audit.artefactType === "image" && (
+                    <img
+                      src={audit.artefactRemark}
+                      alt={audit.auditRemark}
+                      style={{
+                        width: "100%",
+                        height: 180,
+                        objectFit: "cover",
+                        borderTopLeftRadius: "12px",
+                        borderTopRightRadius: "12px",
+                      }}
+                    />
+                  )}
+                  <CardContent>
+                    <Typography variant="body1" fontWeight={500}>
+                      {audit.auditRemark}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {new Date(audit.createdAt).toLocaleString()}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              ))}
+            </Box>
+          </>
+        )}
 
       {data.interviewVideo && (
         <Box p={2}>

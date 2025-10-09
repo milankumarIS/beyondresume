@@ -10,16 +10,16 @@ import { ProtectedRoute } from './components/shared/ProtectedRoute';
 import './styles/global.css';
 import fontTheme from './theme/fontTheme';
 
-import { NotificationProvider } from './components/util/NotificationContext';
+import { NotificationProvider } from './components/context/NotificationContext';
 import './components/util/Service.css';
 // import Letterhead from './components/util/Letterhead';
 
 import SSORedirectHandler from './components/Authentication/SSORedirectHandler';
 import LayoutContainer from './components/Layout/LayoutContainer';
-import { IndustryProvider } from './components/util/IndustryContext';
-import { ThemeProviderCustom } from './components/util/ThemeContext';
-import { UserDataProvider } from './components/util/UserDataContext';
-import { UserModuleRoleProvider } from './components/util/UserModuleRoleContext';
+import { IndustryProvider } from './components/context/IndustryContext';
+import { ThemeProviderCustom } from './components/context/ThemeContext';
+import { UserDataProvider } from './components/context/UserDataContext';
+import { UserModuleRoleProvider } from './components/context/UserModuleRoleContext';
 import BeyondResumeJobInterviewForm from './pages/Beyond Resume/Beyond Resume Carrer Seeker/Beyond Resume Job Apply/BeyondResumeJobInterviewForm';
 import BeyondResumeJobInterviewSession from './pages/Beyond Resume/Beyond Resume Carrer Seeker/Beyond Resume Job Apply/BeyondResumeJobInterviewSession';
 import BeyondResumeJobInterviewSessionWritten from './pages/Beyond Resume/Beyond Resume Carrer Seeker/Beyond Resume Job Apply/BeyondResumeJobInterviewSessionWritten';
@@ -47,6 +47,8 @@ import CandidateProfilePage from './pages/Beyond Resume/BeyondResumeProfile/Cand
 import BeyondResumePublicJobDetails from './pages/Beyond Resume/BeyondResumePublicJobDetails';
 import BeyondResumeQuestionBankForm from './pages/Beyond Resume/BeyondResumeQuestionBankForm';
 import BeyondResumeReadyToJoin from './pages/Beyond Resume/BeyondResumeReadyToJoin';
+import { RoundProvider } from './components/context/RoundContext';
+import { JobProvider } from './components/context/JobContext';
 // import { AvatarProvider } from './pages/Daily Education/Components/AvatarContext';
 
 const App: React.FC = () => {
@@ -85,6 +87,9 @@ const App: React.FC = () => {
               {/* <AvatarProvider> */}
               <ThemeProviderCustom>
               <IndustryProvider>
+              <JobProvider>
+              <RoundProvider>
+
 
               <ScrollToTopPage />
 
@@ -129,14 +134,14 @@ const App: React.FC = () => {
                   <ProtectedRoute path="/beyond-resume-myjobs-jobdetails/:brJobId" component={BeyondResumeJobDetails} />
                   <ProtectedRoute path="/beyond-resume-jobdetails/:brJobId" component={BeyondResumeJobDetails} />
                   <ProtectedRoute path="/beyond-resume-applicationJD/:brJobId" component={BeyondResumeJobDetails} />
-                  <ProtectedRoute path="/beyond-resume-jobedit/:brJobId" component={BeyondResumePartnerJobDetails} />
+                  <ProtectedRoute path="/beyond-resume-jobedit/:token" component={BeyondResumePartnerJobDetails} />
                   <ProtectedRoute path="/beyond-resume-practice" component={BeyondResumePractice} />
                   <ProtectedRoute path="/beyond-resume-interviewForm" component={BeyondResumeInterviewForm} />
                   <ProtectedRoute path="/beyond-resume-JobInterviewForm/:brJobId" component={BeyondResumeJobInterviewForm} />
                   <ProtectedRoute path="/beyond-resume-readyToJoin/:brJobId" component={BeyondResumeReadyToJoin} />
 
                   <ProtectedRoute path="/beyond-resume-jobInterviewSession/:token" component={BeyondResumeJobInterviewSession} />
-                  <ProtectedRoute path="/beyond-resume-jobInterviewSession-written/:token" component={BeyondResumeJobInterviewSessionWritten} />
+                  <ProtectedRoute path="/beyond-resume-jobInterviewSession-written/:token" component={BeyondResumeJobInterviewSession} />
                   <ProtectedRoute path="/beyond-resume-practiceInterviewSession/:token" component={BeyondResumePracticeInterviewSession} />
                   <ProtectedRoute path="/beyond-resume-interview-success" component={BeyondResumeInterviewSuccess} />
                   <ProtectedRoute path="/beyond-resume-jobApplications" component={BeyondResumeApplications} />
@@ -154,17 +159,15 @@ const App: React.FC = () => {
                   <ProtectedRoute path="/beyond-resume-fitment-analysis" component={JobFitmentPage} />
                  </UserDataProvider>
 
-              
-
-                </Switch>
+              </Switch>
               </LayoutContainer>
-                </div>
-              </IndustryProvider>
+              </div>
 
+              </RoundProvider>
+              </JobProvider>
+              </IndustryProvider>
               </ThemeProviderCustom>
                 
-                
-              {/* </AvatarProvider> */}
               </NotificationProvider>
             </UserModuleRoleProvider>
           </BrowserRouter>

@@ -4,9 +4,11 @@ import { Modal, Box, Typography, LinearProgress } from "@mui/material";
 const BeyondResumeLoader = ({
   open,
   progress,
+  actionButton,
 }: {
   open: boolean;
   progress?: number;
+  actionButton?: React.ReactNode;
 }) => {
   return (
     <Modal open={open}>
@@ -18,8 +20,8 @@ const BeyondResumeLoader = ({
         bgcolor="white"
         flexDirection="column"
       >
-         <img
-          src="/assets/Vector Smart Object3.png" 
+        <img
+          src="/assets/Vector Smart Object3.png"
           alt="Loading illustration"
           style={{ maxWidth: 250, marginBottom: 30 }}
         />
@@ -32,7 +34,9 @@ const BeyondResumeLoader = ({
         </div>
 
         <Typography variant="h6" sx={{ mb: 2, color: "black" }}>
-          Processing your Interview
+          {progress === 100
+            ? "You can start your interview now"
+            : "Processing your Interview"}
         </Typography>
 
         <Box width="60%" mb={2}>
@@ -52,6 +56,7 @@ const BeyondResumeLoader = ({
         <Typography variant="subtitle1" color="textSecondary">
           {progress}% Completed
         </Typography>
+        {actionButton && <div style={{ marginTop: 40 }}>{actionButton}</div>}
       </Box>
     </Modal>
   );

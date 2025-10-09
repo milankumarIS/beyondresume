@@ -1,15 +1,26 @@
 import { Box, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router";
+import { useIndustry } from "../../../components/context/IndustryContext";
+import { decryptPayload } from "../../../components/util/CommonFunctions";
+import GradientText from "../../../components/util/CommonStyle";
+import { getUserRole } from "../../../services/axiosClient";
+import CYS from "../../../services/Secret";
 import { searchListDataFromTable } from "../../../services/services";
+import BeyondResumeInterviewRounds from "./Beyond Resume Job Post/BeyondResumeInterviewRounds";
 import GeneratedAiQnaResponse from "./Beyond Resume Job Post/GeneratedAiQnaResponse";
 import JobDescriptionResponse from "./Beyond Resume Job Post/JobDescriptionResponse";
-import { getUserRole } from "../../../services/axiosClient";
-import GradientText from "../../../components/util/CommonStyle";
-import { useIndustry } from "../../../components/context/IndustryContext";
 
 const BeyondResumeJobDetails = () => {
-  const { brJobId } = useParams<any>();
+  const { token } = useParams<{ token: string }>();
+  const data = token ? decryptPayload(token, CYS) : null;
+
+  if (!data) return <div>Invalid or expired token</div>;
+
+  const brJobId = data;
+
+  // console.log(brJobId);
+
   const [jobsData, setJobsData] = useState<any>([]);
   const [loading, setLoading] = useState(true);
   const [jobStatus, setJobStatus] = useState("");
@@ -25,7 +36,6 @@ const BeyondResumeJobDetails = () => {
   };
 
   // console.log(jobsData);
-  
 
   useEffect(() => {
     fetchJobDetails();
@@ -97,14 +107,23 @@ const BeyondResumeJobDetails = () => {
             onJobUpdate={() => window.location.reload()}
           />
 
-          {getUserRole() !== "CAREER SEEKER" &&
+          {jobsData[0]?.roundType === "multiple" ? (
+            <BeyondResumeInterviewRounds
+              jobId={jobsData[0]?.jobId}
+              jobDescription={jobsData[0]?.jobDescriptions}
+              jobFormData={jobsData[0]}
+            />
+          ) : (
+            getUserRole() !== "CAREER SEEKER" &&
             jobsData[0]?.jobInterviewQuestions !== "No Questions Yet!" && (
               <GeneratedAiQnaResponse
                 status={jobStatus}
                 response={jobsData[0]?.jobInterviewQuestions}
                 jobId={jobsData[0]?.brJobId}
+                isPost={true}
               />
-            )}
+            )
+          )}
         </>
       )}
     </Box>

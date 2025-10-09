@@ -501,9 +501,9 @@ ${jobDescription}`;
                       }
                       sx={{ ...commonFormTextFieldSx, mb: 2 }}
                     >
-                      <MenuItem value="">
+                      {/* <MenuItem value="">
                         <em>None</em>
-                      </MenuItem>
+                      </MenuItem> */}
                       <MenuItem value="fixed">Fixed</MenuItem>
                       <MenuItem value="dynamic">Dynamic</MenuItem>
                     </TextField>
